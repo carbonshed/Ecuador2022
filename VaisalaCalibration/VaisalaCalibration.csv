@@ -1,0 +1,12 @@
+Calibrated Vaisala,,,,
+,,,,
+Omega name (current),Actual box/Vaisala,Vaisala Type,Location of vaisala (2021),Location of vaisala (2022)
+Station3,Station 2,new,stn 2,100m
+Box 3,Box 3,new,x,50m
+Box 1,Box 1,new,x,0m
+Stn 2,Box 4,new,x,Dead
+K600,K600,old,x,-10
+unnamed,2 - old,old,x,station 2
+Riveros 4,Riveros 4,old,x,Station 3
+Station 1, Station 1 (riveros 1),old,stn 1,Station 1
+Station 4,Station 4 (riveros 3),old,stn 4,Station 4
