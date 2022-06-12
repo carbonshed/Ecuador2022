@@ -219,38 +219,76 @@ df2$new_ave_adjusted <- rowMeans(df2[,c("Box1_adjusted","Box3_adjusted","stn2_ad
 
 ##plot
 plot(df2$new_ave_adjusted, df2$Box1_adjusted)
-model <- lm(new_ave_adjusted ~ Box1_adjusted, data = df2)
+model <- lm(new_ave_adjusted~Box1_adjusted , data = df2)
 summary(model)
+
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)   65.15813   55.39637   1.176    0.292    
+#Box1_adjusted  1.00054    0.01062  94.186 2.56e-09 ***
 
 plot(df2$new_ave_adjusted, df2$Box3_adjusted)
-model <- lm(new_ave_adjusted ~ Box3_adjusted, data = df2)
+model <- lm(new_ave_adjusted~Box3_adjusted, data = df2)
 summary(model)
+
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)   -6.27667   67.29104  -0.093    0.929    
+#Box3_adjusted  1.05036    0.01341  78.300 6.44e-09 ***
 
 plot(df2$new_ave_adjusted, df2$stn3_adjusted)
-model <- lm(new_ave_adjusted ~ stn3_adjusted, data = df2)
+model <- lm(new_ave_adjusted~stn3_adjusted, data = df2)
 summary(model)
 
+#Coefficients:
+#Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)   -13.686360  20.764343  -0.659    0.539    
+#stn3_adjusted   0.948723   0.003734 254.049 1.79e-11 ***
 #
 plot(df2$new_ave_adjusted, df2$Box6_adjusted)
-model <- lm(new_ave_adjusted ~ Box6_adjusted, data = df2)
+model <- lm(new_ave_adjusted~Box6_adjusted, data = df2)
 summary(model)
 
+#Coefficients:
+#Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)   -252.90310  122.34800  -2.067 0.174673    
+#Box6_adjusted    0.99484    0.02027  49.070 0.000415 ***
+  
 plot(df2$new_ave_adjusted, df2$K600_adjusted)
-model <- lm(new_ave_adjusted ~ K600_adjusted, data = df2)
+model <- lm(new_ave_adjusted~K600_adjusted, data = df2)
 summary(model)
+#Coefficients:
+#Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)   -105.52898   96.00750  -1.099    0.322    
+#K600_adjusted    1.06933    0.01922  55.625 3.55e-08 ***
 
 plot(df2$new_ave_adjusted, df2$Riveros4_adjusted)
-model <- lm(new_ave_adjusted ~ Riveros4_adjusted, data = df2)
+model <- lm(new_ave_adjusted~Riveros4_adjusted, data = df2)
 summary(model)
+#Coefficients:
+#Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)       -231.66433   43.29887   -5.35   0.0332 *  
+#  Riveros4_adjusted    1.08208    0.00659  164.20 3.71e-05 ***
 
 plot(df2$new_ave_adjusted, df2$stn01_adjusted)
-model <- lm(new_ave_adjusted ~ stn01_adjusted, data = df2)
+model <- lm(new_ave_adjusted~stn01_adjusted, data = df2)
 summary(model)
 
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)    -569.69971  351.99231  -1.619    0.166    
+#stn01_adjusted    0.94351    0.05857  16.109 1.68e-05 ***
+  
 plot(df2$new_ave_adjusted, df2$stn04_adjusted)
-model <- lm(new_ave_adjusted ~ stn01_adjusted, data = df2)
+model <- lm(new_ave_adjusted~stn01_adjusted, data = df2)
 summary(model)
+
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)    -569.69971  351.99231  -1.619    0.166    
+#stn01_adjusted    0.94351    0.05857  16.109 1.68e-05 ***
+  
 
 plot(df2$new_ave_adjusted, df2$Unnamed_adjusted)
-model <- lm(new_ave_adjusted ~ stn01_adjusted, data = df2)
+model <- lm(new_ave_adjusted~stn01_adjusted, data = df2)
 summary(model)
