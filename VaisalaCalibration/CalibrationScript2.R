@@ -280,15 +280,14 @@ summary(model)
 #stn01_adjusted    0.94351    0.05857  16.109 1.68e-05 ***
   
 plot(df2$new_ave_adjusted, df2$stn04_adjusted)
-model <- lm(new_ave_adjusted~stn01_adjusted, data = df2)
+model <- lm(new_ave_adjusted~stn04_adjusted, data = df2)
 summary(model)
 
 #Coefficients:
 #  Estimate Std. Error t value Pr(>|t|)    
-#(Intercept)    -569.69971  351.99231  -1.619    0.166    
-#stn01_adjusted    0.94351    0.05857  16.109 1.68e-05 ***
-  
+#(Intercept)    -771.61642  510.35289  -1.512    0.191    
+#stn04_adjusted    1.01746    0.08942  11.379 9.17e-05 *** 
 
 plot(df2$new_ave_adjusted, df2$Unnamed_adjusted)
-model <- lm(new_ave_adjusted~stn01_adjusted, data = df2)
+model <- lm(new_ave_adjusted~Unnamed_adjusted, data = df2)
 summary(model)
