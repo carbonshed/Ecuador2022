@@ -30,12 +30,12 @@ This is the final version of Rscript "WLBaroCorrected_2021-12-14"
 ```{r Hobo WL}
 #First the Hobos
 
-setwd(here::here("WaterLevel"))
+setwd(here::here("Water_Level"))
 all_files=list.files(pattern=".csv") #pulls out the csv files from CO2 folder
 sites_rp = sub('_[^_]+$', '', all_files)
 site_names=unique(sites_rp) #creates list of site names for following loop
 
-site_names = site_names[c(2:6)]
+#site_names = site_names[c(2:6)]
 #site_names = site_names[c(2,3,5,6)]
 
 #rm old files, if they exist
