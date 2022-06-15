@@ -191,3 +191,12 @@ write.csv(df_all, here::here("ProcessedData/df_long_2022-04-23.csv"),
           row.names = FALSE)
           
 ```
+
+```{calibration}
+stn01_cal <- df_corrected%>%filter(Station=="stn_01")
+stn01_cal$adjusted_ppm <- (stn01_cal$adjusted_ppm * 0.94351)- 569.69971
+
+#stn04_cal <- df_corrected%>%filter(Station=="stn_04")
+#stn04_cal$adjusted_ppm <- (stn04_cal$adjusted_ppm * 1.01746)- 771.61642
+
+```
