@@ -73,6 +73,13 @@ sites_rp = sapply(strsplit(all_files, "_"), function(x) x[4])
 site_names=unique(sites_rp) #creates list of site names for following loop
 #site_names=site_names[-2]
 
+# rename sites so they are easier to use (getting rid of #s and -s in the front)
+### sad im not very good at that 
+#xn10m <- "-10m"
+#"x0m" <- "0m"
+#"x50m" <- "50m"
+
+
 
 #rm old files, if they exist
 rm(CO2Data)
@@ -131,7 +138,19 @@ for (site in site_names){
 
 
 ```
+## Plot CO2 for Mobile Viasala
 
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(mobile,
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+## Plot CO2 for Mobile 2 Viasala 
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
@@ -139,6 +158,65 @@ plot_ly(mobile2,
   #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
+```
+
+
+## Plot CO2 for -10m Viasala 
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(xn10m,
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+## Plot CO2 for 0m Viasala
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(x0m,
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+## Plot CO2 for 50m Viasala
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(x50m,
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+## Plot all CO2 data together 
+```{r check CO2 data plot, echo=FALSE}
+
+## join data frames to make plotting easier?
+df = mobile %>% full_join(mobile2, by="DateTime") %>% full_join(xn10m, by="DateTime") %>% full_join(x0m, by="DateTime") %>% full_join(x50m, by="DateTime")
+
+##check data
+#plot_ly(mobile2, x = ~DateTime, y = ~ppm,  name = 'Mobile2', type = 'scatter', mode = 'markers')%>%
+ #   add_trace(mobile, x = ~DateTime, y = ~ppm, name = 'Mobile', type = 'scatter', mode = 'markers')
+            
+
+plot_ly(df, x = ~DateTime, y = ~ppm,  name = 'Mobile2', type = 'scatter', mode = 'markers')
+#%>%
+ # add_trace(df(mobile), x = ~DateTime, y = ~ppm, name = 'Mobile', type = 'scatter', mode = 'markers')     
+
+#fig <- plot_ly(mobile, x = ~DateTime, y = ~ppm, name = 'Mobile', type = 'scatter', mode = 'markers')
+#fig <- fig %>% add_trace(mobile2, x = ~DateTime, y = ~ppm, name = 'Mobile2', type = 'scatter', mode = 'markers', inherit=FALSE)
+#fig <- fig %>% add_trace(xn10m, x = ~DateTime, y = ~ppm, name = '-10 m', type = 'scatter', mode = 'markers', inherit=FALSE)
+#fig <- fig %>% add_trace(x0m, x = ~DateTime, y = ~ppm, name = '0 m', type = 'scatter', mode = 'markers', inherit=FALSE)
+#fig <- fig %>% add_trace(x50m, x = ~DateTime, y = ~ppm, name = '50 m', type = 'scatter', mode = 'markers', inherit=FALSE)
+#fig()
+
+#filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
 ```
 clean data
 
