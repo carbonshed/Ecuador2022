@@ -196,7 +196,24 @@ write.csv(df_all, here::here("ProcessedData/df_long_2022-04-23.csv"),
 stn01_cal <- df_corrected%>%filter(Station=="stn_01")
 stn01_cal$adjusted_ppm <- (stn01_cal$adjusted_ppm * 0.94351)- 569.69971
 
+stn02_cal <- df_corrected%>%filter(Station=="stn_02")
+
+stn03_cal <- df_corrected%>%filter(Station=="stn_03")
+
 #stn04_cal <- df_corrected%>%filter(Station=="stn_04")
 #stn04_cal$adjusted_ppm <- (stn04_cal$adjusted_ppm * 1.01746)- 771.61642
 
 ```
+
+```{plot_cal}
+stations <- rbind(stn01_cal,stn02_cal,stn03_cal)
+
+ggplot(data = stations#%>%filter(Station=='adjusted_ppm')
+       %>%filter(ppm < 15000)
+         , aes(DateTime, ppm)) +
+  geom_point(color = "steelblue") +
+  labs(#title = "ppm  stations",
+       y = "ppm", x = "") + 
+  facet_wrap(~ Station)
+  
+  
