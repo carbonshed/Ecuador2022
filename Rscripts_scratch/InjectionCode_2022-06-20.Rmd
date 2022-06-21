@@ -16,46 +16,21 @@ library(here)
 ```
 
 ## About
-In this file I clean and collect CO2 data collected at Roger's Road salt injection from May 26, 2022
+In this file I clean and collect CO2 data collected at Cayambe Coca, EC on June 20, 2022
 
 ### We start by reading in an then cleaning data, file 
 
 ```{r cars}
-## I'm not sure that we need this code chunk
-setwd(here::here("Injections/2022-06-06/CO2"))
-## Read files into R
-
-File_name <- "Inj_CO2_xn10m_2022-06-06.csv"
-
-CO2Data <- read.csv(File_name, skip=6, header = TRUE)
-CO2Data=CO2Data[,1:3]
-colnames(CO2Data) <- c("Date","Time","ppm")
-
-#DOWNLOAD DATA using UNC computer
-CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
-
-#DOWNLOAD DATA using USFQ computer
-CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%d/%m/%y %H:%M:%S", tz = "UTC")
-
-
-#Clean data
-#CO2Data <- CO2Data %>% filter(DateTime < as.POSIXct("2021-10-02 21:45:00", tz = "UTC") | DateTime > as.POSIXct("2021-10-20 13:15:00", tz = "UTC"))
-
-
-#plot pressure
-#plot_ly(CO2_02%>% filter(ppm <  5000), x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
-#plot_ly(CO2_03, x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
-#plot_ly(CO2Data, x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
-
 ```
 
 
 
 ## Do loop
+pulls out CO2 files from injection and merges them together; also corrects time and date 
 
 ```{r pressure, echo=FALSE}
 
-setwd(here::here("Injections/2022-06-06/CO2"))
+setwd(here::here("Injections/2022-06-20/CO2"))
 
 all_files=list.files(pattern=".csv")        #pulls out the csv files from WL folder in HOBOware folder
 
@@ -130,15 +105,15 @@ for (site in site_names){
 ```
 
 
-## Clean up CO2 data- remove everything after 16:00 on 2022-06-06
+## Clean up CO2 data- if necessary but for this injection we downloaded vaisalas right away
 ```{r pressure, echo=FALSE}
-xn10m = filter(xn10m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
+#xn10m = filter(xn10m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
 
-x10m = filter(x10m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+#x10m = filter(x10m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
 
-x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+#x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
 
-x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+#x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
 
 ```
 
@@ -147,55 +122,45 @@ x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
-plot_ly(xn10m,
+plot_ly(xn10,
   #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
 
 
-## Plot CO2 for Viasala @ 10m
+## Plot CO2 for Viasala @ 0m
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
-plot_ly(x10m,
+plot_ly(x0m,
   #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
 
 
-## Plot CO2 for Viasala @ 50m
+## Plot CO2 for Viasala @15m
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
-plot_ly(x50m,
+plot_ly(x15,
   #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
 
 
-## Plot CO2 for Viasala @50m
+## Plot CO2 for Viasala @30m
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
-plot_ly(x50m,
+plot_ly(x30,
   #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
 
-
-## Plot CO2 for Viasala @ 100m
-```{r check CO2 data plot, echo=FALSE}
-
-##check data
-plot_ly(x100m,
-  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
-    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
-
-```
 
 
 ## Plot all CO2 data together 
@@ -203,7 +168,7 @@ plot_ly(x100m,
 
 # join data frames to make plotting easier
 
-df_new <- rbind(xn10m, x10m, x50m, x100m)
+df_new <- rbind(xn10, x0m, x15, x30)
 
 # use facet wrap to plot multiple stations
 
@@ -220,6 +185,21 @@ together_plot
 #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
 ```
 ## Data Cleaning -- need to work on this section and correct for pressure and temp
+CORRECT FOR PRESSURE AND TEMPERATURE - HAVE NOT DONE THIS YET AS OF 2022-06-21
+
+more notes for this specific injection 
+ 
+vaisala @ -10 m 
+R37297 K600 old 
+
+vaisala @ 0 m
+Box 1 New
+
+vaisala @ 15m 
+Box 3 new
+
+vaisala @ 30m 
+R37391 Station 3
 
 ```{r plot, echo=FALSE}
 
@@ -248,35 +228,3 @@ mean50m = mean(cleaned_50$ppm)
 ```
 
 
-#bind and plot
-
-```{r plot, echo=FALSE}
-```title: "InjectionCode_2022-06-20"
-author: "Kayla Emerson"
-date: "6/21/2022"
-output: html_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
