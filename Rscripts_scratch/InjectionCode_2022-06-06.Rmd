@@ -142,6 +142,7 @@ plot_ly(x50m,
 
 
 ## Plot CO2 for 100m Viasala
+this data may be irrelevant because we don't think the CO2 made it to 100m
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
@@ -156,16 +157,16 @@ plot_ly(x100m,
 
 # join data frames to make plotting easier
 
-df_new <- rbind(xn10m, x10m, x50m, x100m)
+df_new <- rbind(xn10m, x10m, x50m)
 
 # use facet wrap to plot multiple stations
 
 together_plot <- ggplot(df_new, aes(DateTime, ppm, color = Station)) +
-  geom_point(size = 2) +
-  xlab(NULL) +
-  ylab(NULL)
+  geom_point(size = 1) +
+  xlab("time") +
+  ylab("ppm")
 
-together_plot + facet_wrap(~Station, ncol= 3, scales = "free")
+together_plot + facet_wrap(~Station, ncol= 3, scales = "fixed")
 
 together_plot
 
