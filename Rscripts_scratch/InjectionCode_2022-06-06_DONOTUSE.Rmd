@@ -17,11 +17,51 @@ library(here)
 ```
 
 ## About
+<<<<<<< HEAD
+In this file I clean and collect CO2 data collected at Cayambe Coca, EC on June 6, 2022
+
+### We start by reading in an then cleaning data, file 
+
+```{r cars}
+## I'm not sure that we need this code chunk
+#setwd(here::here("Injections/2022-06-06/CO2"))
+## Read files into R
+
+#File_name <- "Inj_CO2_xn10m_2022-06-06.csv"
+
+#CO2Data <- read.csv(File_name, skip=6, header = TRUE)
+#CO2Data=CO2Data[,1:3]
+#colnames(CO2Data) <- c("Date","Time","ppm")
+
+#DOWNLOAD DATA using UNC computer
+#CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
+
+#DOWNLOAD DATA using USFQ computer
+#CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%d/%m/%y %H:%M:%S", tz = "UTC")
+
+
+#Clean data
+#CO2Data <- CO2Data %>% filter(DateTime < as.POSIXct("2021-10-02 21:45:00", tz = "UTC") | DateTime > as.POSIXct("2021-10-20 13:15:00", tz = "UTC"))
+
+
+#plot pressure
+#plot_ly(CO2_02%>% filter(ppm <  5000), x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
+#plot_ly(CO2_03, x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
+#plot_ly(CO2Data, x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
+
+```
+
+
+
+## Do loop to read in csv files and compile them together
+
+=======
 
 In this file I clean and collect CO2 data collected at Cayambe Coca, EC salt injection from June 6, 2022
 
 ### We start by reading in an then cleaning data, file 
 
+>>>>>>> f2bd05646d9a1cd712745f9286e135e85a07adaa
 ```{r pressure, echo=FALSE}
 setwd(here::here("Injections/2022-06-06/CO2"))
 
@@ -95,27 +135,31 @@ for (site in site_names){
 ```
 
 ## Clean up CO2 data- remove everything after 16:00 on 2022-06-06
-This is when we stopped collecting data
+<<<<<<< HEAD
 We flipped station 10m and 50m because they were most likely mixed up when downloading data. We are also not analyzing the viasala data from 100m because it the CO2 slug did not make it through. But, the data is here if we want to use it at some point. 
 
 ```{r pressure, echo=FALSE}
+# 
+=======
+This is when we stopped collecting data
+
+```{r pressure, echo=FALSE}
+>>>>>>> f2bd05646d9a1cd712745f9286e135e85a07adaa
 xn10m = filter(xn10m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
 
 x10m = filter(x10m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
 
 x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
 
-x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+#x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+
+# Notes from the notebook to decipher which viasala box was at each station
+
+# x50m is an old Viasala labeled box 1 
+# x10m is an old viasala labeled box 6
+# xn10m is a new viasala labeled box 1
 
 ```
-
-## Notes from the notebook to decipher which viasala box was at each station
-
-x50m is an old Viasala labeled box 1 
-x10m is an old viasala labeled box 6
-xn10m is a new viasala labeled box 1
-
-
 
 ## Correct viasalas temperature and pressure with HOBO data for the time period we collected data
 ```{r check CO2 data plot, echo=FALSE}
@@ -123,42 +167,23 @@ xn10m is a new viasala labeled box 1
 setwd(here::here("Injections/2022-06-06"))
 
 # first, read in WL hobo at -10m 
-waterlevel_n10 <- read.csv("Inj_TEMP_-10m_2022-06-06.csv", skip = 1)
-waterlevel_n10 <- waterlevel_n10[,c(2:4)]
-colnames(waterlevel_n10) <- c("DateTime", "WL_Pressure", "Temp")
+waterlevel_n10 <- read_csv("TEMP_xn10m_2022-06-06")
 
 # format DateTime in WL 
-waterlevel_n10$DateTime <- as.POSIXct(paste(waterlevel_n10$Date, waterlevel_n10$Time), format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
+
 
 # correct kpa to hpa 
-##1 kPa = 10 hPa
-##1 kPa = 0.101972 m
-waterlevel_n10$WL_Pressure <- waterlevel_n10$WL_Pressure * 10
 
-#full_join to join CO2 data to WL by datetime
-df_corr <- full_join(df_new, waterlevel_n10, by = "DateTime" )
 
-# clean data <- remove NA values bc vaisala reads every 1s and WL reads ever 10s
-df_corr <- na.omit(df_corr) 
+#full_join to join co2 data to wl by datetime
 
-# create a new column for adjusted ppm
-df_corr$adjusted_ppm <- 0
-df_corr$adjusted_ppm <- as.numeric(df_corr$adjusted_ppm)
-df_corr$ppm <- as.numeric(df_corr$ppm)
+# Old Vaisala adjust for tempo and pressure
+#df_old$adjusted_ppm <- df_old$ppm * (1 + (1013 - df_old$Total_hPa) * 0.0015) * (1 - (25 - df_old$WLTemp_c) * 0.003)
 
-# Adjust old vaisala for temp and pressure
-## x10m and x50m are old , xn10m are new, ignore x100m
+#new vaisala adjust for peressure ONLY
 
-## FIX THIS LOOP- ADJUSTEDPPM SHOULD BE GREATER THAN OG PPM, WHY IS IT NOT WORKING
-
-for(observation in df_corr){
-  ifelse(df_corr$Station == "x10m" | df_corr$Station == "x50m", 
-         df_corr$adjusted_ppm <- df_corr$ppm * (1 + (1013 - df_corr$WL_Pressure) * 0.0015) * (1 - (25 - df_corr$Temp) * 0.003, 
-         df_corr$adjusted_ppm <- (df_corr$ppm)* (1 + (1013 - df_corr$WL_Pressure) * 0.00))
-}
-
+#df_new$adjusted_ppm <- (df_new$ppm)* (1 + (1013 - df_new$Total_hPa) * 0.0015) 
 ```
-
 ## Plot CO2 for Viasala @ -10m
 
 ```{r check CO2 data plot, echo=FALSE}
@@ -192,8 +217,23 @@ plot_ly(x50m,
 ```
 
 
+<<<<<<< HEAD
+## Plot CO2 for Viasala @50m
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(x50m,
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+## Plot CO2 for Viasala @ 100m
+This is optional- we aren't analyzing this data for this injection bc it never reached 100m
+=======
 ## Plot CO2 for 100m Viasala
-this data may be irrelevant because we don't think the CO2 made it to 100m
+>>>>>>> f2bd05646d9a1cd712745f9286e135e85a07adaa
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
@@ -205,6 +245,7 @@ plot_ly(x100m,
 
 ## Plot all CO2 data together 
 ```{r check CO2 data plot, echo=FALSE}
+
 # join data frames to make plotting easier
 
 df_new <- rbind(xn10m, x10m, x50m)
@@ -224,8 +265,17 @@ together_plot
 
 
 
+## Data Cleaning -- need to work on this section and correct for pressure and temp
+Use the data from vaisala correction 
+
+```{r plot, echo=FALSE}
+
+```
+
+
 ## Finding the mean for before, during, and after the plateau
 NEED to fix this section
+FIND mean before plateau, during the plateau, and after the plateau
 EXPORT to excel somehow to make a nice table or something 
 
 ```{r plot, echo=FALSE}
@@ -240,6 +290,11 @@ preplat_50 <- filter(x50m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "U
 preplatmeann10m = mean(preplat_n10$ppm)
 preplatmean10m = mean(preplat_10$ppm)
 preplatmean50m = mean(preplat_50$ppm)
+
+# find average of plateaus for each station
+<<<<<<< HEAD
+=======
+
 
 ### Change data frame, date and wanted time frame as needed 
 plat_n10 <- filter(xn10m, DateTime >= as.POSIXct("2022-06-06 14:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 14:45:00", tz = "UTC"))
