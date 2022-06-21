@@ -1,13 +1,20 @@
 ---
+<<<<<<< HEAD
 title: "CO2_Ecuador"
+=======
+title: "CO2_EC"
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 author: "Kayla Emerson"
 date: "6/15/2022"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
+<<<<<<< HEAD
 knitr::opts_chunk$set(echo = TRUE)
 
+=======
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 library(dplyr)
 library(ggplot2)
 library(lubridate)
@@ -17,27 +24,46 @@ library(here)
 ```
 
 ## About
+<<<<<<< HEAD
 In this file I clean and collect CO2 data collected at Cayambe Coca, EC salt injection from June 6, 2022
+=======
+In this file I clean and collect CO2 data collected at Roger's Road salt injection from May 26, 2022
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 
 ### We start by reading in an then cleaning data, file 
 
 ```{r cars}
+<<<<<<< HEAD
 # Not sure if we need this code chunk honestly
 
 setwd(here::here("Injections/2022-06-06/CO2"))
 ## Read files into R
 
 File_name <- "CO2_02_2021-07-14.csv"
+=======
+## I'm not sure that we need this code chunk
+setwd(here::here("Injections/2022-06-06/CO2"))
+## Read files into R
+
+File_name <- "Inj_CO2_xn10m_2022-06-06.csv"
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 
 CO2Data <- read.csv(File_name, skip=6, header = TRUE)
 CO2Data=CO2Data[,1:3]
 colnames(CO2Data) <- c("Date","Time","ppm")
 
 #DOWNLOAD DATA using UNC computer
+<<<<<<< HEAD
 CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/%Y %I:%M:%S %p", tz = "UTC")
 
 #DOWNLOAD DATA using USFQ computer
 #CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%d/%m/%Y %H:%M:%S", tz = "UTC")
+=======
+CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
+
+#DOWNLOAD DATA using USFQ computer
+CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%d/%m/%y %H:%M:%S", tz = "UTC")
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 
 
 #Clean data
@@ -46,12 +72,21 @@ CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/
 
 #plot pressure
 #plot_ly(CO2_02%>% filter(ppm <  5000), x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
+<<<<<<< HEAD
 plot_ly(CO2_03, x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
 plot_ly(CO2Data, x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
+=======
+#plot_ly(CO2_03, x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
+#plot_ly(CO2Data, x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 
 ```
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 ## Do loop
 
 ```{r pressure, echo=FALSE}
@@ -70,9 +105,12 @@ sites_rp = sapply(strsplit(all_files, "_"), function(x) x[3])
 site_names=unique(sites_rp) #creates list of site names for following loop
 
 
+<<<<<<< HEAD
 #site_names=site_names[-2]
 
 
+=======
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 
 
 #rm old files, if they exist
@@ -93,10 +131,17 @@ for (site in site_names){
       CO2Data=CO2Data[,1:3]
         if(names(CO2Data)[1] == "Date"){
           colnames(CO2Data) <- c("Date","Time","ppm")
+<<<<<<< HEAD
         CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
       } else { 
         colnames(CO2Data) <- c("Date","Time","ppm")
         CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%d/%m/%y %H:%M:%S", tz = "UTC")
+=======
+        CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/%Y %I:%M:%S %p", tz = "UTC")
+      } else { 
+        colnames(CO2Data) <- c("Date","Time","ppm")
+        CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%d/%m/%Y %H:%M:%S", tz = "UTC")
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
       }
       
       CO2Data$Station <- site
@@ -106,11 +151,19 @@ for (site in site_names){
       Temp_CO2Data=Temp_CO2Data[,1:3]
       if(colnames(Temp_CO2Data)[1]=="Date"){
         colnames(Temp_CO2Data) <- c("Date","Time","ppm")
+<<<<<<< HEAD
         Temp_CO2Data$DateTime <- as.POSIXct(paste(Temp_CO2Data$Date, Temp_CO2Data$Time), format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
         Temp_CO2Data$Station <- site
       } else {
 #        Temp_CO2Data$Fecha <- as.Date(Temp_CO2Data$Fecha, format = "%d / %m / %Y")
         Temp_CO2Data$DateTime <- as.POSIXct(paste(Temp_CO2Data$Fecha, Temp_CO2Data$Tiempo), format="%d/%m/%y %H:%M:%S", tz = "UTC")
+=======
+        Temp_CO2Data$DateTime <- as.POSIXct(paste(Temp_CO2Data$Date, Temp_CO2Data$Time), format="%m/%d/%Y %I:%M:%S %p", tz = "UTC")
+        Temp_CO2Data$Station <- site
+      } else {
+#        Temp_CO2Data$Fecha <- as.Date(Temp_CO2Data$Fecha, format = "%d / %m / %Y")
+        Temp_CO2Data$DateTime <- as.POSIXct(paste(Temp_CO2Data$Fecha, Temp_CO2Data$Tiempo), format="%d/%m/%Y %H:%M:%S", tz = "UTC")
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
         colnames(Temp_CO2Data) <- c("Date","Time","ppm","DateTime")
         Temp_CO2Data$Station <- site
       }
@@ -120,7 +173,10 @@ for (site in site_names){
     
   }
   
+<<<<<<< HEAD
   
+=======
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
  #  CO2Data$DateTime <- round_date(CO2Data$DateTime, "15 mins") #Round if needed
 
   CO2Data=unique(CO2Data)
@@ -133,58 +189,112 @@ for (site in site_names){
 
 
 ```
+<<<<<<< HEAD
 ## Clean data and cutoff everyhting after 16:00 on 6/6/22
 ```{r check CO2 data plot, echo=FALSE}
 
 ```
 ## Plot CO2 for Mobile Viasala
+=======
+
+
+## Clean up CO2 data- remove everything after 16:00 on 2022-06-06
+```{r pressure, echo=FALSE}
+xn10m = filter(xn10m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
+
+x10m = filter(x10m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+
+x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+
+x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+
+```
+
+## Plot CO2 for Viasala @ -10m
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
 plot_ly(xn10m,
+<<<<<<< HEAD
+=======
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
 
 
+<<<<<<< HEAD
 ## Plot CO2 for 10m Viasala
+=======
+## Plot CO2 for Viasala @ 10m
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
 plot_ly(x10m,
+<<<<<<< HEAD
+=======
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
 
 
+<<<<<<< HEAD
 ## Plot CO2 for -10m Viasala 
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
 plot_ly(xn10m,
+=======
+## Plot CO2 for Viasala @ 50m
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(x50m,
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
   #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
 
 
+<<<<<<< HEAD
 ## Plot CO2 for 0m Viasala
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
 plot_ly(x0m,
+=======
+## Plot CO2 for Viasala @50m
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(x50m,
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
   #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
 
 
+<<<<<<< HEAD
 ## Plot CO2 for 50m Viasala
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
 plot_ly(x50m,
+=======
+## Plot CO2 for Viasala @ 100m
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(x100m,
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
   #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
@@ -196,11 +306,19 @@ plot_ly(x50m,
 
 # join data frames to make plotting easier
 
+<<<<<<< HEAD
 df_new <- rbind(mobile, mobile2, xn10m, x0m, x50m)
 
 # use facet wrap to plot multiple stations
 
 together_plot <- ggplot(df_new, aes(DateTime, ppm)) +
+=======
+df_new <- rbind(xn10m, x10m, x50m, x100m)
+
+# use facet wrap to plot multiple stations
+
+together_plot <- ggplot(df_new, aes(DateTime, ppm, color = Station)) +
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
   geom_point(size = 2) +
   xlab(NULL) +
   ylab(NULL)
@@ -212,7 +330,11 @@ together_plot
 
 #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
 ```
+<<<<<<< HEAD
 ## Data Cleaning
+=======
+## Data Cleaning -- need to work on this section and correct for pressure and temp
+>>>>>>> 1784c39ecf2b064ef7d1184bbc3245db303961ca
 
 ```{r plot, echo=FALSE}
 

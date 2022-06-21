@@ -1,7 +1,7 @@
 ---
 title: "Correcting CO2"
-author: "KWhitmore"
-date: "1/3/2022"
+author: "KWhitmore & Dani"
+date: "6/15/2022"
 output: html_document
 
 
@@ -31,13 +31,13 @@ run script CO2_Corrected.Rmd
 
 ```{r merge data, echo=FALSE}
 # first run script WaterLevel_Dischage.Rmd
-WL_df <- rbind(WL_01,WL_02,WL_03,WL_04,All_Well)
-WL_df$Station <- gsub('WL', 'stn', WL_df$Station)
+#WL_df <- rbind(WL_01,WL_02,WL_03, All_WL)
+Baro_corrected$Station <- gsub('WL', 'stn', Baro_corrected$Station)
 
 CO2_df <- rbind(stations,wells)
 CO2_df$Station <- gsub('CO2', 'stn', CO2_df$Station)
 
-df <- full_join(WL_df,CO2_df, by=c("DateTime","Station"))
+df <- full_join(Baro_corrected,CO2_df, by=c("DateTime","Station"))
 
 
 ```
@@ -64,7 +64,8 @@ we two different models of vaisala
 
 
 #Station 1 and 4 are old
-df_old <- df %>% filter(Station == "stn_01"|Station == "stn_04")
+df_old <- df %>% filter(Station == "stn_01" #|Station == "stn_04"
+)
 
 df_old$adjusted_ppm <- df_old$ppm * (1 + (1013 - df_old$Total_hPa) * 0.0015) * (1 - (25 - df_old$WLTemp_c) * 0.003)
 
@@ -80,7 +81,6 @@ df_old$adjusted_ppm <- df_old$ppm * (1 + (1013 - df_old$Total_hPa) * 0.0015) * (
 #Station 2, 3 and Well 1 and 2 are new V
 df_new <- df %>% filter(Station != "stn_01" & Station != "stn_04")
 
-#df_new$adjusted_ppm <- df_new$ppm * (1 + (700 - df_new$Total_hPa) * 0.0015) * (1 - (6.7 - df_new$WLTemp_c) * 0.003)
 df_new$adjusted_ppm <- (df_new$ppm * 2 )* (1 + (700 - df_new$Total_hPa) * 0.0015) 
 
 ```
@@ -88,7 +88,7 @@ df_new$adjusted_ppm <- (df_new$ppm * 2 )* (1 + (700 - df_new$Total_hPa) * 0.0015
 ```{r plot, echo=FALSE}
 df_corrected <- rbind(df_old,df_new)
 
-co2 <- ggplot(data = df_corrected %>% filter(Station=='stn_04')
+co2 <- ggplot(data = df_corrected %>% filter(Station=='stn_02')
          , aes(DateTime, adjusted_ppm)) +
   geom_point(color = "steelblue") +
   labs(#title = "CO2  stations",
@@ -190,4 +190,13 @@ df_all <- df_all%>%drop_na(AirTemp_c)
 write.csv(df_all, here::here("ProcessedData/df_long_2022-04-23.csv"),
           row.names = FALSE)
           
+```
+
+```{calibration}
+stn01_cal <- df_corrected%>%filter(Station=="stn_01")
+stn01_cal$adjusted_ppm <- (stn01_cal$adjusted_ppm * 0.94351)- 569.69971
+
+#stn04_cal <- df_corrected%>%filter(Station=="stn_04")
+#stn04_cal$adjusted_ppm <- (stn04_cal$adjusted_ppm * 1.01746)- 771.61642
+
 ```
