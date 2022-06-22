@@ -1,0 +1,230 @@
+---
+---
+title: "CO2_EC"
+author: "Kayla Emerson"
+date: "6/21/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(tidyverse)
+library(plotly)
+library(here)
+```
+
+## About
+In this file I clean and collect CO2 data collected at Cayambe Coca, EC on June 20, 2022
+
+### We start by reading in an then cleaning data, file 
+
+```{r cars}
+```
+
+
+
+## Do loop
+pulls out CO2 files from injection and merges them together; also corrects time and date 
+
+```{r pressure, echo=FALSE}
+
+setwd(here::here("Injections/2022-06-20/CO2"))
+
+all_files=list.files(pattern=".csv")        #pulls out the csv files from WL folder in HOBOware folder
+
+#sites_rp=gsub("_.*","",all_files) #selects the correct pattern so as to select only desired files
+#sites_rp = sub('_[^_]+$', '', all_files)
+
+
+#shorten site name by removing underscores
+sites_rp = sapply(strsplit(all_files, "_"), function(x) x[3])
+
+site_names=unique(sites_rp) #creates list of site names for following loop
+
+
+
+
+#rm old files, if they exist
+rm(CO2Data)
+rm(Temp_CO2Data)
+
+for (site in site_names){
+ # if(str_contains("CO2"){
+
+  list1=list.files(pattern=site) #finds all files for the site
+  sitelist_csv=grep(".csv",list1) #creates list of all files for site
+  file_list=list1[sitelist_csv]
+  
+  #reads in files in list and appends
+  for (file in file_list){
+    if (!exists("CO2Data")){
+      CO2Data <- read.csv(file, skip=6, header = TRUE)
+      CO2Data=CO2Data[,1:3]
+        if(names(CO2Data)[1] == "Date"){
+          colnames(CO2Data) <- c("Date","Time","ppm")
+        CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/%Y %I:%M:%S %p", tz = "UTC")
+      } else { 
+        colnames(CO2Data) <- c("Date","Time","ppm")
+        CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%d/%m/%Y %H:%M:%S", tz = "UTC")
+      }
+      
+      CO2Data$Station <- site
+    }
+    if (exists("CO2Data")) {
+      Temp_CO2Data <- read.csv(file, skip=6, header = TRUE)  
+      Temp_CO2Data=Temp_CO2Data[,1:3]
+      if(colnames(Temp_CO2Data)[1]=="Date"){
+        colnames(Temp_CO2Data) <- c("Date","Time","ppm")
+        Temp_CO2Data$DateTime <- as.POSIXct(paste(Temp_CO2Data$Date, Temp_CO2Data$Time), format="%m/%d/%Y %I:%M:%S %p", tz = "UTC")
+        Temp_CO2Data$Station <- site
+      } else {
+#        Temp_CO2Data$Fecha <- as.Date(Temp_CO2Data$Fecha, format = "%d / %m / %Y")
+        Temp_CO2Data$DateTime <- as.POSIXct(paste(Temp_CO2Data$Fecha, Temp_CO2Data$Tiempo), format="%d/%m/%Y %H:%M:%S", tz = "UTC")
+        colnames(Temp_CO2Data) <- c("Date","Time","ppm","DateTime")
+        Temp_CO2Data$Station <- site
+      }
+      CO2Data <- rbind(CO2Data, Temp_CO2Data)
+      rm(Temp_CO2Data)
+    }
+    
+  }
+  
+ #  CO2Data$DateTime <- round_date(CO2Data$DateTime, "15 mins") #Round if needed
+
+  CO2Data=unique(CO2Data)
+  CO2Data$Date <- NULL
+  CO2Data$Time <- NULL
+  CO2Data <- CO2Data[,c(3,2,1)]
+  assign((paste(site,sep="_")),CO2Data) #creates object with new appended data
+  rm(CO2Data) #removes CO2 data so that multiple sites aren't appended together
+}
+
+
+```
+
+
+## Clean up CO2 data- if necessary but for this injection we downloaded vaisalas right away
+```{r pressure, echo=FALSE}
+#xn10m = filter(xn10m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
+
+#x10m = filter(x10m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+
+#x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+
+#x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+
+```
+
+## Plot CO2 for Viasala @ -10m
+
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(xn10,
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+## Plot CO2 for Viasala @ 0m
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(x0m,
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+## Plot CO2 for Viasala @15m
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(x15,
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+## Plot CO2 for Viasala @30m
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(x30,
+  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+
+## Plot all CO2 data together 
+```{r check CO2 data plot, echo=FALSE}
+
+# join data frames to make plotting easier
+
+df_new <- rbind(xn10, x0m, x15, x30)
+
+# use facet wrap to plot multiple stations
+
+together_plot <- ggplot(df_new, aes(DateTime, ppm, color = Station)) +
+  geom_point(size = 2) +
+  xlab(NULL) +
+  ylab(NULL)
+
+together_plot + facet_wrap(~Station, ncol= 3, scales = "free")
+
+together_plot
+
+
+#filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+```
+## Data Cleaning -- need to work on this section and correct for pressure and temp
+CORRECT FOR PRESSURE AND TEMPERATURE - HAVE NOT DONE THIS YET AS OF 2022-06-21
+
+more notes for this specific injection 
+ 
+vaisala @ -10 m 
+R37297 K600 old 
+
+vaisala @ 0 m
+Box 1 New
+
+vaisala @ 15m 
+Box 3 new
+
+vaisala @ 30m 
+R37391 Station 3
+
+```{r plot, echo=FALSE}
+
+# find average of plateaus for each station
+
+# testing to see if mean function works 
+mean_test <- mean(df_new$ppm)
+
+#focus on just one station; -10m
+mean_two <- mean(xn10m$ppm)
+
+#now figure out how to only focus on data after 11:30
+### Change data frame, date and wanted time frame as needed 
+cleaned_n10 <- filter(xn10m, DateTime >= as.POSIXct("2022-05-26 11:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-05-26 11:40:00", tz = "UTC"))
+
+#now clean up all of the stations
+cleaned_0 <- filter(x0m, DateTime >= as.POSIXct("2022-05-26 11:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-05-26 11:40:00", tz = "UTC"))
+cleaned_50 <- filter(x50m, DateTime >= as.POSIXct("2022-05-26 11:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-05-26 11:40:00", tz = "UTC"))
+
+#now find the mean of this filtered subset
+meann10m = mean(cleaned_n10$ppm)
+mean0m = mean(cleaned_0$ppm)
+mean50m = mean(cleaned_50$ppm)
+
+
+```
+
+

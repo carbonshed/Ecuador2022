@@ -1,13 +1,13 @@
 ---
-title: "CO2_RR"
-author: "KWhitmore"
+
+title: "CO2_EC"
+author: "Kayla Emerson"
 date: "6/15/2022"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
 library(dplyr)
 library(ggplot2)
 library(lubridate)
@@ -17,49 +17,13 @@ library(here)
 ```
 
 ## About
-In this file I clean and collect CO2 data collected at Roger's Road salt injection from May 26, 2022
+
+In this file I clean and collect CO2 data collected at Cayambe Coca, EC salt injection from June 6, 2022
 
 ### We start by reading in an then cleaning data, file 
 
-```{r cars}
-setwd(here::here("Injections/RR 2022-05-26/CO2"))
-## Read files into R
-
-File_name <- "CO2_02_2021-07-14.csv"
-
-CO2Data <- read.csv(File_name, skip=6, header = TRUE)
-CO2Data=CO2Data[,1:3]
-colnames(CO2Data) <- c("Date","Time","ppm")
-
-#DOWNLOAD DATA using UNC computer
-CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/%Y %I:%M:%S %p", tz = "UTC")
-
-#DOWNLOAD DATA using USFQ computer
-#CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%d/%m/%Y %H:%M:%S", tz = "UTC")
-
-
-#Clean data
-#CO2Data <- CO2Data %>% filter(DateTime < as.POSIXct("2021-10-02 21:45:00", tz = "UTC") | DateTime > as.POSIXct("2021-10-20 13:15:00", tz = "UTC"))
-
-
-#plot pressure
-#plot_ly(CO2_02%>% filter(ppm <  5000), x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
-plot_ly(CO2_03, x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
-plot_ly(CO2Data, x = ~DateTime, y= ~ppm, type = 'scatter', mode = 'lines+markers')
-
-```
-# cleaning notes
-there are some files that I am suspicious of because they are way too high compared with the rest..
-
-CO2_02 files:
-CO2_02_2021-06-30.csv
-CO2_02_2021-07-16.csv
-
-## Do loop
-
 ```{r pressure, echo=FALSE}
-
-setwd(here::here("Injections/RR 2022-05-26/CO2"))
+setwd(here::here("Injections/2022-06-06/CO2"))
 
 all_files=list.files(pattern=".csv")        #pulls out the csv files from WL folder in HOBOware folder
 
@@ -68,13 +32,9 @@ all_files=list.files(pattern=".csv")        #pulls out the csv files from WL fol
 
 
 #shorten site name by removing underscores
-sites_rp = sapply(strsplit(all_files, "_"), function(x) x[4])
+sites_rp = sapply(strsplit(all_files, "_"), function(x) x[3])
 
 site_names=unique(sites_rp) #creates list of site names for following loop
-
-
-#site_names=site_names[-2]
-
 
 
 
@@ -92,7 +52,7 @@ for (site in site_names){
   #reads in files in list and appends
   for (file in file_list){
     if (!exists("CO2Data")){
-      CO2Data <- read.csv(file, skip=6, header = TRUE)
+      CO2Data <- read.csv(file, skip=7, header = TRUE)
       CO2Data=CO2Data[,1:3]
         if(names(CO2Data)[1] == "Date"){
           colnames(CO2Data) <- c("Date","Time","ppm")
@@ -105,7 +65,7 @@ for (site in site_names){
       CO2Data$Station <- site
     }
     if (exists("CO2Data")) {
-      Temp_CO2Data <- read.csv(file, skip=6, header = TRUE)  
+      Temp_CO2Data <- read.csv(file, skip=7, header = TRUE)  
       Temp_CO2Data=Temp_CO2Data[,1:3]
       if(colnames(Temp_CO2Data)[1]=="Date"){
         colnames(Temp_CO2Data) <- c("Date","Time","ppm")
@@ -132,60 +92,61 @@ for (site in site_names){
   assign((paste(site,sep="_")),CO2Data) #creates object with new appended data
   rm(CO2Data) #removes CO2 data so that multiple sites aren't appended together
 }
-
-
-```
-## Plot CO2 for Mobile Viasala
-
-```{r check CO2 data plot, echo=FALSE}
-
-##check data
-plot_ly(mobile,
-  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
-    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
-
 ```
 
+## Clean up CO2 data- remove everything after 16:00 on 2022-06-06
+This is when we stopped collecting data
 
-## Plot CO2 for Mobile 2 Viasala 
-```{r check CO2 data plot, echo=FALSE}
+```{r pressure, echo=FALSE}
+xn10m = filter(xn10m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
 
-##check data
-plot_ly(mobile2,
-  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
-    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+x10m = filter(x10m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+
+x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+
+x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
 
 ```
 
+## Plot CO2 for Viasala @ -10m
 
-## Plot CO2 for -10m Viasala 
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
 plot_ly(xn10m,
-  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
 
 
-## Plot CO2 for 0m Viasala
+## Plot CO2 for Viasala @ 10m
+
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
-plot_ly(x0m,
+plot_ly(x10m,
   #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
+
+
 
 
 ## Plot CO2 for 50m Viasala
 ```{r check CO2 data plot, echo=FALSE}
-
 ##check data
 plot_ly(x50m,
-  #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
+    x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
+```
+
+
+## Plot CO2 for 100m Viasala
+this data may be irrelevant because we don't think the CO2 made it to 100m
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(x100m,
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
 ```
@@ -196,35 +157,40 @@ plot_ly(x50m,
 
 # join data frames to make plotting easier
 
-df_new <- rbind(mobile, mobile2, xn10m, x0m, x50m)
+df_new <- rbind(xn10m, x10m, x50m)
 
 # use facet wrap to plot multiple stations
 
-together_plot <- ggplot(df_new, aes(DateTime, ppm)) +
-  geom_point(size = 2) +
-  xlab(NULL) +
-  ylab(NULL)
+together_plot <- ggplot(df_new, aes(DateTime, ppm, color = Station)) +
+  geom_point(size = 1) +
+  xlab("time") +
+  ylab("ppm")
 
-together_plot + facet_wrap(~Station, ncol= 3, scales = "free")
+together_plot + facet_wrap(~Station, ncol= 3, scales = "fixed")
 
 together_plot
 
-
-#filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
 ```
-## Data Cleaning
+
+
+
+## Data Cleaning -- need to work on this section and correct for pressure and temp
+Use the data from vaisala correction 
+
+```{r plot, echo=FALSE}
+
+```
+
+
+## Finding the mean for before, during, and after the plateau
+NEED to fix this section
+FIND mean before plateau, during the plateau, and after the plateau
+EXPORT to excel somehow to make a nice table or something 
 
 ```{r plot, echo=FALSE}
 
 # find average of plateaus for each station
 
-# testing to see if mean function works 
-mean_test <- mean(df_new$ppm)
-
-#focus on just one station; -10m
-mean_two <- mean(xn10m$ppm)
-
-#now figure out how to only focus on data after 11:30
 ### Change data frame, date and wanted time frame as needed 
 cleaned_n10 <- filter(xn10m, DateTime >= as.POSIXct("2022-05-26 11:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-05-26 11:40:00", tz = "UTC"))
 
@@ -241,7 +207,4 @@ mean50m = mean(cleaned_50$ppm)
 ```
 
 
-#bind and plot
 
-```{r plot, echo=FALSE}
-```
