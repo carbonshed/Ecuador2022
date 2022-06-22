@@ -317,7 +317,7 @@ air_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:25:30", tz = "UT
 # Now find mean for this time frame 
 airmean_n10m = mean(air_n10$adjusted_ppm)
 airmean_10m = mean(air_10$adjusted_ppm)
-airmean_10m = mean(air_50$adjusted_ppm)
+airmean_50m = mean(air_50$adjusted_ppm)
 
 ```
 
@@ -326,7 +326,7 @@ focus on calculated vars: pre plateau, plateau, post plateau, and air
 ```{r plot, echo=FALSE}
 # Create a data frame 
 vaisala <- c('xn10m', 'x10m', 'x50m')
-air_co2_ppm <- c(airmean_n10m, airmean_10m, airmean_10m)
+air_co2_ppm <- c(airmean_n10m, airmean_10m, airmean_50m)
 pre_plateau_co2_ppm <- c(preplatmeann10m, preplatmean10m, preplatmean50m) 
 plateau_co2_ppm <- c(platmeann10m, platmean10m, platmean50m)
 post_plateau_co2_ppm <- c(postplatmeann10m, postplatmean10m, postplatmean50m)
@@ -335,9 +335,96 @@ co2_table <- data.frame(vaisala, air_co2_ppm, pre_plateau_co2_ppm, plateau_co2_p
 
 co2_table
 
-write.csv(co2_table,here::here("Injections/2022-06-06/injection_co2_result.csv"))
+# Export table to excel- you can stop here if you don't want to do CO2 conversions 
+#write.csv(co2_table,here::here("Injections/2022-06-06/injection_co2_result.csv"))
 
-# Export table to excel
+#melt data so it is easier to manipulate for CO2 conversions
+library(reshape)
+co2_table_melt <- melt(co2_table, id=c("vaisala"))
+
 
 ```
 
+## CO2 conversions (concentration to load)
+```{r plot, echo=FALSE}
+
+### Calculate concentration (gCO2-C per Liter) in air using ###
+
+#concentration of air
+#from www.esrl.noaa.gov
+#average of July and August
+#410.86 ppm
+CO2_air_ppm <- 410*10^-6
+R=0.08205736608096
+gCO2asC <- 12
+
+#convert hpa to atm; 1hPa = 0.0009869233 atm
+co2_table$air_pressure_atm <- synoptic.df$Total_hPa * 0.0009869233
+
+synoptic.df$VaporPressure_atm <- 10^(5.40221-(1838.675/((synoptic.df$AirTemp_c + 273.15)-31.737)))
+
+synoptic.df$TotalAir_atm <- synoptic.df$air_pressure_atm - synoptic.df$VaporPressure_atm
+synoptic.df$Total_air_MolperL <- synoptic.df$TotalAir_atm/(R*(synoptic.df$AirTemp_c + 273.15)) 
+synoptic.df$CO2_air_MolesPerLiter <- synoptic.df$Total_air_MolperL * CO2_air_ppm
+# 12 grams of C in 1 mole of CO2
+synoptic.df$CO2_air_gCO2asCPerLiter <- synoptic.df$CO2_air_MolesPerLiter * gCO2asC
+
+
+### Calculate concentration CO2 in water (gCO2-C per Liter) using Henry's law ###
+#Equation below can be used to adjust Henry's constant to the temperature of the environment
+# *NOTE: we may need to do an additional calculation to adjust for low pressure in our environment?*
+#**KH = KH(STP) x exp(D(1/T-1/T(STP)))**
+#* KH(STP) = Henry's law constant at STP (0.035 mol/L)
+#*NOTE: the cited literature say that this in mol/(kg x bar)*
+#  * D = Temperature dependence constant (2400 K)
+#* T = Water Temperature (K)
+#* T(STP) = Temp at STP (298.15 K)
+
+# Find average water temp for injection
+
+df_avg_water <- filter(df_corr, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:00:00", tz = "UTC"))
+avg_water_temp <- mean(df_avg_water$Temp)
+
+#set constants
+kH_STP_mol.L.atm = .035
+D_K = 2400 
+avg_water_temp_K <- avg_water_temp + 273.15
+T_STP_K = 298.15
+
+#calculate henry's law constant using 
+KH_mol.L.atm <- kH_STP_mol.L.atm * exp(D_K*(1/avg_water_temp_K - 1/T_STP_K))
+
+
+UatmToatm <- 10^6
+
+#calculate mass equivalence of CO2 in water
+co2_table_melt$CO2_water_gCO2asCPerLiter <- (co2_table_melt$value / UatmToatm) * KH_mol.L.atm * gCO2asC
+
+# find load by multiplying by Q
+
+#Load for 10m 
+# Q at 10m = 0.003140479
+ 
+for (i in co2_table_melt){
+  if(co2_table_melt$vaisala == 'x10m'){
+    co2_table_melt$q <- 0.003140479
+    co2_table_melt$load <- co2_table_melt$CO2_water_gCO2asCPerLiter * 0.003140479 * 1000
+  }
+  if(co2_table_melt$vaisala == 'x50m'){
+    co2_table_melt$q <- .003311749
+    co2_table_melt$load <- co2_table_melt$CO2_water_gCO2asCPerLiter * .003311749 * 1000
+  }
+  else{
+    co2_table_melt$q <- 0
+    co2_table_melt$load <- 0
+  }
+}
+
+
+#Load for 50m
+# Q for 50m = .003311749
+
+
+# export to excel
+#write.csv(co2_table,here::here("Injections/2022-06-06/injection_co2_result.csv"))
+```
