@@ -94,18 +94,18 @@ for (site in site_names){
 }
 ```
 
-## Clean up CO2 data- remove everything after 16:00 on 2022-06-06
+## Clean up CO2 data- remove everything after 16:30 on 2022-06-06
 This is when we stopped collecting data
 We flipped station 10m and 50m because they were most likely mixed up when downloading data. We are also not analyzing the viasala data from 100m because it the CO2 slug did not make it through. But, the data is here if we want to use it at some point. 
 
 ```{r pressure, echo=FALSE}
-xn10m = filter(xn10m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+xn10m = filter(xn10m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
 
-x10m = filter(x10m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+x10m = filter(x10m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
 
-x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
 
-x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:00:00", tz = "UTC"))
+x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:30:00", tz = "UTC"))
 
 # Now join all sites into a singular data frame so it is easier to analyze 
 df_new <- rbind(xn10m, x10m, x50m)
@@ -171,14 +171,14 @@ df_oldv$adjusted_ppm <- df_oldv$ppm * (1 + (1013 - df_oldv$WL_Pressure) * 0.0015
 
 # x50m was an old viasala labeled box 6
 
-df_x50m <- df_corr %>% 
+df_x50m <- df_oldv %>% 
       filter(Station =='x50m')
 
-df_x50m$adjusted_ppm <- (df_x50m$adjusted_ppm * 0.99484) - 252.9031
+df_x50m$adjusted_ppm <-  (df_x50m$adjusted_ppm * 0.99484) - 252.9031
 
 # x10m was an old Viasala labeled K600
 
-df_x10m <- df_corr %>% 
+df_x10m <- df_oldv %>% 
       filter(Station =='x10m')
 
 df_x10m$adjusted_ppm <- (df_x10m$adjusted_ppm * 1.06933) - 105.52898
@@ -201,7 +201,7 @@ df_newv$adjusted_ppm <- (df_newv$ppm * 2 )* (1 + (700 - df_newv$WL_Pressure) * 0
 # Now correct for individual vaisala calibration
 
 # xn10m a new viasala labeled box 1
-df_xn10m <- df_corr %>% 
+df_xn10m <- df_newv %>% 
       filter(Station =='xn10m')
 
 df_xn10m$adjusted_ppm <- (df_xn10m$adjusted_ppm * 1.00054) - 65.15813
@@ -307,9 +307,37 @@ postplatmean50m = mean(postplat_50$adjusted_ppm)
 ```
 
 
-## Calculating CO2 in the air (look at data before vaisalas went into the water)
+## Calculating CO2 in the air (look at data before or after vaisalas went into the water)
 ```{r plot, echo=FALSE}
+# Create new data frames for time when vaisalas are out of water
+air_n10 <-filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 15:26:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:27:00", tz = "UTC"))
+air_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 12:36:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 12:38:00", tz = "UTC"))
+air_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:25:30", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:26:00", tz = "UTC"))
 
+# Now find mean for this time frame 
+airmean_n10m = mean(air_n10$adjusted_ppm)
+airmean_10m = mean(air_10$adjusted_ppm)
+airmean_10m = mean(air_50$adjusted_ppm)
+
+```
+
+## Create data table with important objects and export to excel 
+focus on calculated vars: pre plateau, plateau, post plateau, and air 
+```{r plot, echo=FALSE}
+# Create a data frame 
+vaisala <- c('xn10m', 'x10m', 'x50m')
+air_co2_ppm <- c(airmean_n10m, airmean_10m, airmean_10m)
+pre_plateau_co2_ppm <- c(preplatmeann10m, preplatmean10m, preplatmean50m) 
+plateau_co2_ppm <- c(platmeann10m, platmean10m, platmean50m)
+post_plateau_co2_ppm <- c(postplatmeann10m, postplatmean10m, postplatmean50m)
+
+co2_table <- data.frame(vaisala, air_co2_ppm, pre_plateau_co2_ppm, plateau_co2_ppm, post_plateau_co2_ppm)
+
+co2_table
+
+write.csv(co2_table,here::here("Injections/2022-06-06/injection_co2_result.csv"))
+
+# Export table to excel
 
 ```
 
