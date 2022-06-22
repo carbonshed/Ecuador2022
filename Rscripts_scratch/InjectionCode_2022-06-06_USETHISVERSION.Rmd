@@ -402,29 +402,35 @@ co2_table_melt$CO2_water_gCO2asCPerLiter <- (co2_table_melt$value / UatmToatm) *
 
 # find load by multiplying by Q
 
-#Load for 10m 
+
 # Q at 10m = 0.003140479
- 
-for (i in co2_table_melt){
-  if(co2_table_melt$vaisala == 'x10m'){
-    co2_table_melt$q <- 0.003140479
-    co2_table_melt$load <- co2_table_melt$CO2_water_gCO2asCPerLiter * 0.003140479 * 1000
-  }
-  if(co2_table_melt$vaisala == 'x50m'){
-    co2_table_melt$q <- .003311749
-    co2_table_melt$load <- co2_table_melt$CO2_water_gCO2asCPerLiter * .003311749 * 1000
-  }
-  else{
-    co2_table_melt$q <- 0
-    co2_table_melt$load <- 0
-  }
-}
-
-
-#Load for 50m
 # Q for 50m = .003311749
+ 
 
+
+# create Q column
+# I did this manually but there may be a loop that can be made to do this 
+
+co2_table_melt$q <- c(NA, 0.003140479, 0.003311749, NA, 0.003140479, 0.003311749, NA, 0.003140479, 0.003311749, NA, 0.003140479, 0.003311749)
+
+# create load column
+# I did this manually but there may be a loop that can be made to do this 
+
+co2_table_melt$load <- c(NA, 0.0001947129 * 0.003140479 * 1000, 0.0005092997 * .003311749 * 1000, NA, 0.0034128830 * 0.003140479 * 1000, 0.0014414399 * .003311749 * 1000, NA, 0.0039749045 * 0.003140479 * 1000, 0.0016100929 * .003311749 * 1000, NA, 0.0036175255 * 0.003140479 * 1000, 0.0015263628 * .003311749 * 1000)
+
+# find difference in load between post and pre plateau 
+load_change_x10m <- (co2_table_melt[11,]['load']) - (co2_table_melt[5,]['load']) 
+  
+load_change_x50m <- (co2_table_melt[12,]['load']) - (co2_table_melt[6,]['load']) 
+
+load_change_x10m 
+load_change_x50m 
+
+# find the difference between delta 10 and delta 50 -- this is the total CO2 lost in this stretch (units are CO2 g/s)
+total_lost = load_change_x10m - load_change_x50m 
+
+total_lost
 
 # export to excel
-#write.csv(co2_table,here::here("Injections/2022-06-06/injection_co2_result.csv"))
+write.csv(co2_table_melt,here::here("Injections/2022-06-06/injection_co2_result_load.csv"))
 ```
