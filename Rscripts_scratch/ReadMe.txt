@@ -36,5 +36,5 @@ For synoptic data:
 
 
 
-When writing/using injection code in the future please refer to 2022-06-06 USETHIS 
+When writing/using injection code in the future please refer to 2022-06-06 USETHISVERSION 
 - kayla
