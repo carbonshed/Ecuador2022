@@ -13,12 +13,129 @@ library(lubridate)
 
 #step 1: Read in flux data
 
-#step 2: read in water level
+Flux <-  read.csv(here::here("Flux/EOS_Flux_2022-06-06.csv"), skip=0, header = TRUE, sep = ",",
+                              quote = "\"",dec = ".", fill = TRUE, comment.char = "")
 
-#step 3: read in vaisala data already adjusted and calibrated
+Flux <- Flux[,c(1:6)]
+colnames(Flux) <- c("Month","Day","Year","Time","Flux","Temp")
+Flux$EOS_no <- "EOS_1"
+Flux$Date <- as.Date(with(Flux, paste(Year, Month, Day,sep="-")), "%y-%m-%d")
 
+Flux$DateTime <- as.POSIXct(paste(Flux$Date, Flux$Time), format="%Y-%m-%d %H:%M:%S")
 #step 4: merge all data by DateTime columne (use full_join)
+Flux$DateTime <- round_date()
 
+setwd(here::here("Injections/2022-06-06/CO2"))
+
+all_files=list.files(pattern=".csv")        #pulls out the csv files from WL folder in HOBOware folder
+
+#sites_rp=gsub("_.*","",all_files) #selects the correct pattern so as to select only desired files
+#sites_rp = sub('_[^_]+$', '', all_files)
+
+
+#shorten site name by removing underscores
+sites_rp = sapply(strsplit(all_files, "_"), function(x) x[3])
+sites_rp <- "xn10m"
+site_names=unique(sites_rp) #creates list of site names for following loop
+
+
+
+#rm old files, if they exist
+rm(CO2Data)
+rm(Temp_CO2Data)
+
+for (site in site_names){
+  # if(str_contains("CO2"){
+  
+  list1=list.files(pattern=site) #finds all files for the site
+  sitelist_csv=grep(".csv",list1) #creates list of all files for site
+  file_list=list1[sitelist_csv]
+  
+  #reads in files in list and appends
+  for (file in file_list){
+    if (!exists("CO2Data")){
+      CO2Data <- read.csv(file, skip=7, header = TRUE)
+      CO2Data=CO2Data[,1:3]
+      if(names(CO2Data)[1] == "Date"){
+        colnames(CO2Data) <- c("Date","Time","ppm")
+        CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
+      } else { 
+        colnames(CO2Data) <- c("Date","Time","ppm")
+        CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%d/%m/%y %H:%M:%S", tz = "UTC")
+      }
+      
+      CO2Data$Station <- site
+    }
+    if (exists("CO2Data")) {
+      Temp_CO2Data <- read.csv(file, skip=7, header = TRUE)  
+      Temp_CO2Data=Temp_CO2Data[,1:3]
+      if(colnames(Temp_CO2Data)[1]=="Date"){
+        colnames(Temp_CO2Data) <- c("Date","Time","ppm")
+        Temp_CO2Data$DateTime <- as.POSIXct(paste(Temp_CO2Data$Date, Temp_CO2Data$Time), format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
+        Temp_CO2Data$Station <- site
+      } else {
+        #        Temp_CO2Data$Fecha <- as.Date(Temp_CO2Data$Fecha, format = "%d / %m / %Y")
+        Temp_CO2Data$DateTime <- as.POSIXct(paste(Temp_CO2Data$Fecha, Temp_CO2Data$Tiempo), format="%d/%m/%y %H:%M:%S", tz = "UTC")
+        colnames(Temp_CO2Data) <- c("Date","Time","ppm","DateTime")
+        Temp_CO2Data$Station <- site
+      }
+      CO2Data <- rbind(CO2Data, Temp_CO2Data)
+      rm(Temp_CO2Data)
+    }
+    
+  }
+  
+  #  CO2Data$DateTime <- round_date(CO2Data$DateTime, "15 mins") #Round if needed
+  
+  CO2Data=unique(CO2Data)
+  CO2Data$Date <- NULL
+  CO2Data$Time <- NULL
+  CO2Data <- CO2Data[,c(3,2,1)]
+  assign((paste(site,sep="_")),CO2Data) #creates object with new appended data
+  rm(CO2Data) #removes CO2 data so that multiple sites aren't appended together
+}
+
+
+
+## Correct viasalas temperature and pressure with HOBO data for the time period we collected data
+
+setwd(here::here("Injections/2022-06-06"))
+
+
+# first, read in WL hobo at -10m 
+waterlevel_n10 <- read.csv("Inj_TEMP_-10m_2022-06-06.csv", skip = 1)
+waterlevel_n10 <- waterlevel_n10[,c(2:4)]
+colnames(waterlevel_n10) <- c("DateTime", "WL_Pressure", "Temp")
+
+# format DateTime in WL 
+waterlevel_n10$DateTime <- as.POSIXct(paste(waterlevel_n10$Date, waterlevel_n10$Time), format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
+
+# correct kpa to hpa 
+##1 kPa = 10 hPa
+##1 kPa = 0.101972 m
+waterlevel_n10$WL_Pressure <- waterlevel_n10$WL_Pressure * 10
+
+#full_join to join CO2 data to WL by datetime
+xn10m <- full_join(xn10m, waterlevel_n10, by = "DateTime" )
+
+# clean data <- remove NA values bc vaisala reads every 1s and WL reads ever 10s
+xn10m <- na.omit(xn10m) 
+
+# create a new column for adjusted ppm
+xn10m$adjusted_ppm <- 0
+xn10m$adjusted_ppm <- as.numeric(xn10m$adjusted_ppm)
+xn10m$ppm <- as.numeric(xn10m$ppm)
+
+
+# Make a new data frame from df_corr but just with new vaisalas
+
+# Now correct the adjusted ppm 
+xn10m$adjusted_ppm <- (xn10m$ppm)* (1 + (1013 - xn10m$WL_Pressure) * 0.0015)
+
+# Now correct for individual vaisala calibration
+
+
+xn10m$adjusted_ppm <- (xn10m$adjusted_ppm * 1.00054) - 65.15813
 
 
 ### Calculate concentration (gCO2-C per Liter) in air using ###
