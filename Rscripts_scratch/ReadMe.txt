@@ -33,3 +33,8 @@ For synoptic data:
 
 4. synoptic_k600_2022-02-11: this script calculates k600 for all sites (excluding gavi tribs)
 		WriteOut: "ProcessedData/ALL_synoptic_2022-03-24.csv"
+
+
+
+When writing/using injection code in the future please refer to 2022-06-06 USETHIS 
+- kayla
