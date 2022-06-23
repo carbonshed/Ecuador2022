@@ -358,17 +358,6 @@ CO2_air_ppm <- 410*10^-6
 R=0.08205736608096
 gCO2asC <- 12
 
-#convert hpa to atm; 1hPa = 0.0009869233 atm
-co2_table$air_pressure_atm <- synoptic.df$Total_hPa * 0.0009869233
-
-synoptic.df$VaporPressure_atm <- 10^(5.40221-(1838.675/((synoptic.df$AirTemp_c + 273.15)-31.737)))
-
-synoptic.df$TotalAir_atm <- synoptic.df$air_pressure_atm - synoptic.df$VaporPressure_atm
-synoptic.df$Total_air_MolperL <- synoptic.df$TotalAir_atm/(R*(synoptic.df$AirTemp_c + 273.15)) 
-synoptic.df$CO2_air_MolesPerLiter <- synoptic.df$Total_air_MolperL * CO2_air_ppm
-# 12 grams of C in 1 mole of CO2
-synoptic.df$CO2_air_gCO2asCPerLiter <- synoptic.df$CO2_air_MolesPerLiter * gCO2asC
-
 
 ### Calculate concentration CO2 in water (gCO2-C per Liter) using Henry's law ###
 #Equation below can be used to adjust Henry's constant to the temperature of the environment
@@ -431,6 +420,7 @@ total_lost = load_change_x10m - load_change_x50m
 
 total_lost
 
+co2_table_melt
 # export to excel
 write.csv(co2_table_melt,here::here("Injections/2022-06-06/injection_co2_result_load.csv"))
 ```
