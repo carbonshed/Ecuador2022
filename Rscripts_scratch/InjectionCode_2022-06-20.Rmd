@@ -20,9 +20,6 @@ In this file I clean and collect CO2 data collected at Cayambe Coca, EC on June 
 
 ### We start by reading in an then cleaning data, file 
 
-```{r cars}
-```
-
 
 
 ## Do loop

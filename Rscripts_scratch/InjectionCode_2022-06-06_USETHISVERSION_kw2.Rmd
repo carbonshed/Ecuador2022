@@ -88,6 +88,7 @@ for (site in site_names){
   CO2Data=unique(CO2Data)
   CO2Data$Date <- NULL
   CO2Data$Time <- NULL
+  CO2Data$ppm <- as.numeric(as.character(CO2Data$ppm))
   CO2Data <- CO2Data[,c(3,2,1)]
   assign((paste(site,sep="_")),CO2Data) #creates object with new appended data
   rm(CO2Data) #removes CO2 data so that multiple sites aren't appended together
@@ -105,7 +106,7 @@ x10m = filter(x10m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
 
 x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
 
-x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:30:00", tz = "UTC"))
+x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
 
 # Now join all sites into a singular data frame so it is easier to analyze 
 df_new <- rbind(xn10m, x10m, x50m)
@@ -139,8 +140,7 @@ waterlevel_n10$DateTime <- as.POSIXct(paste(waterlevel_n10$Date, waterlevel_n10$
 ##1 kPa = 0.101972 m
 waterlevel_n10$WL_Pressure <- waterlevel_n10$WL_Pressure * 10
 
-#full_join to join CO2 data to WL by datetime
-#df_corr <- full_join(df_new, waterlevel_n10, by = "DateTime" )
+#join CO2 data to WL by datetime
 df_corr <- right_join(df_new, waterlevel_n10, by = "DateTime" )
 
 # clean data <- remove NA values bc vaisala reads every 1s and WL reads ever 10s
@@ -197,7 +197,7 @@ df_newv <- df_corr %>%
       filter(Station =='xn10m')
 
 # Now correct the adjusted ppm 
-df_newv$adjusted_ppm <- (df_newv$ppm * 2 )* (1 + (700 - df_newv$WL_Pressure) * 0.0015)
+df_newv$adjusted_ppm <- (df_newv$ppm)* (1 + (1013 - df_newv$WL_Pressure) * 0.0015)
 
 # Now correct for individual vaisala calibration
 
@@ -211,7 +211,7 @@ df_xn10m$adjusted_ppm <- (df_xn10m$adjusted_ppm * 1.00054) - 65.15813
 
 ## Plot CO2 for Viasala @ -10m
 
-```{r check CO2 data plot, echo=FALSE}
+```{r check CO2 data plot df_xn10m, echo=FALSE}
 
 ##check data
 plot_ly(df_xn10m,
@@ -222,7 +222,7 @@ plot_ly(df_xn10m,
 
 ## Plot CO2 for Viasala @ 10m
 
-```{r check CO2 data plot, echo=FALSE}
+```{r check CO2 data plot df_x10m, echo=FALSE}
 
 ##check data
 plot_ly(df_x10m,
@@ -234,7 +234,7 @@ plot_ly(df_x10m,
 
 
 ## Plot CO2 for 50m Viasala
-```{r check CO2 data plot, echo=FALSE}
+```{r check CO2 data plot df_x50m, echo=FALSE}
 ##check data
 plot_ly(df_x50m,
     x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
@@ -345,11 +345,129 @@ co2_table_melt <- melt(co2_table, id=c("vaisala"))
 
 
 ```
+##calc kc02 for river stretch using kriddie's own brain 
+I'm going off road, baby
+
+#First comes the flux
+
+We are pulling from methods in stream ecology now 
+
+```{r kdub rules the roost}
+#convert ppm to mg/l is the easiest thing in theorld becaust it is 1:1
+
+#difference between plateu and baseline for upstream and downstream
+C_mgperL_10m <- (platmean10m - mean(preplatmean10m,postplatmeann10m))
+
+C_mgperL_50m <- (platmean50m - mean(preplatmean50m))
+
+#amount of lost CO2
+deltaC_mgperL <- C_mgperL_50m - C_mgperL_10m
+
+
+```
+
+
+##calculate kco2 for river stretch
+
+Check out Mcdowell and Johnson () for a great explanation of equations
+
+
+### Calculate concentration CO2 in water (gCO2-C per Liter) using Henry's law
+*Equation below can be used to adjust Henry's constant to the temperature of the environment*
+
+1. Calculate kh Henry's Law constant for solubility of CO2 in water at stream temperature (mol/L)
+
+
+**KH = KH(STP) x exp(D(1/T-1/T(STP)))**
+* KH(STP) = Henry's law constant at STP (0.035 mol/L) (Sander, 2017)
+*NOTE: the cited literature say that this in mol/(kg x bar)*
+* D = Temperature dependence constant (2400 K) (Sander, 2017)
+* T = Water Temperature (K)
+* T(STP) = Temp at STP (298.15 K)
+
+      
+We will calculate 1 henry law constant for the injection
+
+```{r calc henry law}
+
+# Find average water temp for injection
+
+df_avg_water <- filter(df_corr, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:00:00", tz = "UTC"))
+WaterTempC_ave <- mean(df_avg_water$Temp)
+
+#set constants
+kH_STP_mol.L.atm = .035
+D_K = 2400 
+WaterTempK_ave <- WaterTempC_ave + 273.15
+T_STP_K = 298.15
+
+#calculate henry's law constant using 
+KH_mol.L.atm <- kH_STP_mol.L.atm * exp(D_K*(1/WaterTempK_ave - 1/T_STP_K))
+
+```
+1. Calculate mass equivalence of dissolves co2 (g CO2-C L-1) as added by injections gas
+    
+  deltaC =  CO2ppm at plateu - mean(CO2ppm before, after plateu) 
+  C_gperL = deltaC * KH * 12 * 10^-6
+
 
 ## CO2 conversions (concentration to load)
+
+```{r calc CO2 mass }
+#units:  (g CO2-C L−1)
+
+UatmToatm <- 10^6
+gCO2asC <- 12
+
+C_gperL_10m <- (platmean10m - mean(preplatmean10m,postplatmeann10m)) * KH_mol.L.atm * gCO2asC / UatmToatm
+
+C_gperL_50m <- (platmean50m - mean(preplatmean50m)) * KH_mol.L.atm * gCO2asC / UatmToatm
+
+
+```
+
+#flux
+F:	CO2 evasion flux along reach (g C m−2 d−1)
+
+F = (C_upstream * Q_upstream - C_downstream * Q_downstream)/A
+
+Q: discharge (L/s)
+A: stream surface area (m2)
+
+```{r calc flux }
+#Discharge comes from salt injection
+#multiply by 1000 to convert from m3/s to L/s
+#Q at 10m = 0.003140479
+Q_10m = 0.003140479 * 1000
+# Q for 50m = .003311749
+Q_50m = 0.003311749 * 1000 
+
+#Area is measured pre injection
+A = 40*.5
+
+#convert seconds to day
+sectoday = 86400
+
+#units: g C m−2 d−1
+Flux <- (C_gperL_10m*Q_10m - C_gperLs_50m*Q_50m) * 1/A * 1/sectoday
+
+```
+
+#gas transfer velocity
+
+kco2 = Flux/(average co2 concntration - co2(air))
+
 ```{r plot, echo=FALSE}
 
 ### Calculate concentration (gCO2-C per Liter) in air using ###
+##read in barometric pressure data
+baro <- read.csv(here::here("Water_Level/Baro_01_2022-06-07.csv"), skip=10)
+colnames(baro) <- c("Date","Time","ms","Airpress_kpa","AirTemp")
+baro$DateTime <- as.POSIXct(paste(baro$Date, baro$Time), format="%m/%d/%Y %I:%M:%S %p", tz = "UTC")
+baro <- filter(baro, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:00:00", tz = "UTC"))
+
+AirTempC_ave <- mean(baro$AirTemp)
+AirPrespKa_ave <- mean(baro$Airpress_kpa)
 
 #concentration of air
 #from www.esrl.noaa.gov
@@ -359,69 +477,30 @@ CO2_air_ppm <- 410*10^-6
 R=0.08205736608096
 gCO2asC <- 12
 
+#convert hpa to atm; 1hPa = 0.0009869233 atm
+AirPresatm_ave <- AirPrespKa_ave*10 * 0.0009869233
 
-### Calculate concentration CO2 in water (gCO2-C per Liter) using Henry's law ###
-#Equation below can be used to adjust Henry's constant to the temperature of the environment
-# *NOTE: we may need to do an additional calculation to adjust for low pressure in our environment?*
-#**KH = KH(STP) x exp(D(1/T-1/T(STP)))**
-#* KH(STP) = Henry's law constant at STP (0.035 mol/L)
-#*NOTE: the cited literature say that this in mol/(kg x bar)*
-#  * D = Temperature dependence constant (2400 K)
-#* T = Water Temperature (K)
-#* T(STP) = Temp at STP (298.15 K)
+VaporPressure_atm <- 10^(5.40221-(1838.675/((AirTempC_ave + 273.15)-31.737)))
 
-# Find average water temp for injection
+TotalAir_atm <- AirPresatm_ave - VaporPressure_atm
+Total_air_MolperL <- TotalAir_atm/(R*(AirTempC_ave + 273.15)) 
+CO2_air_MolesPerLiter <- Total_air_MolperL * CO2_air_ppm
+# 12 grams of C in 1 mole of CO2
+CO2_air_gCO2asCPerLiter <- CO2_air_MolesPerLiter * gCO2asC
 
-df_avg_water <- filter(df_corr, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:00:00", tz = "UTC"))
-avg_water_temp <- mean(df_avg_water$Temp)
-
-#set constants
-kH_STP_mol.L.atm = .035
-D_K = 2400 
-avg_water_temp_K <- avg_water_temp + 273.15
-T_STP_K = 298.15
-
-#calculate henry's law constant using 
-KH_mol.L.atm <- kH_STP_mol.L.atm * exp(D_K*(1/avg_water_temp_K - 1/T_STP_K))
+### 
+kco2 = Flux/(mean(C_gperL_10m,C_gperL_50m)-CO2_air_gCO2asCPerLiter)
 
 
-UatmToatm <- 10^6
 
-#calculate mass equivalence of CO2 in water
-co2_table_melt$CO2_water_gCO2asCPerLiter <- (co2_table_melt$value / UatmToatm) * KH_mol.L.atm * gCO2asC
-
-# find load by multiplying by Q
-
-
-# Q at 10m = 0.003140479
-# Q for 50m = .003311749
- 
-
-
-# create Q column
-# I did this manually but there may be a loop that can be made to do this 
-
-co2_table_melt$q <- c(NA, 0.003140479, 0.003311749, NA, 0.003140479, 0.003311749, NA, 0.003140479, 0.003311749, NA, 0.003140479, 0.003311749)
-
-# create load column
-# I did this manually but there may be a loop that can be made to do this 
-
-co2_table_melt$load <- c(NA, 0.0001947129 * 0.003140479 * 1000, 0.0005092997 * .003311749 * 1000, NA, 0.0034128830 * 0.003140479 * 1000, 0.0014414399 * .003311749 * 1000, NA, 0.0039749045 * 0.003140479 * 1000, 0.0016100929 * .003311749 * 1000, NA, 0.0036175255 * 0.003140479 * 1000, 0.0015263628 * .003311749 * 1000)
-
-# find difference in load between post and pre plateau 
-load_change_x10m <- (co2_table_melt[11,]['load']) - (co2_table_melt[5,]['load']) 
-  
-load_change_x50m <- (co2_table_melt[12,]['load']) - (co2_table_melt[6,]['load']) 
-
-load_change_x10m 
-load_change_x50m 
-
-# find the difference between delta 10 and delta 50 -- this is the total CO2 lost in this stretch (units are CO2 g/s)
-total_lost = load_change_x10m - load_change_x50m 
-
-total_lost
-
-co2_table_melt
-# export to excel
-write.csv(co2_table_melt,here::here("Injections/2022-06-06/injection_co2_result_load.csv"))
 ```
+
+#k600
+convert to k to k600
+```{r convert to k6000}
+
+Sc <- 1911.1 - 118.11*WaterTempC_ave + 3.4527*(WaterTempC_ave)^2 - 0.04132*(WaterTempC_ave)^3
+
+K600 <- kco2 * (600/Sc)^(-0.5)
+```
+
