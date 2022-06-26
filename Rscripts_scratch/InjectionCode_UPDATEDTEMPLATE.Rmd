@@ -18,14 +18,18 @@ library(here)
 
 ## About
 
-In this file I clean and collect CO2 data collected at Cayambe Coca, EC salt injection from June 6, 2022
+This file is the template for processing CO2 injection data and calculating k600 
 
 ### We start by reading in an then cleaning data, file 
 
 ```{r pressure, echo=FALSE}
-setwd(here::here("Injections/2022-06-06/CO2"))
+#enter date of injection wich is also the name of the folder for the injection
 
-all_files=list.files(pattern=".csv")        #pulls out the csv files from WL folder in HOBOware folder
+folder <- "2022-06-06"
+
+setwd(here::here(paste("Injections/"), folder ,"/CO2"))
+
+all_files=list.files(pattern=".csv")        #pulls out the csv files from CO2 folder
 
 #sites_rp=gsub("_.*","",all_files) #selects the correct pattern so as to select only desired files
 #sites_rp = sub('_[^_]+$', '', all_files)
@@ -88,24 +92,28 @@ for (site in site_names){
   CO2Data=unique(CO2Data)
   CO2Data$Date <- NULL
   CO2Data$Time <- NULL
+   CO2Data$ppm <- as.numeric(as.character(CO2Data$ppm))
   CO2Data <- CO2Data[,c(3,2,1)]
   assign((paste(site,sep="_")),CO2Data) #creates object with new appended data
   rm(CO2Data) #removes CO2 data so that multiple sites aren't appended together
 }
 ```
 
-## Clean up CO2 data- remove everything after 16:30 on 2022-06-06
-This is when we stopped collecting data
-We flipped station 10m and 50m because they were most likely mixed up when downloading data. We are also not analyzing the viasala data from 100m because it the CO2 slug did not make it through. But, the data is here if we want to use it at some point. 
+## Clean up CO2 data
 
+Select data collected during injection period
 ```{r pressure, echo=FALSE}
-xn10m = filter(xn10m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
 
-x10m = filter(x10m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
+#DateTime when injection ended
+end <-  as.POSIXct("2022-06-06 17:00:00", tz = "UTC")
 
-x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
+xn10m = filter(xn10m, DateTime <= end)
 
-x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 16:30:00", tz = "UTC"))
+x10m = filter(x10m, DateTime <= end)
+
+x50m = filter(x50m, DateTime <= end)
+
+x100m = filter(x100m, DateTime <= end)
 
 # Now join all sites into a singular data frame so it is easier to analyze 
 df_new <- rbind(xn10m, x10m, x50m)
@@ -114,16 +122,18 @@ df_new <- rbind(xn10m, x10m, x50m)
 
 ## Notes from the notebook to decipher which viasala box was at each station
 
-x50m is an old Viasala labeled box 1 
-x10m is an old viasala labeled box 6
-xn10m is a new viasala labeled box 1
+
+x50m is an old Viasala labeled ----- 
+x10m is an old viasala labeled -----
+xn10m is a new viasala labeled -----
 
 
 
 ## Correct viasalas temperature and pressure with HOBO data for the time period we collected data
 ```{r check CO2 data plot, echo=FALSE}
 
-setwd(here::here("Injections/2022-06-06"))
+
+setwd(here::here(paste("Injections/"),folder))
 
 
 # first, read in WL hobo at -10m 
@@ -144,11 +154,6 @@ df_corr <- full_join(df_new, waterlevel_n10, by = "DateTime" )
 
 # clean data <- remove NA values bc vaisala reads every 1s and WL reads ever 10s
 df_corr <- na.omit(df_corr) 
-
-# create a new column for adjusted ppm
-df_corr$adjusted_ppm <- 0
-df_corr$adjusted_ppm <- as.numeric(df_corr$adjusted_ppm)
-df_corr$ppm <- as.numeric(df_corr$ppm)
 
 
 ```
@@ -340,4 +345,109 @@ write.csv(co2_table,here::here("Injections/2022-06-06/injection_co2_result.csv")
 # Export table to excel
 
 ```
+##calc kc02 for river stretch using kriddie's own brain 
+I'm going off road, baby
 
+#First comes the flux
+
+We are pulling from methods in stream ecology now 
+eq) 31.1  describes decay rate of leaves over time
+  -k = loge(Wf/Wi)/t
+  k: decay rate
+  wf: final weight
+  wi: initial weight
+  t: time
+  
+adjusted for decay rate of CO2 over meters
+  -k = loge(Wf/Wi)/t
+  k: decay rate
+  wf: co2 mass at 50 m (concentration * discharge)
+  wi: co2 mass at 10m  (concentration * discharge)
+  t: meters
+
+```{r kdub rules the roost}
+#convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
+
+#difference between plateu and baseline for upstream and downstream
+C_mgperL_10m <- (platmean10m - mean(preplatmean10m,postplatmeann10m))
+
+C_mgperL_50m <- (platmean50m - mean(preplatmean50m))
+
+#Discharge comes from salt injection
+#multiply by 1000 to convert from m3/s to L/s
+#Q at 10m = 0.003140479
+Q_10m = 0.003140479 * 1000
+# Q for 50m = .003311749
+Q_50m = 0.003311749 * 1000 
+
+#stream reach length
+dist = 50-10
+
+km <- -log(C_mgperL_50m*Q_50m/(C_mgperL_10m*Q_10m))/dist
+#km units: 1/m
+```
+#convert k in meters to time
+kgas,t = kgas,m * v
+
+kgas,t: decay rate over time
+kgas,m: decay rate over meters (calculates in chunk above)
+v: mean velocity of stream
+
+```{r meters to time }
+#mean velocity of stream reach from salt injection
+
+#start: 13:26
+start <- as.POSIXct("2022-06-06 13:26:00",tz="UTC")
+#End: 14:48
+end <- as.POSIXct("2022-06-06 14:48:00",tz="UTC")
+
+#we will use the EC data collected at 50m
+EC_Data <- read.csv(here::here("Injections/2022-06-06/Inj_EC_50m_2022-06-06.csv"),skip=1)[,c(2:5)]
+colnames(EC_Data) <- c("DateTime","LowRange","HighRange","Temp_c")
+EC_Data$DateTime <- as.POSIXct(EC_Data$DateTime,format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
+EC_Data <- EC_Data%>%filter(DateTime > start & DateTime < end)
+
+plot_ly(EC_Data, x = ~DateTime, y = ~LowRange, type = 'scatter', mode = 'markers') 
+
+#manually found plateau time
+plateau <- as.POSIXct("2022-06-06 13:48:40",tz="UTC")
+
+#isolate time between salt injection and plateu, subtract out background
+
+df <- EC_Data%>%filter(DateTime<plateau)
+df$LowRange <- df$LowRange - 11 #background is 11
+df$Time <- format(as.POSIXct(df$DateTime), format = "%H:%M:%S")
+df$seconds <- period_to_seconds(hms(df$Time)) - min(period_to_seconds(hms(df$Time)))
+
+#find Mean Travel Time (MTT)
+x <- sintegral(df$seconds, df$LowRange, n.pts = nrow(df))
+df_int <- data.frame(matrix(ncol = 2, nrow = nrow(df)))
+colnames(df_int) <- c("sec","sum")
+df_int$sec <- x$x
+df_int$sum <- x$y
+AUC <- x$int
+
+MTT <- df_int[which.min(abs(AUC/2-df_int$sum)),]$sec
+
+dist = 50
+
+v = dist/MTT #units (m/s)
+kt = km * v #units (1/s)
+kCO2_mperd <- kt*86400
+  
+```
+
+#k600
+convert to k to k600
+```{r convert to k6000}
+
+# Find average water temp for injection
+
+df_avg_water <- filter(df_corr, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:00:00", tz = "UTC"))
+WaterTempC_ave <- mean(df_avg_water$Temp)
+
+#calc sc
+Sc <- 1911.1 - 118.11*WaterTempC_ave + 3.4527*(WaterTempC_ave)^2 - 0.04132*(WaterTempC_ave)^3
+
+K600 <- kCO2_mperd * (600/Sc)^(-0.5)
+```

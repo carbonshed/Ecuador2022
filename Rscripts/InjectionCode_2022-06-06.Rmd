@@ -206,7 +206,7 @@ df_newv$adjusted_ppm <- (df_newv$ppm)* (1 + (1013 - df_newv$WL_Pressure) * 0.001
 df_xn10m <- df_newv %>% 
       filter(Station =='xn10m')
 
-df_xn10m$adjusted_ppm <- (df_xn10m$adjusted_ppm * 1.00054) - 65.15813
+df_xn10m$adjusted_ppm <- (df_xn10m$adjusted_ppm * 1.00054) + 65.15813
 
 ```
 
