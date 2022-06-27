@@ -123,11 +123,11 @@ xn10m is a new viasala labeled box 1
 ## Correct viasalas temperature and pressure with HOBO data for the time period we collected data
 ```{r check CO2 data plot, echo=FALSE}
 
-setwd(here::here("Injections/2022-06-06"))
+setwd(here::here("Injections/2022-06-20"))
 
 
 # first, read in WL hobo at -10m 
-waterlevel_n10 <- read.csv("Inj_TEMP_-10m_2022-06-06.csv", skip = 1)
+waterlevel_n10 <- read.csv("Injection_Temp_xn10_2022-06-20.csv", skip = 1)
 waterlevel_n10 <- waterlevel_n10[,c(2:4)]
 colnames(waterlevel_n10) <- c("DateTime", "WL_Pressure", "Temp")
 
