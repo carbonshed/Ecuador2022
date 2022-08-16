@@ -66,12 +66,14 @@ p
 #### use this to show DIEGO ####
 ############################### 
 
-p <- ggplot(df_merge%>%subset(AquaticSystem == "wetland")%>%
-              subset(Wetland == "4"| Wetland == "5"| Wetland =="12")
-#            %>% subset(CH4.ppm.NOT.CORRECTED < 200)
+p <- ggplot(df_merge %>%subset(AquaticSystem == "wetland")%>%
+              subset(Wetland == "10"| Wetland == "8"| Wetland =="9")
+          #  %>% subset(CH4.ppm.NOT.CORRECTED < 200)
             , 
             aes(x=as.factor(Date), y=CH4.ppm.NOT.CORRECTED)) + 
-  geom_point(fill="red",shape=21, size = 3) +
+  geom_point(#fill="red",
+    aes(fill=Location),
+    shape=21, size = 3) +
   theme_linedraw()
 p+ facet_wrap(~Wetland, ncol = 3)
 #############################
