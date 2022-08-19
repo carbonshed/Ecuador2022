@@ -52,7 +52,7 @@ select date
 
 ```{r Check sample day, echo=FALSE}
 #enter date of collection
-date <- "2022-07-19"
+date <- "2022-07-14"
 
 ggplot(CO2Data%>%filter(Date==date),
        aes(x=DateTime, y=ppm_NOTcorrected)) +
@@ -62,29 +62,33 @@ ggplot(CO2Data%>%filter(Date==date),
 
 ```{r select time, echo=FALSE}
 #enter date of collection
-date <- "2022-07-19"
+date <- "2022-07-14"
 #enter start and end time that wetland was sampled
-time_START <- "11:00:00"
-time_END <- "12:00:00"
+time_START <- "10:16:00"
+time_END <- "10:48:00"
 
 
-plot_ly(data = CO2Data%>%filter(Date==date)%>%
+plot_ly(data=CO2Data%>%filter(Date==date)%>%
   filter(DateTime > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
   filter(DateTime < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
-x = ~DateTime, y = ~ppm_NOTcorrected)
+  x=~DateTime,y=~ppm_NOTcorrected)
+
 ```
 
+#summariz
 
-```{r summariz, echo=FALSE}
+```{r summarize, echo=FALSE}
+
 #enter date of collection
-date <- "2022-07-19"
+date <- "2022-07-14"
 #enter start and end time that wetland was sampled
-platuea_START <- "11:00:00"
-plateua_END <- "12:00:00"
+time_START <- "10:47:00"
+time_END <- "10:48:00"
 
-
-plot_ly(data = CO2Data%>%filter(Date==date)%>%
+ave <- CO2Data%>%filter(Date==date)%>%
   filter(DateTime > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  filter(DateTime < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
-x = ~DateTime, y = ~ppm_NOTcorrected)
+  filter(DateTime < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  summarize(mean = mean(ppm_NOTcorrected))
+
+print(ave)
 ```
