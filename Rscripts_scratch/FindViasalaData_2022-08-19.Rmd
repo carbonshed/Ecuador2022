@@ -1,0 +1,90 @@
+---
+title: "Wetland_CO2"
+author: "Kriddie"
+date: "2022-08-19"
+output: html_document
+---
+
+First, run the chunk below to load all needed packages
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(tidyverse)
+library(plotly)
+library(here)
+```
+
+## Description
+The purpose of this r code is to easily find the time and value for Airpressure and AirTemperature and CO2 for each sample point of the wetland data set
+
+#Step one:
+read in data for CO2
+ 
+
+```{r read in data 1}
+
+CO2Data <- read.csv(here::here("Wetlands/Wetland_CO2.csv"), skip=0, header = TRUE)
+CO2Data <- CO2Data[,2:5]
+colnames(CO2Data) <- c("Date","Time","DateTime","ppm_NOTcorrected")
+
+CO2Data$DateTime <- as.POSIXct(CO2Data$DateTime, format="%Y-%m-%d %H:%M:%S", tz = "UTC")
+CO2Data$Date <- as.Date(CO2Data$Date, format="%m/%d/%Y")
+CO2Data$Time <- format(as.POSIXct(CO2Data$DateTime), format = "%H:%M:%S", tz = "UTC")
+
+```
+
+## Quickly plot to check Data
+
+
+```{r Check Data, echo=FALSE}
+ggplot(CO2Data, aes(x=DateTime, y=ppm_NOTcorrected)) +
+    geom_point(size=2, shape=23)
+
+```
+##Select time period when CO2 has reached a platua
+
+#Step 1:
+select date
+
+
+```{r Check sample day, echo=FALSE}
+#enter date of collection
+date <- "2022-07-19"
+
+ggplot(CO2Data%>%filter(Date==date),
+       aes(x=DateTime, y=ppm_NOTcorrected)) +
+  geom_point(size=2, shape=23)
+
+```
+
+```{r select time, echo=FALSE}
+#enter date of collection
+date <- "2022-07-19"
+#enter start and end time that wetland was sampled
+time_START <- "11:00:00"
+time_END <- "12:00:00"
+
+
+plot_ly(data = CO2Data%>%filter(Date==date)%>%
+  filter(DateTime > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  filter(DateTime < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
+x = ~DateTime, y = ~ppm_NOTcorrected)
+```
+
+
+```{r summariz, echo=FALSE}
+#enter date of collection
+date <- "2022-07-19"
+#enter start and end time that wetland was sampled
+platuea_START <- "11:00:00"
+plateua_END <- "12:00:00"
+
+
+plot_ly(data = CO2Data%>%filter(Date==date)%>%
+  filter(DateTime > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  filter(DateTime < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
+x = ~DateTime, y = ~ppm_NOTcorrected)
+```
