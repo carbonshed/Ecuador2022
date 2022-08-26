@@ -74,7 +74,7 @@ ggplot(BaroData %>%
   geom_point(size=2, shape=23, color="blue")
 
 ```
-#plot Time sampled for singe wetland
+#plot Time sampled for single wetland
 
 now select the time period a single wetland was sampled
 
@@ -84,28 +84,30 @@ If there is, we may need to exclude some data within the sample period
 
 If not, then we can use the average calculated at the end of the chunk
 
-```{r select time, echo=FALSE}
+```{r Check sample day, echo=FALSE}
 #enter date of collection
 date <- "2022-07-14"
 #enter start and end time that wetland was sampled
 time_START <- "10:16:00"
 time_END <- "10:48:00"
 
-#AirPressure
 
-plot_ly(data=BaroData %>%
+ggplot(BaroData %>%
   filter(DateTime > as.POSIXct(paste(date,time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
   filter(DateTime < as.POSIXct(paste(date,time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
-  x=~DateTime,y=~AirPres_kpa)
+       aes(x=DateTime, y=AirPres_kpa)) +
+  geom_point(size=2, shape=23)
 
-#AirTemp
 
-plot_ly(data=BaroData %>%
+ggplot(BaroData %>%
   filter(DateTime > as.POSIXct(paste(date,time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
   filter(DateTime < as.POSIXct(paste(date,time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
-  x=~DateTime,y=~AirTemp_c)
+       aes(x=DateTime, y=AirTemp_c)) +
+  geom_point(size=2, shape=23, color="blue")
 
-#If data looks good, you can use the numbers in the table produced below:
+```
+
+```{r SUMMARIZE, echo=FALSE}
 
 #SUMMARIZE 
 
