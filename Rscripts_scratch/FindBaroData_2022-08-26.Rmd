@@ -1,0 +1,123 @@
+---
+title: "FindBaroData"
+author: "Kriddie"
+date: "2022-08-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(tidyverse)
+library(plotly)
+library(here)
+```
+
+## Description
+
+The purpose of this script is to identify the airpresser, air temp, at the time of sampling each wetland 
+
+After reading in the data, we will plot it to see if the air temperature and air pressure is within a range that "makes sense" for the environment that we are measuring.
+
+For each wetland sampled we will take an average of the Airpressure and airtemperature collected during the sample period
+
+For example: if samples were sampled wetland 1 on 7/14/2022 between 10am and 11am, we need an average of air temperature and air pressure from that time period
+
+#read in data for Baro
+
+```{r Read in Data}
+BaroData <- read.csv(here::here("Wetlands/Wetland_Baro.csv"), skip=0, header = TRUE)
+BaroData <- BaroData[,2:4]
+
+BaroData$DateTime <- as.POSIXct(BaroData$DateTime, format="%Y-%m-%d %H:%M:%S", tz = "UTC")
+```
+
+## Check Data
+
+#Plot all data
+
+
+```{r Check Data, echo=FALSE}
+ggplot(BaroData, aes(x=DateTime, y=AirPres_kpa)) +
+    geom_point(size=2, shape=23)
+ggplot(BaroData, aes(x=DateTime, y=AirTemp_c)) +
+    geom_point(size=2, shape=23,color="blue")
+
+```
+## Check Data
+
+#Plot 1 day
+
+Now we zoom into the day that we sampled data
+does the data "make sense"?
+
+
+```{r Check sample day, echo=FALSE}
+#enter date of collection
+date <- "2022-06-28"
+
+
+ggplot(BaroData %>%
+  filter(DateTime > as.POSIXct(paste(date,"00:00:01"), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  filter(DateTime < as.POSIXct(paste(date,"23:59:59"), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
+       aes(x=DateTime, y=AirPres_kpa)) +
+  geom_point(size=2, shape=23)
+
+
+ggplot(BaroData %>%
+  filter(DateTime > as.POSIXct(paste(date,"00:00:01"), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  filter(DateTime < as.POSIXct(paste(date,"23:59:59"), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
+       aes(x=DateTime, y=AirTemp_c)) +
+  geom_point(size=2, shape=23, color="blue")
+
+```
+#plot Time sampled for single wetland
+
+now select the time period a single wetland was sampled
+
+make sure there are no dramatice change in air temperature or air pressure during this time period
+
+If there is, we may need to exclude some data within the sample period
+
+If not, then we can use the average calculated at the end of the chunk
+
+```{r Check sample day, echo=FALSE}
+#enter date of collection
+date <- "2022-07-14"
+#enter start and end time that wetland was sampled
+time_START <- "10:16:00"
+time_END <- "10:48:00"
+
+
+ggplot(BaroData %>%
+  filter(DateTime > as.POSIXct(paste(date,time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  filter(DateTime < as.POSIXct(paste(date,time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
+       aes(x=DateTime, y=AirPres_kpa)) +
+  geom_point(size=2, shape=23)
+
+
+ggplot(BaroData %>%
+  filter(DateTime > as.POSIXct(paste(date,time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  filter(DateTime < as.POSIXct(paste(date,time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
+       aes(x=DateTime, y=AirTemp_c)) +
+  geom_point(size=2, shape=23, color="blue")
+
+```
+
+```{r SUMMARIZE, echo=FALSE}
+
+#SUMMARIZE 
+
+
+ave <- BaroData%>%
+  filter(DateTime > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  filter(DateTime < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  summarize(AirPres_mean = mean(AirPres_kpa),
+            AirTemp_mean = mean(AirTemp_c))
+
+print(ave)
+
+```
