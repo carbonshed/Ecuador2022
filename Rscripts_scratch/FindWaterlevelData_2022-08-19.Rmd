@@ -120,92 +120,6 @@ for (site in site_names){
 ```
 
 ### Now read in solinst
-We collect water level using hobo and solinst, so we need two differnt loops
-
-```{r Solinst, echo=FALSE}
-
-setwd(here::here("Wetlands/Files_Renamed/WaterLevelDATA"))
-all_files=list.files(pattern=".csv") #pulls out the csv files from CO2 folder
-sites_rp = sub('_[^_]+$', '', all_files)
-site_names=unique(sites_rp) #creates list of site names for following loop
-
-
-
-#rm old files, if they exist
-rm(WLData)
-rm(Temp_WLData)
-
-for (site in site_names){
-  
-  list1=list.files(pattern=site) #finds all files for the site
-  sitelist_csv=grep(".csv",list1) #creates list of all files for site
-  file_list=list1[sitelist_csv]
-  
-  #reads in files in list and appends
-  for (file in file_list){
-    if (!exists("WLData")){
-      Trash_WLData <- read.csv(file, skip=1, header = TRUE, sep = ",",
-                         quote = "\"",dec = ".", fill = TRUE, comment.char = "")
-      
-      if(str_contains(Trash_WLData[6,1],"m")){
-        print("m")
-        WLData <- read.csv(file, skip=11, header = TRUE, sep = ",",
-                    quote = "\"",dec = ".", fill = TRUE, comment.char = "")
-        colnames(WLData)=c("Date","Time","ms","WLPres_kpa","WLTemp_c")
-        WLData$WLPres_kpa <- as.numeric(as.character(WLData$WLPres_kpa), digits=6)
-        WLData$WLTemp_c <- as.numeric(as.character(WLData$WLTemp_c), digits=5)
-        WLData$WLPres_kpa <- WLData$WLPres_kpa*9.8064
-#        WLData$WLTemp_c <- (WLData$WLTemp_c - 32)/1.8000
-        } else { 
-        print("kPa")
-        WLData <- read.csv(file, skip=11, header = TRUE, sep = ",",
-            quote = "\"",dec = ".", fill = TRUE, comment.char = "")
-        colnames(WLData)=c("Date","Time","ms","WLPres_kpa","WLTemp_c")
-        WLData$WLPres_kpa <- as.numeric(as.character(WLData$WLPres_kpa), digits=6)
-        WLData$WLTemp_c <- as.numeric(as.character(WLData$WLTemp_c), digits=5)
-      }
-    }
-    if (exists("WLData")){
-      Trash_WLData <- read.csv(file, skip=1, header = FALSE, sep = ",",
-                              quote = "\"",dec = ".", fill = TRUE, comment.char = "")  
-      if(str_contains(Trash_WLData[6,1],"m")){
-        print("m")
-        Temp_WLData <- read.csv(file, skip=11, header = TRUE, sep = ",",
-                           quote = "\"",dec = ".", fill = TRUE, comment.char = "")
-        Temp_WLData <- Temp_WLData[c(-1),]
-        colnames(Temp_WLData)=c("Date","Time","ms","WLPres_kpa","WLTemp_c")
-        Temp_WLData$WLPres_kpa <- as.numeric(as.character(Temp_WLData$WLPres_kpa), digits=6)
-        Temp_WLData$WLTemp_c <- as.numeric(as.character(Temp_WLData$WLTemp_c), digits=5)
-        Temp_WLData$WLPres_kpa <- Temp_WLData$WLPres_kpa*9.8064
-#        Temp_WLData$WLTemp_c <- (Temp_WLData$WLTemp_c - 32)/1.8000
-        } else { 
-        print("kpa")
-        Temp_WLData <- read.csv(file, skip=11, header = TRUE, sep = ",",
-                                quote = "\"",dec = ".", fill = TRUE, comment.char = "")
-        Temp_WLData <- Temp_WLData[c(-1),]
-        colnames(Temp_WLData)=c("Date","Time","ms","WLPres_kpa","WLTemp_c")
-        Temp_WLData$WLPres_kpa <- as.numeric(as.character(Temp_WLData$WLPres_kpa), digits=6)
-        Temp_WLData$WLTemp_c <- as.numeric(as.character(Temp_WLData$WLTemp_c), digits=5)
-      }
-      
-      WLData <- rbind(WLData, Temp_WLData)
-      rm(Temp_WLData)
-    }
-    
-  }
-  WLData=unique(WLData)
-  WLData$DateTime <- paste(WLData$Date, WLData$Time)
-  WLData$DateTime <- as.POSIXct(WLData$DateTime, format="%m/%d/%Y %I:%M:%S %p", tz="UTC")
-  WLData$DateTime <- round_date(WLData$DateTime, "5 mins")
-  WLData <- WLData[,c("DateTime","WLPres_kpa","WLTemp_c")]
-  WLData$Station <- site
-  assign((paste(site,sep="_")),WLData) #creates object with new appended data
-  rm(WLData) #removes WLdata so that multiple sites aren't appended together
-}
-
-
-```
-
 
 #Clean Data
 
@@ -235,6 +149,7 @@ WL_Wetland04 <- WL_Wetland04%>%filter(DateTime < as.POSIXct("2022-07-15 13:00:00
                                         DateTime > as.POSIXct("2022-07-15 13:30:00",tz = "UTC"))
 #logger shifted 6/29/2022 10:00
 #there are no notes in the notebook, but I believe the logger was switched for ? reason
+
 WL_Wetland04_1 <- WL_Wetland04%>%filter(DateTime < as.POSIXct("2022-06-29 10:00:00",tz="UTC"))
 WL_Wetland04_1$WLPres_kpa <- WL_Wetland04_1$WLPres_kpa + (66.926-64.264)
 WL_Wetland04_2 <- WL_Wetland04%>%filter(DateTime > as.POSIXct("2022-06-29 12:00:00",tz="UTC"))
@@ -249,8 +164,11 @@ plot all water level data
 ```{r merge and plot, echo=FALSE}
 WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11)
 
-p <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
-p + facet_wrap(~Station)
+p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
+p1 + facet_wrap(~Station)
+
+p2 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WLTemp_c)) + geom_point()
+p2 + facet_wrap(~Station)
 
 ```
 ##select data
@@ -280,18 +198,12 @@ plot_ly(data=wetland %>%
 
 #Most likely during the sample period there is data missing or the numbers look very different from before and after sampling. This is because we pulled up and downloaded the logger during the same time - changing both the pressure and temperature
 
-#select two data points - one before the logger was downloaded, and one after the logger was downloaded. Take an average of the two and report
+#select an hour time period just before logger was downloaded. 
 
-DateTime_BEFORE <- "2022-07-14 09:45:00"
+DateTime_BEFORE <- "2022-07-14 09:00:00"
 DateTime_AFTER <- "2022-07-14 10:00:00"
 
-
-test <- wetland %>%
-  filter(DateTime >= as.POSIXct(DateTime_BEFORE, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  filter(DateTime <= as.POSIXct(DateTime_AFTER, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  summarize(WaterlLevel_mean = mean(WLPres_kpa),
-            WaterTemp_mean = mean(WLTemp_c))
-
+#calculate average
 
 
 ave <- wetland %>%
