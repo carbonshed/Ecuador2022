@@ -46,14 +46,14 @@ for (file in all_files){
     
   }
   
-  CO2Data=unique(CO2Data)
-  CO2Data <- CO2Data[,c(1,2,4,3)]
-  CO2Data <- rename(CO2Data, ppm_NOTcorrected=ppm)
+CO2Data=unique(CO2Data)
+CO2Data <- CO2Data[,c(1,2,4,3)]
+CO2Data <- rename(CO2Data, ppm_NOTcorrected=ppm)
 
-ggplot(CO2Data, aes(x=DateTime, y=ppm)) +
+ggplot(CO2Data, aes(x=DateTime, y=ppm_NOTcorrected)) +
     geom_point(size=2, shape=23)
 
-ggplot(CO2Data%>%filter(Date=="7/19/2022"), aes(x=DateTime, y=ppm)) +
+ggplot(CO2Data%>%filter(Date=="7/7/2022"), aes(x=DateTime, y=ppm_NOTcorrected)) +
   geom_point(size=2, shape=23)
 
 write.csv(CO2Data,here::here("Wetlands/Wetland_CO2.csv"))  
