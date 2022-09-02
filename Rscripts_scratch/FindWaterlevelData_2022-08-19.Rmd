@@ -176,9 +176,11 @@ select the wetland you want to find water level and water temp from and the date
 
 plot the water level and water temp for the entire day
 
+#start here amy!!
+
 ```{r select time, echo=FALSE}
 #enter wetland dataframe
-wetland <- WL_Wetland01
+wetland <- WL_Wetland01 #WL_Wetland01, WL_Wetland02
 #enter date of collection
 date <- "2022-07-14"
 
@@ -200,8 +202,8 @@ plot_ly(data=wetland %>%
 
 #select an hour time period just before logger was downloaded. 
 
-DateTime_BEFORE <- "2022-07-14 09:00:00"
-DateTime_AFTER <- "2022-07-14 10:00:00"
+DateTime_BEFORE <- "2022-07-14 08:00:00"
+DateTime_AFTER <- "2022-07-14 09:00:00"
 
 #calculate average
 
