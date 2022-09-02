@@ -183,6 +183,7 @@ plot the water level and water temp for the entire day
 wetland <- WL_Wetland01 #WL_Wetland01, WL_Wetland02
 #enter date of collection
 date <- "2022-07-14"
+#this is where you run it line by line
 
 #Water Level
 
