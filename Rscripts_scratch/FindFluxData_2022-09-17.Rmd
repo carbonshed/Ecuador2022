@@ -49,9 +49,9 @@ ggplot(FluxData, aes(x=DateTime, y=Flux)) +
 #select day of sample
 ```{r Check sample day, echo=FALSE}
 #enter date of collection
-date <- "2022-07-05"
-test <- FluxData%>%filter(DateTime_adjusted==date)
-ggplot(FluxData%>%filter(DateTime_adjusted==date),
+date <- "2022-07-07"
+test <- FluxData%>%filter(Date==date)
+ggplot(FluxData%>%filter(Date==date),
        aes(x=DateTime, y=Flux)) +
   geom_point(size=2, shape=23)
 
@@ -59,16 +59,16 @@ ggplot(FluxData%>%filter(DateTime_adjusted==date),
 
 ```{r select time, echo=FALSE}
 #enter date of collection
-date <- "2022-07-18"
+date <- "2022-07-27"
 #enter start and end time that wetland was sampled
 time_START <- "08:00:00"
-time_END <- "20:00:00"
+time_END <- "23:00:00"
 
 
 plot_ly(data=FluxData%>%filter(Date==date)%>%
-  filter(DateTime > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  filter(DateTime < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
-  x=~DateTime,y=~Flux)
+  filter(DateTime_adjusted > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  filter(DateTime_adjusted < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
+  x=~DateTime_adjusted,y=~Flux)
 
 ```
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
