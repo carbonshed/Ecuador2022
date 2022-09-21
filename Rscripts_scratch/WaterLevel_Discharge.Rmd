@@ -30,13 +30,12 @@ This is the final version of Rscript "WLBaroCorrected_2021-12-14"
 ```{r Hobo WL}
 #First the Hobos
 
-setwd(here::here("Water_Level"))
+setwd(here::here("Water_Level/Stations"))
 all_files=list.files(pattern=".csv") #pulls out the csv files from CO2 folder
 sites_rp = sub('_[^_]+$', '', all_files)
 site_names=unique(sites_rp) #creates list of site names for following loop
 
-site_names = site_names[c(4,5)]
-#site_names = site_names[c(2,3,5,6)]
+site_names = site_names[site_names != "WL_01"]
 
 #rm old files, if they exist
 rm(WLData)
@@ -123,12 +122,12 @@ We collect water level using hobo and solinst, so we need two differnt loops
 
 ```{r Solinst, echo=FALSE}
 
-setwd(here::here("Water_Level"))
+setwd(here::here("Water_Level/Stations"))
 all_files=list.files(pattern=".csv") #pulls out the csv files from CO2 folder
 sites_rp = sub('_[^_]+$', '', all_files)
 site_names=unique(sites_rp) #creates list of site names for following loop
 
-site_names = site_names[-c(1,2,4,5)]
+site_names = "WL_01"
 
 #rm old files, if they exist
 rm(WLData)
@@ -211,7 +210,7 @@ plot the water level so that each station data can be cleaned
 ```{r plot, echo=FALSE}
 
 ##clean data
-plot_ly(WL_01, x = ~DateTime, y = ~WLPres_kpa, type = 'scatter', mode = 'markers') 
+plot_ly(WL_06, x = ~DateTime, y = ~WLPres_kpa, type = 'scatter', mode = 'markers') 
 
 ```
 
@@ -226,7 +225,7 @@ bind all sites together
 
 ```{r bind, echo=FALSE}
 
-All_WL <- rbind(WL_01,WL_02,WL_03)
+All_WL <- rbind(WL_01,WL_02,WL_03,WL_04,WL_05,WL_06)
 
 ```
 ## barometric data
@@ -235,7 +234,7 @@ now read in the barometric data
 ```{r baro loop, echo=FALSE}
 
 ###merge data with baro data###
-setwd(here::here("Water_Level"))
+setwd(here::here("Water_Level/BaroPress"))
 all_files=list.files(pattern=".csv") #pulls out the csv files from WL folder in HOBOware folder
 sites_rp=gsub("_.*","",all_files) #selects the correct pattern so as to seelct only desired files
 site_names="Baro" #creates list of site names for following loop
@@ -293,6 +292,8 @@ Baro <- Baro%>%filter(DateTime > as.POSIXct("2021-06-11 13:30:00", tz = "UTC"))
 
 #correct for baro 
 
+plot_ly(Baro, x = ~DateTime, y = ~Baro_kpa, type = 'scatter', mode = 'markers') 
+
 Baro_corrected <- left_join(Baro,All_WL,by="DateTime")
 
 Baro_corrected$Corrected_kpa <- Baro_corrected$WLPres_kpa - Baro_corrected$Baro_kpa
@@ -329,8 +330,8 @@ plot_ly(Baro_corrected %>% filter(Station == "WL_01"), x = ~DateTime, y = ~Total
 ## build curve
 this line of script can be easily altered to find  water levels at select points in time
 ```{r build curve, echo=FALSE}
-Baro_corrected %>% filter(DateTime == as.POSIXct("2022-06-07 10:40:00", tz = "UTC") &
-                            Station == "WL_01")
+Baro_corrected %>% filter(DateTime == as.POSIXct("2022-07-27 09:45:00", tz = "UTC") &
+                            Station == "WL_02")
 
 ```
 

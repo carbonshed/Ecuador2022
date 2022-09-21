@@ -52,8 +52,8 @@ select date
 
 ```{r Check sample day, echo=FALSE}
 #enter date of collection
-date <- "2022-07-14"
-
+date <- "2022-07-05"
+test <- CO2Data%>%filter(Date==date)
 ggplot(CO2Data%>%filter(Date==date),
        aes(x=DateTime, y=ppm_NOTcorrected)) +
   geom_point(size=2, shape=23)
@@ -62,10 +62,10 @@ ggplot(CO2Data%>%filter(Date==date),
 
 ```{r select time, echo=FALSE}
 #enter date of collection
-date <- "2022-07-14"
+date <- "2022-06-29"
 #enter start and end time that wetland was sampled
-time_START <- "10:16:00"
-time_END <- "10:48:00"
+time_START <- "10:53:00"
+time_END <- "11:03:00"
 
 
 plot_ly(data=CO2Data%>%filter(Date==date)%>%
@@ -80,10 +80,10 @@ plot_ly(data=CO2Data%>%filter(Date==date)%>%
 ```{r summarize, echo=FALSE}
 
 #enter date of collection
-date <- "2022-07-14"
+date <- "2022-07-05"
 #enter start and end time that wetland was sampled
-time_START <- "10:47:00"
-time_END <- "10:48:00"
+time_START <- "10:40:00"
+time_END <- "11:00:00"
 
 ave <- CO2Data%>%filter(Date==date)%>%
   filter(DateTime > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
