@@ -57,7 +57,7 @@ does the data "make sense"?
 
 ```{r Check sample day, echo=FALSE}
 #enter date of collection
-date <- "2022-06-28"
+date <- "2022-07-14"
 
 
 ggplot(BaroData %>%
@@ -88,7 +88,7 @@ If not, then we can use the average calculated at the end of the chunk
 #enter date of collection
 date <- "2022-07-14"
 #enter start and end time that wetland was sampled
-time_START <- "10:16:00"
+time_START <- "10:01:00"
 time_END <- "10:48:00"
 
 #AirPressure
@@ -103,7 +103,7 @@ plot_ly(data=BaroData %>%
 plot_ly(data=BaroData %>%
   filter(DateTime > as.POSIXct(paste(date,time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
   filter(DateTime < as.POSIXct(paste(date,time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
-  x=~DateTime,y=~AirTemp_c)
+  x=~DateTime,y=~AirTemp_c, type = 'histogram')
 
 #If data looks good, you can use the numbers in the table produced below:
 

@@ -18,7 +18,7 @@ library(here)
 
 ## Description
 
-The purpose of this script is to identify the airpresser, air temp, at the time of sampling each wetland 
+The purpose of this script is to identify the air pressure, air temp, at the time of sampling each wetland 
 
 After reading in the data, we will plot it to see if the air temperature and air pressure is within a range that "makes sense" for the environment that we are measuring.
 
@@ -78,7 +78,7 @@ ggplot(BaroData %>%
 
 now select the time period a single wetland was sampled
 
-make sure there are no dramatice change in air temperature or air pressure during this time period
+make sure there are no dramatic changes in air temperature or air pressure during this time period
 
 If there is, we may need to exclude some data within the sample period
 
