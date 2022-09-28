@@ -34,13 +34,17 @@ df_merge_2 <-df_merge_2 %>% drop_na(Zinc_Chloride)
 #
 
 ## Merge with data 
-sample_data <-  read.csv(here::here("Methane/Methane_Data_2022-08-04.csv"), skip=0, header = TRUE, sep = ",",
-                      quote = "\"",dec = ".", fill = TRUE, comment.char = "")
+#sample_data <-  read.csv(here::here("Methane/Methane_Data_2022-08-04.csv"), skip=0, header = TRUE, sep = ",",
+#                      quote = "\"",dec = ".", fill = TRUE, comment.char = "")
+#GHG_df <- read.csv(here::here("Methane/GHG_Data_2022-09-28.csv"))
+sample_data <-  read.csv(here::here("Methane/GHG_Data_2022-09-28.csv"), skip=0, header = TRUE, sep = ",",
+                         quote = "\"",dec = ".", fill = TRUE, comment.char = "")
+#names(GHG_df)[names(GHG_df) == "Bottle_Number"] <- "Vial_no"
 #sample_data$Bottle_Number <- as.numeric(sample_data$Bottle_Number)
 
 df_merge <- full_join(df_merge,sample_data,by="Bottle_Number")
 
-df_merge <- df_merge%>%drop_na(Bottle_Number)%>%drop_na(area)%>%drop_na(AquaticSystem)
+df_merge <- df_merge%>%drop_na(Bottle_Number)%>%drop_na(AquaticSystem)
 
 #df_merge$CH4_ppm_atDUKE <- df_merge$CH4.ppm.NOT.CORRECTED * 
 
@@ -58,8 +62,11 @@ p <- ggplot(df_merge%>%
   geom_boxplot()
 
 #p <- ggplot(df_merge %>%subset(AquaticSystem == "wetland"), aes(x=as.factor(Date), y=CH4.ppm.NOT.CORRECTED)) + 
-#  geom_boxplot()
-p+ facet_wrap(~Date, ncol = 3)
+#  geom_boxplot()=
+
+#n20 data
+p <- ggplot(df_merge, aes(x=AquaticSystem, y=N20.ppm.NOT.CORRECTED)) + 
+  geom_boxplot()
 p
 
 ###############################
@@ -67,7 +74,7 @@ p
 ############################### 
 
 p <- ggplot(df_merge %>%subset(AquaticSystem == "wetland")%>%
-              subset(Wetland == "10"| Wetland == "8"| Wetland =="9")
+              subset(Wetland == "10"| Wetland == "11"| Wetland =="12")
           #  %>% subset(CH4.ppm.NOT.CORRECTED < 200)
             , 
             aes(x=as.factor(Date), y=CH4.ppm.NOT.CORRECTED)) + 
