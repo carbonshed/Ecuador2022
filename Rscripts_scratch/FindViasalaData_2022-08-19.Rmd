@@ -52,7 +52,7 @@ select date
 
 ```{r Check sample day, echo=FALSE}
 #enter date of collection
-date <- "2022-07-05"
+date <- "2022-06-30"
 test <- CO2Data%>%filter(Date==date)
 ggplot(CO2Data%>%filter(Date==date),
        aes(x=DateTime, y=ppm_NOTcorrected)) +
