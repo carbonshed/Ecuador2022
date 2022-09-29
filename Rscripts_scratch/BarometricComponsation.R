@@ -85,12 +85,14 @@ plot(BaroDATA$Baro_kpa, BaroDATA$AirPres_kpa, main = "Scatterplot")
 Wetland010203_1 <- BaroDATA%>%filter(DateTime > as.POSIXct("2022-07-07 10:11:00",tz="UTC")&
                                         DateTime < as.POSIXct("2022-07-07 11:52:00",tz = "UTC"))
 Wetland010203_2 <- BaroDATA%>%filter(DateTime > as.POSIXct("2022-07-14 10:10:01",tz="UTC")&
-                                       DateTime < as.POSIXct("2022-07-14 01:05:00",tz = "UTC"))
+                                       DateTime < as.POSIXct("2022-07-14 13:05:00",tz = "UTC"))
 Wetland010203_3 <- BaroDATA%>%filter(DateTime > as.POSIXct("2022-07-25 09:56:00",tz="UTC")&
                                        DateTime < as.POSIXct("2022-07-25 12:40:00",tz = "UTC"))
 
 Wetland010203 <- rbind(Wetland010203_1,Wetland010203_2,Wetland010203_3)
 rm(Wetland010203_1,Wetland010203_2,Wetland010203_3)
+
+plot(Wetland010203$DateTime, Wetland010203$AirPres_kpa, main = "Wetland 1,2,3")
 
 fit <- lm(AirPres_kpa ~ Baro_kpa, data = Wetland010203)
 summary(fit)
@@ -105,15 +107,17 @@ eq <- paste0("BaroNOMAD = ", cf[1],
              ifelse(sign(cf[2])==1, " + ", " - "), abs(cf[2]), " BaroSTATION ")#,
 #             ifelse(sign(cf[3])==1, " + ", " - "), abs(cf[3]), " hp")
 ## printing of the equation
-mtext(eq, 3, line=-2)
+mtext(eq, 3)
 
 #wetland 4
 #6/29 @9:20 to 11:03
 #7/15/2022 @ 12:53 - 13:19
 #7/22/2022 @ 10:50 - 11:18
 
+
 Wetland04_1 <- BaroDATA%>%filter(DateTime > as.POSIXct("2022-06-29 09:20:00",tz="UTC")&
-                                       DateTime < as.POSIXct("2022-06-29 11:03:00",tz = "UTC"))
+                                       DateTime < as.POSIXct("2022-06-29 11:03:00",tz = "UTC"))#%>%
+#                                filter(AirPres_kpa > 64)
 Wetland04_2 <- BaroDATA%>%filter(DateTime > as.POSIXct("2022-07-15 12:53:00",tz="UTC")&
                                        DateTime < as.POSIXct("2022-07-15 13:19:00",tz = "UTC"))
 Wetland04_3 <- BaroDATA%>%filter(DateTime > as.POSIXct("2022-07-22 10:50:00",tz="UTC")&
@@ -122,12 +126,20 @@ Wetland04_3 <- BaroDATA%>%filter(DateTime > as.POSIXct("2022-07-22 10:50:00",tz=
 Wetland04 <- rbind(Wetland04_1,Wetland04_2,Wetland04_3)%>%drop_na(AirPres_kpa)
 rm(Wetland04_1,Wetland04_2,Wetland04_3)
 
+plot(Wetland04$DateTime, Wetland04$AirPres_kpa, main = "Wetland 4")
+
 fit <- lm(AirPres_kpa ~ Baro_kpa, data = Wetland04)
 summary(fit)
 
-
 plot(Wetland04$Baro_kpa, Wetland04$AirPres_kpa, main = "Wetland 4")
 abline(lm(Wetland04$AirPres_kpa ~ Wetland04$Baro_kpa))
+
+## rounded coefficients for better output
+cf <- round(coef(fit), 2) 
+eq <- paste0("BaroNOMAD = ", cf[1],
+             ifelse(sign(cf[2])==1, " + ", " - "), abs(cf[2]), " BaroSTATION ")
+mtext(eq, 3)
+
 
 ## Wetland 5
 #6/28/22 @ 9:55 to 11:30
@@ -144,7 +156,9 @@ Wetland05_3 <- BaroDATA%>%filter(DateTime > as.POSIXct("2022-07-27 11:18:00",tz=
 Wetland05 <- rbind(Wetland05_1,Wetland05_2,Wetland05_3)
 rm(Wetland05_1,Wetland05_2,Wetland05_3)
 
-fit <- lm(AirPres_kpa ~ Baro_kpa, data = Wetland060711)
+plot(Wetland05$DateTime, Wetland05$AirPres_kpa, main = "Wetland 5")
+
+fit <- lm(AirPres_kpa ~ Baro_kpa, data = Wetland05)
 summary(fit)
 
 plot(Wetland05$Baro_kpa, Wetland05$AirPres_kpa, main = "Wetland 5")
@@ -152,13 +166,9 @@ plot(Wetland05$Baro_kpa, Wetland05$AirPres_kpa, main = "Wetland 5")
 abline(coef(fit)[1:2])
 ## rounded coefficients for better output
 cf <- round(coef(fit), 2) 
-## sign check to avoid having plus followed by minus for negative coefficients
-eq <- paste0("mpg = ", cf[1],
-             ifelse(sign(cf[2])==1, " + ", " - "), abs(cf[2]), " cyl ",
-             ifelse(sign(cf[3])==1, " + ", " - "), abs(cf[3]), " hp")
-
-## printing of the equation
-mtext(eq, 3, line=-2)
+eq <- paste0("BaroNOMAD = ", cf[1],
+             ifelse(sign(cf[2])==1, " + ", " - "), abs(cf[2]), " BaroSTATION ")
+mtext(eq, 3)
 
 #wetland 06, 07, 11
 #launched 6/30 @ 9:10-10:10, 10:50 - 11:29
@@ -178,6 +188,8 @@ Wetland060711_4 <- BaroDATA%>%filter(DateTime > as.POSIXct("2022-07-22 12:02:00"
 Wetland060711 <- rbind(Wetland060711_1,Wetland060711_2,Wetland060711_3,Wetland060711_4)%>%drop_na(AirPres_kpa)
 rm(Wetland060711_1,Wetland060711_2,Wetland060711_3,Wetland060711_4)
 
+plot(Wetland060711$DateTime, Wetland060711$AirPres_kpa, main = "Wetland 6, 7, 11")
+
 fit <- lm(AirPres_kpa ~ Baro_kpa, data = Wetland060711)
 summary(fit)
 
@@ -187,6 +199,9 @@ abline(coef(fit)[1:2])
 
 ## rounded coefficients for better output
 cf <- round(coef(fit), 2) 
+eq <- paste0("BaroNOMAD = ", cf[1],
+             ifelse(sign(cf[2])==1, " + ", " - "), abs(cf[2]), " BaroSTATION ")
+mtext(eq, 3)
 
 
 ## Wetland 8, 9 ,10
@@ -208,12 +223,18 @@ rm(Wetland080910_1,Wetland080910_2,Wetland080910_3)
 fit <- lm(AirPres_kpa ~ Baro_kpa, data = Wetland080910)
 summary(fit)
 
+plot(Wetland080910$DateTime, Wetland080910$AirPres_kpa, main = "Wetland 8.9.10")
+
 plot(Wetland080910$Baro_kpa, Wetland080910$AirPres_kpa, main = "Wetland 8.9.10")
 #abline(lm(Wetland080910$AirPres_kpa ~ Wetland080910$Baro_kpa))
 abline(coef(fit)[1:2])
 
 ## rounded coefficients for better output
 cf <- round(coef(fit), 2) 
+eq <- paste0("BaroNOMAD = ", cf[1],
+             ifelse(sign(cf[2])==1, " + ", " - "), abs(cf[2]), " BaroSTATION ")
+mtext(eq, 3)
+
 
 
 
@@ -235,6 +256,8 @@ Wetland12_3 <- BaroDATA%>%filter(DateTime > as.POSIXct("2022-07-27 09:34:00",tz=
 
 Wetland12 <- rbind(Wetland12_1,Wetland12_2,Wetland12_3)%>%drop_na(AirPres_kpa)
 rm(Wetland12_1,Wetland12_2,Wetland12_3)
+
+plot(Wetland12$DateTime, Wetland12$AirPres_kpa, main = "Wetland 12")
 
 plot(Wetland12$Baro_kpa, Wetland12$AirPres_kpa, main = "Wetland 12")
 abline(lm(Wetland12$AirPres_kpa ~ Wetland12$Baro_kpa))
