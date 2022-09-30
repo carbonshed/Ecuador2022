@@ -156,7 +156,45 @@ WL_Wetland04_2 <- WL_Wetland04%>%filter(DateTime > as.POSIXct("2022-06-29 12:00:
 WL_Wetland04 <- rbind(WL_Wetland04_1,WL_Wetland04_2)
 rm(WL_Wetland04_1,WL_Wetland04_2)
 
-plot_ly(data = WL_Wetland04, x = ~DateTime, y = ~WLPres_kpa)
+#wetland05
+WL_Wetland05 <- WL_Wetland05%>%filter(DateTime != as.POSIXct("2022-07-27 11:15:00",tz = "UTC"))
+
+#wetland06
+WL_Wetland06 <- WL_Wetland06%>%filter(DateTime != as.POSIXct("2022-06-16 14:15:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-07-19 13:00:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-07-19 13:15:00",tz = "UTC"))
+
+#wetland07
+WL_Wetland07 <- WL_Wetland07%>%filter(DateTime != as.POSIXct("2022-07-11 12:45:00",tz = "UTC"))
+
+#wetland08
+WL_Wetland08 <- WL_Wetland08%>%filter(DateTime > as.POSIXct("2022-07-05 10:00:00",tz="UTC"))%>%
+  filter(DateTime < as.POSIXct("2022-07-08 10:00:00",tz="UTC")|
+                                        DateTime > as.POSIXct("2022-07-08 12:30:00",tz = "UTC"))
+
+#wetland09
+WL_Wetland09 <- WL_Wetland09%>%filter(DateTime > as.POSIXct("2022-07-05 11:30:00",tz="UTC"))%>%
+  filter(DateTime < as.POSIXct("2022-07-08 10:00:00",tz="UTC")|
+                                        DateTime > as.POSIXct("2022-07-08 10:45:00",tz = "UTC"))
+
+#wetland10
+WL_Wetland10 <- WL_Wetland10%>%filter(DateTime != as.POSIXct("2022-07-12 11:15:00",tz="UTC"))
+
+#logger shifted July 12
+WL_Wetland10_1 <- WL_Wetland10%>%filter(DateTime <= as.POSIXct("2022-07-12 10:00:00",tz="UTC"))
+WL_Wetland10_1$WLPres_kpa <- WL_Wetland10_1$WLPres_kpa + (68.838-68.04)
+WL_Wetland10_2 <- WL_Wetland10%>%filter(DateTime > as.POSIXct("2022-07-12 11:30:00",tz="UTC"))
+WL_Wetland10 <- rbind(WL_Wetland10_1,WL_Wetland10_2)
+rm(WL_Wetland10_1,WL_Wetland10_2)
+
+#wetland11
+WL_Wetland11 <- WL_Wetland11%>%filter(DateTime > as.POSIXct("2022-07-11 12:30:00",tz="UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-07-28 12:15:00",tz="UTC"))
+
+#wetland12
+WL_Wetland12 <- WL_Wetland12%>%filter(DateTime > as.POSIXct("2022-06-07 14:15:00",tz="UTC"))
+
+plot_ly(data = WL_Wetland08, x = ~DateTime, y = ~WLPres_kpa)
 ```
 ##  Plot
 plot all water level data
