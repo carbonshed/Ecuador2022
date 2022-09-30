@@ -56,6 +56,7 @@ ggplot(CO2Data, aes(x=DateTime, y=ppm_NOTcorrected)) +
 ggplot(CO2Data%>%filter(Date=="6/29/2022"), aes(x=DateTime, y=ppm_NOTcorrected)) +
   geom_point(size=2, shape=23)
 
-CO2Data <- CO2Data%>%filter(Date=="7/11/2022" & ppm_NOTcorrected > 25)
+
+#CO2Data <- CO2Data%>%filter(Date=="6/29/2022" & ppm_NOTcorrected > 25)
 
 write.csv(CO2Data,here::here("Wetlands/Wetland_CO2.csv"))  
