@@ -175,7 +175,7 @@ WL_Wetland08 <- WL_Wetland08%>%filter(DateTime > as.POSIXct("2022-07-05 10:00:00
 #wetland09
 WL_Wetland09 <- WL_Wetland09%>%filter(DateTime > as.POSIXct("2022-07-05 11:30:00",tz="UTC"))%>%
   filter(DateTime < as.POSIXct("2022-07-08 10:00:00",tz="UTC")|
-                                        DateTime > as.POSIXct("2022-07-08 10:45:00",tz = "UTC"))
+                                        DateTime > as.POSIXct("2022-07-08 12:30:00",tz = "UTC"))
 
 #wetland10
 WL_Wetland10 <- WL_Wetland10%>%filter(DateTime != as.POSIXct("2022-07-12 11:15:00",tz="UTC"))
@@ -194,7 +194,7 @@ WL_Wetland11 <- WL_Wetland11%>%filter(DateTime > as.POSIXct("2022-07-11 12:30:00
 #wetland12
 WL_Wetland12 <- WL_Wetland12%>%filter(DateTime > as.POSIXct("2022-06-07 14:15:00",tz="UTC"))
 
-plot_ly(data = WL_Wetland08, x = ~DateTime, y = ~WLPres_kpa)
+plot_ly(data = WL_Wetland09, x = ~DateTime, y = ~WLPres_kpa)
 ```
 ##  Plot
 plot all water level data
@@ -209,6 +209,70 @@ p2 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WLTemp_c)) + geom_point()
 p2 + facet_wrap(~Station)
 
 ```
+
+```{r baro, echo=FALSE}
+
+###merge data with baro data###
+setwd(here::here("Water_Level/BaroPress"))
+all_files=list.files(pattern=".csv") #pulls out the csv files from WL folder in HOBOware folder
+sites_rp=gsub("_.*","",all_files) #selects the correct pattern so as to seelct only desired files
+site_names="Baro" #creates list of site names for following loop
+
+#rm old files, if they exsist
+rm(BaroData)
+rm(Temp_BaroData)
+
+for (site in site_names){
+  
+  list1=list.files(pattern=site) #finds all files for the site
+  sitelist_csv=grep(".csv",list1) #creates list of all files for site
+  file_list=list1[sitelist_csv]
+  
+  #reads in files in list and appends
+  for (file in file_list){
+    if (!exists("BaroData")){
+      BaroData <- read.csv(file, skip=10, header = TRUE, sep = ",",
+                           quote = "\"",dec = ".", fill = TRUE, comment.char = "")
+    }
+    if (exists("BaroData")){
+      Temp_BaroData <- read.csv(file, skip=10, header = TRUE, sep = ",",
+                                quote = "\"",dec = ".", fill = TRUE, comment.char = "")  
+      BaroData <- rbind(BaroData, Temp_BaroData)
+      rm(Temp_BaroData)
+    }
+    
+  }
+  colnames(BaroData)=c("Date","Time","ms","Baro_kpa","BaroTemp_c")
+  BaroData=unique(BaroData)
+  BaroData$DateTime <- paste(BaroData$Date, BaroData$Time)
+  BaroData$DateTime <- as.POSIXct(BaroData$DateTime, format="%m/%d/%Y %I:%M:%S %p", tz="UTC")
+  BaroData$DateTime <- round_date(BaroData$DateTime, "15 mins")
+  BaroData$ms <- NULL
+  BaroData$Date <- NULL
+  BaroData$Time <- NULL
+  BaroData <- BaroData[,c(3,1,2)]
+  BaroData=unique(BaroData)
+  assign((paste(site,sep="_")),BaroData) #creates object with new appended data
+  rm(BaroData) #removes WLdata so that multiple sites aren't appended together
+}
+
+BaroSTATION <- Baro 
+
+```
+
+#correct for baro press
+```{r subtract baro, echo=FALSE}
+
+WL_Wetland <- left_join(WL_Wetland,BaroSTATION,by="DateTime")
+
+WL_Wetland$WaterLevel_m <- (WL_Wetland$WLPres_kpa - WL_Wetland$Baro_kpa) * 0.10197442889221
+
+
+p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WaterLevel_m)) + geom_point()
+p1 + facet_wrap(~Station)
+
+```
+
 ##select data
 select the wetland you want to find water level and water temp from and the date and time
 
@@ -218,22 +282,25 @@ plot the water level and water temp for the entire day
 
 ```{r select time, echo=FALSE}
 #enter wetland dataframe
-wetland <- WL_Wetland08 #WL_Wetland01, WL_Wetland02
+wetland <- "WL_Wetland08" #WL_Wetland01, WL_Wetland02
 #enter date of collection
-date <- "2022-07-28"
+date <- "2022-07-20"
+
+#code below extract desired wetland, do not change
+wetland_data <- WL_Wetland%>%filter(Station==wetland)
 
 #this is where you run it line by line
 
 #Water Level
 
-plot_ly(data=wetland %>%
+plot_ly(data=wetland_data %>%
   filter(DateTime > as.POSIXct(paste(date,"00:00:01"), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
   filter(DateTime < as.POSIXct(paste(date,"23:59:59"), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
-  x=~DateTime,y=~WLPres_kpa)
+  x=~DateTime,y=~WaterLevel_m)
 
 #Water Temp
 
-plot_ly(data=wetland %>%
+plot_ly(data=wetland_data %>%
   filter(DateTime > as.POSIXct(paste(date,"00:00:01"), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
   filter(DateTime < as.POSIXct(paste(date,"23:59:59"), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
   x=~DateTime,y=~WLTemp_c)
@@ -248,10 +315,10 @@ DateTime_AFTER <- "2022-07-14 09:00:00"
 #calculate average
 
 
-ave <- wetland %>%
+ave <- wetland_data %>%
   filter(DateTime >= as.POSIXct(DateTime_BEFORE, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
   filter(DateTime <= as.POSIXct(DateTime_AFTER, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  summarize(WaterlLevel_mean = mean(WLPres_kpa),
+  summarize(WaterlLevel_mean = mean(WaterLevel_m),
             WaterTemp_mean = mean(WLTemp_c))
 
 print(ave)

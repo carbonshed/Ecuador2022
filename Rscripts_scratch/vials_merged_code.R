@@ -51,6 +51,8 @@ processing_df <-  read.csv(here::here("Methane/Methane_Processing_Info.csv"), sk
                          quote = "\"",dec = ".", fill = TRUE, comment.char = "")
 names(processing_df)[names(processing_df) == "Sample.ID"] <- "Bottle_Number"
 
+df_merge <- df_merge%>%drop_na(Bottle_Number)%>%drop_na(AquaticSystem)
+
 #info we need to bind in
 #site,date collected time collected. decimal time, uncorrecte headspace concntration (ppm),
 #vol sample (L), vol headspace (L),

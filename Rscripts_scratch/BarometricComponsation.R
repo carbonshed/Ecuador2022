@@ -14,6 +14,12 @@ library(plotly)
 ##STATION BAROMETRIC DATA###
 ######
 
+#solinst website: 
+#One Barologger can be used to compensate all Leveloggers in a 
+  #30 km (20 mile) radius and/or 
+  #with every 300 m (1000 ft.) change in elevation
+#https://www.solinst.com/products/dataloggers-and-telemetry/3001-levelogger-series/levelogger/datasheet/barometric-compensation.php
+
 ###merge data with baro data###
 setwd(here::here("Water_Level/BaroPress"))
 all_files=list.files(pattern=".csv") #pulls out the csv files from WL folder in HOBOware folder
