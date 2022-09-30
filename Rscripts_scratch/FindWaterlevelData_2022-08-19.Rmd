@@ -200,7 +200,7 @@ plot_ly(data = WL_Wetland09, x = ~DateTime, y = ~WLPres_kpa)
 plot all water level data
 
 ```{r merge and plot, echo=FALSE}
-WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11)
+WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11,WL_Wetland12)
 
 p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
 p1 + facet_wrap(~Station)
