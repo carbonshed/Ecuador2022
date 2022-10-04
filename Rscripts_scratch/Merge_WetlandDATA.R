@@ -6,7 +6,7 @@ library(dplyr)
 
 
 #co2
-CO2 <-  read.csv(here::here("Wetlands/Wetland_CO2Data_2022-09-29.csv"), skip=0, header = TRUE, sep = ",",
+CO2 <-  read.csv(here::here("Wetlands/SamplingNotes/Wetlands_data_master_excel.csv"), skip=0, header = TRUE, sep = ",",
                       quote = "\"",dec = ".", fill = TRUE, comment.char = "")
 CO2$Date <- as.Date(CO2$Date, format = "%m/%d/%y")
 CO2 <- CO2[,c("Wetland","Location","Date","Time","ppm_NOTcorrected")]
