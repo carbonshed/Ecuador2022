@@ -218,9 +218,9 @@ p <- ggplot(df, aes(x=Wetland, y=log10(CO2_ppm))) +
   geom_boxplot()
 p
 
-df$K600.effective
+df$K600
 p <- ggplot(df%>%
-              subset(Wetland = "1"|"2"|"3"), aes(x=Date, y=log10(K600.effective))) + 
+              subset(Wetland = "1"|"2"|"3"), aes(x=Date, y=log10(K600))) + 
   geom_point()
 
 p + facet_grid(~Wetland)
