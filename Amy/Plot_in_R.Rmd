@@ -115,13 +115,14 @@ I like using the package, ggplot, so will start plotting with that.
 
 before you try to plot your own data, take some time to familiarize yourself with ggplot. There are LOTS of good resources to help you learn ggplot. 
 
-#go to the link below
+#Open the link below in your browser
 
 https://datacarpentry.org/R-ecology-lesson/04-visualization-ggplot2
 
-#Open up the rscript in Amy folder datacarpentry_code.R
+#Open up the rscript in Amy folder named datacarpentry_code.R
 
-Use this site to learn about how to use ggplot to plot your data. 
+Use the site to learn about how to use ggplot to plot your data. Use the script to play around with examples of how to plot someone else's data in ggplot.
+
 While you work through this lesson, think about how you want to plot your data
 
 

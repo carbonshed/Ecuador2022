@@ -4,10 +4,12 @@
 
 # https://datacarpentry.org/R-ecology-lesson/04-visualization-ggplot2.html
 
-#Work your way through the cod on that page. 
-#copy and paste the code in the greyed boxes below so that you can test out the code yourself.
+#Work your way through the code on that page. 
 
-#I found reading in the data a little trcky, so I did that part for you, below. 
+#copy and paste the code from the the grayed boxes into this R file so that you can test out the code yourself.
+
+#I found reading in the data to be a little tricky, so I did that part for you, below. 
+
 #The data that they want you to download is already in your folder.
 
 library(tidyverse)
