@@ -13,8 +13,11 @@ df$Date <- as.Date(df$Date, format = "%m/%d/%Y")
 df <- df[,c("Wetland","Location","Date","CO2.NO3.time","CH4.Time","Mehane.bottle","Watertemp_mean","water.level")]
 colnames(df) <- c("Wetland","Location","Date","Time_CO2","Time_CH4","Methane_Bottle","Watertemp_c","Waterlevel")
 df$Time_CH4 <- NULL
+df$Methane_Bottle <- NULL
+df$Time_CO2 <- NULL
+df <- unique(df)
 #CO2
-CO2 <-  read.csv(here::here("Wetlands/Wetland_CO2Data_2022-09-29.csv"), skip=0, header = TRUE, sep = ",",
+CO2 <-  read.csv(here::here("Wetlands/Wetland_CO2Data_2022-10-18.csv"), skip=0, header = TRUE, sep = ",",
                 quote = "\"",dec = ".", fill = TRUE, comment.char = "")
 CO2$Date <- as.Date(CO2$Date, format = "%m/%d/%y")
 CO2 <- CO2[,c("Wetland","Location","Date","ppm_NOTcorrected")]
@@ -207,7 +210,7 @@ df$K600 <- df$k_m.d * (600/df$Sc)^(-0.5)
 #write out#
 ##########
 
-write.csv(df, here::here("wetlands_df_2022-10-05.csv"),
+write.csv(df, here::here("wetlands_df_2022-10-18.csv"),
           row.names = FALSE)
 
 ##########
