@@ -217,22 +217,21 @@ write.csv(df, here::here("wetlands_df_2022-10-18.csv"),
 
 # Basic box plot
 df$Wetland <- as.factor(df$Wetland)
-p <- ggplot(df, aes(x=Wetland, y=log10(CO2_ppm))) + 
+
+ggplot(df, aes(x=Wetland, y=log10(CO2_ppm))) + 
   geom_boxplot()
-p
 
-df$K600
-p <- ggplot(df%>%
-              subset(Wetland = "1"|"2"|"3"), aes(x=Date, y=log10(K600))) + 
-  geom_point()
 
-p + facet_grid(~Wetland)
+ggplot(df, aes(x=Date, y=K600)) + 
+  geom_point() + facet_grid(~Wetland)
 
-p <- ggplot(df%>%
-              subset(Wetland = "1"|"2"|"3"), aes(x=Date, y=log10(Flux_mean))) + 
-  geom_point()
 
-p + facet_grid(~Wetland)
+ggplot(df, aes(x=Date, y=Flux_mean)) + 
+  geom_point() + facet_grid(~Wetland)
+
+ggplot(df, aes(x=Date, y=log10(CO2_ppm))) + 
+  geom_point() + facet_grid(~Wetland)
+
 
 
 ####suplimentary data frame####
