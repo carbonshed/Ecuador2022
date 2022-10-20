@@ -15,7 +15,7 @@
 library(tidyverse)
 library(here)
 
-surveys_complete <- read_csv(here::here("Amy/combined.csv"))
+surveys_complete <- read_csv(here::here("Amy/surveys_complete.csv"))
 
 ggplot(data = surveys_complete)
 
