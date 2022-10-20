@@ -221,12 +221,18 @@ df$Wetland <- as.factor(df$Wetland)
 ggplot(df, aes(x=Wetland, y=log10(CO2_ppm))) + 
   geom_boxplot()
 
+ggplot(df, aes(x=Wetland, y=log10(Flux_mean))) + 
+  geom_boxplot()
+
+ggplot(df, aes(x=Wetland, y=log10(K600))) + 
+  geom_point()
+
 
 ggplot(df, aes(x=Date, y=K600)) + 
   geom_point() + facet_grid(~Wetland)
 
 
-ggplot(df, aes(x=Date, y=Flux_mean)) + 
+ggplot(df, aes(x=Date, y=log10(Flux_mean))) + 
   geom_point() + facet_grid(~Wetland)
 
 ggplot(df, aes(x=Date, y=log10(CO2_ppm))) + 
