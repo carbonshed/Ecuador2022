@@ -10,12 +10,14 @@
 
 #I found reading in the data to be a little tricky, so I did that part for you, below. 
 
-#The data that they want you to download is already in your folder.
+#The data is already in your folder.
 
 library(tidyverse)
 library(here)
 
 surveys_complete <- read_csv(here::here("Amy/surveys_complete.csv"))
+
+#copy-paste code below
 
 ggplot(data = surveys_complete)
 
