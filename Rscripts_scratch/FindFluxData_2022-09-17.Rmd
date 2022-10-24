@@ -34,7 +34,7 @@ After reading in the data, we will plot it to see if the flux is within a range 
 FluxData <- read.csv(here::here("Wetlands/Wetland_Flux.csv"), skip=0, header = TRUE)
 FluxData$X <- NULL
 FluxData$DateTime <- as.POSIXct(FluxData$DateTime, format="%Y-%m-%d %H:%M:%S", tz = "UTC")
-FluxData$DateTime_adjusted <- FluxData$DateTime - hours(1)
+#FluxData$DateTime_adjusted <- FluxData$DateTime - hours(1)
 ```
 
 ## Quickly plot to check Data
@@ -49,7 +49,7 @@ ggplot(FluxData, aes(x=DateTime, y=Flux)) +
 #select day of sample
 ```{r Check sample day, echo=FALSE}
 #enter date of collection
-date <- "2022-07-07"
+date <- "2022-10-15"
 test <- FluxData%>%filter(Date==date)
 ggplot(FluxData%>%filter(Date==date),
        aes(x=DateTime, y=Flux)) +
@@ -59,7 +59,7 @@ ggplot(FluxData%>%filter(Date==date),
 
 ```{r select time, echo=FALSE}
 #enter date of collection
-date <- "2022-07-27"
+date <- "2022-10-15"
 #enter start and end time that wetland was sampled
 time_START <- "08:00:00"
 time_END <- "23:00:00"
