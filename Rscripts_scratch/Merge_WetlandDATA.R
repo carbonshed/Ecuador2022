@@ -217,9 +217,36 @@ write.csv(df, here::here("wetlands_df_2022-10-18.csv"),
 
 # Basic box plot
 df$Wetland <- as.factor(df$Wetland)
+df$Date_asfactor <- as.factor(df$Date)
 
-ggplot(df, aes(x=Wetland, y=log10(CO2_ppm))) + 
-  geom_boxplot()
+df_summer <- df%>%filter(Date < as.Date("2022-08-01"))
+
+#wetland co2
+ggplot(df_summer, aes(x=Wetland, y=log10(CO2_ppm))) + 
+  geom_point(#fill="red",
+    aes(fill=Date_asfactor),
+    shape=21, size = 3)
+#co2 with oct data
+ggplot(df, aes(x=Wetland, y=log10(ppm_NOTcorrected))) + 
+  geom_point(#fill="red",
+    aes(fill=Date_asfactor),
+    shape=21, size = 3)
+#flux
+ggplot(df_summer, aes(x=Wetland, y=log10(Flux_mean))) + 
+  geom_point(#fill="red",
+    aes(fill=Date_asfactor),
+    shape=21, size = 3)
+#k600
+ggplot(df_summer, aes(x=Wetland, y=log10(K600))) + 
+  geom_point(#fill="red",
+    aes(fill=Date_asfactor),
+    shape=21, size = 3)
+ggplot(df_summer, aes(x=Wetland, y=K600)) + 
+  geom_point(#fill="red",
+    aes(fill=Date_asfactor),
+    shape=21, size = 3)
+
+
 
 ggplot(df, aes(x=Wetland, y=log10(Flux_mean))) + 
   geom_boxplot()
@@ -238,7 +265,20 @@ ggplot(df, aes(x=Date, y=log10(Flux_mean))) +
 ggplot(df, aes(x=Date, y=log10(CO2_ppm))) + 
   geom_point() + facet_grid(~Wetland)
 
+###############################
+#### use this to show DIEGO ####
+############################### 
 
+p <- ggplot(df %>%
+              subset(Wetland == "6"| Wetland == "7"| Wetland =="11")
+            #  %>% subset(CH4.ppm.NOT.CORRECTED < 200)
+            , 
+            aes(x=as.factor(Date), y=ppm_NOTcorrected)) + 
+  geom_point(#fill="red",
+    aes(fill=Date),
+    shape=21, size = 3) +
+  theme_linedraw()
+p+ facet_wrap(~Wetland, ncol = 3)
 
 ####suplimentary data frame####
 

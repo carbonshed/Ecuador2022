@@ -3,10 +3,11 @@ library(here)
 library(lubridate)
 library(dplyr)
 
-##2019
+##2019 
+
 MergedData_2019 <- read.csv(here::here("LongTermData/2019/MergedData_2019.csv"))
 
-
+##2020
 
 #Solinst
 WL_01 <- read.csv(here::here("LongTermData/2020/WL_01_enero2020_compensated.csv"), skip = 11, header = TRUE)
@@ -71,7 +72,7 @@ EC_02$DateTime <- as.POSIXct(EC_02$DateTime, tz="UTC",
                                             "%m/%d/%Y %H:%M"))
 
 EC_04 <- read.csv(here::here("LongTermData/2020/EC_04_January_2020.csv"), skip =1)
-colnames(EC_04)=c("row","DateTime","Stn04_EC_uS","Condus_highrange","Stn03_ECTemp_C")
+colnames(EC_04)=c("row","DateTime","Stn04_EC_uS","Condus_highrange","Stn04_ECTemp_C")
 EC_04 <- EC_04[c(2,3,5)]
 EC_04$DateTime <- as.POSIXct(EC_04$DateTime, tz="UTC",
                              tryFormats = c("%m/%d/%y %I:%M:%S %p",
@@ -88,6 +89,31 @@ MergedData_2020enero <- full_join(MergedData_2020enero,EC_04,by = "DateTime")
 MergedData_2020enero <- full_join(MergedData_2020enero,DO_04,by = "DateTime")
 
 MergedData_2020enero <- MergedData_2020enero[ order(MergedData_2020enero$DateTime , decreasing = FALSE ),]
+
+
+write.csv(MergedData_2020enero, here::here("LongTermData/2020/MergedData_2020.csv"),
+          row.names = FALSE)
+
+MergedData_2019$Stn02_EC_uS <- NA
+MergedData_2019$Stn02_ECTemp_C <- NA
+MergedData_2019$Stn04_EC_uS <- NA
+MergedData_2019$Stn04_ECTemp_C <- NA
+
+
+MergedData_2020enero$Stn01_CO2_ppm <- NA
+MergedData_2020enero$Stn02_CO2_ppm<- NA
+MergedData_2020enero$Stn03_CO2_ppm<- NA
+MergedData_2020enero$Stn04_CO2_ppm<- NA
+
+
+df_2019to2020 <- rbind(MergedData_2020enero,MergedData_2019)
+
+df_2019to2020 <- df_2019to2020[,c("DateTime", "AirPress_kpa", "AirTemp_C", 
+                                      "Stn01_WL_m", "Stn01_WLTemp_C", "Stn01_EC_uS" , "Stn01_ECTemp_C", "Stn01_DO_mg.L" , "Stn01_DOTemp_C", "Stn01_CO2_ppm",
+                                      "Stn02_EC_uS","Stn02_ECTemp_C","Stn02_DO_mg.L",  "Stn02_DOTemp_C","Stn02_CO2_ppm", 
+                                      "Stn03_WL_m",     "Stn03_WLTemp_C", "Stn03_CO2_ppm",
+                                      "Stn04_EC_uS" ,  "Stn04_ECTemp_C","Stn04_DO_mg.L",  "Stn04_DOTemp_C", "Stn04_CO2_ppm")]
+
 
 #
 
