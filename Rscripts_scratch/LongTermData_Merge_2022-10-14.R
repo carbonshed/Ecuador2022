@@ -6,8 +6,129 @@ library(dplyr)
 ##2019 
 
 MergedData_2019 <- read.csv(here::here("LongTermData/2019/MergedData_2019.csv"))
+MergedData_2019$DateTime <- as.POSIXct(MergedData_2019$DateTime, tz="UTC",
+                             tryFormats = c("%Y-%m-%d %H:%M:%S"))
 
-##2020
+####plot####
+ggplot(MergedData_2019, aes(x=DateTime, y=AirTemp_C)) +
+  geom_point() 
+
+#cleaning forever
+
+#AirPress_kpa - look good!
+
+#AirTemp_C - clean during field season
+AirTemp_C <- MergedData_2019[,c("DateTime","AirTemp_C")]
+
+AirTemp_C$AirTemp_C[which(AirTemp_C$DateTime < as.POSIXct("2019-07-12 19:15:00", tz="UTC"))] <- NA
+AirTemp_C$AirTemp_C[which(AirTemp_C$DateTime > as.POSIXct("2019-07-16 13:00:00", tz="UTC") & AirTemp_C$DateTime < as.POSIXct("2019-07-16 19:45:00", tz="UTC"))] <- NA
+AirTemp_C$AirTemp_C[which(AirTemp_C$DateTime > as.POSIXct("2019-07-18 14:30:00", tz="UTC") & AirTemp_C$DateTime < as.POSIXct("2019-07-18 16:45:00", tz="UTC"))] <- NA
+AirTemp_C$AirTemp_C[which(AirTemp_C$DateTime > as.POSIXct("2019-07-19 16:30:00", tz="UTC") & AirTemp_C$DateTime < as.POSIXct("2019-07-19 21:30:00", tz="UTC"))] <- NA
+AirTemp_C$AirTemp_C[which(AirTemp_C$DateTime > as.POSIXct("2019-07-23 12:30:00", tz="UTC") & AirTemp_C$DateTime < as.POSIXct("2019-07-23 16:30:00", tz="UTC"))] <- NA
+AirTemp_C$AirTemp_C[which(AirTemp_C$DateTime > as.POSIXct("2019-07-25 15:15:00", tz="UTC") & AirTemp_C$DateTime < as.POSIXct("2019-07-25 18:15:00", tz="UTC"))] <- NA
+AirTemp_C$AirTemp_C[which(AirTemp_C$DateTime > as.POSIXct("2019-07-29 12:45:00", tz="UTC") & AirTemp_C$DateTime < as.POSIXct("2019-07-29 14:45:00", tz="UTC"))] <- NA
+AirTemp_C$AirTemp_C[which(AirTemp_C$DateTime > as.POSIXct("2019-08-02 14:00:00", tz="UTC") & AirTemp_C$DateTime < as.POSIXct("2019-08-02 17:15:00", tz="UTC"))] <- NA
+AirTemp_C$AirTemp_C[which(AirTemp_C$DateTime > as.POSIXct("2019-08-05 17:15:00", tz="UTC") & AirTemp_C$DateTime < as.POSIXct("2019-08-05 19:45:00", tz="UTC"))] <- NA
+AirTemp_C$AirTemp_C[which(AirTemp_C$DateTime > as.POSIXct("2019-08-09 10:00:00", tz="UTC") & AirTemp_C$DateTime < as.POSIXct("2019-08-09 12:30:00", tz="UTC"))] <- NA
+
+MergedData_2019$AirTemp_C <- AirTemp_C$AirTemp_C
+rm(AirTemp_C)
+
+#Stn01_WL_m
+plot_ly(data = MergedData_2019, x = ~DateTime, y = ~Stn01_WL_m)
+
+Stn01_WL_m <- MergedData_2019[,c("DateTime","Stn01_WL_m","Stn01_WLTemp_C")]
+Stn01_WL_m$Stn01_WL_m[which(Stn01_WL_m$Stn01_WL_m<0)] <- NA
+Stn01_WL_m$Stn01_WL_m[which(Stn01_WL_m$DateTime < as.POSIXct("2019-07-12 12:45:00", tz="UTC"))] <- NA
+Stn01_WL_m$Stn01_WL_m[which(Stn01_WL_m$DateTime > as.POSIXct("2019-07-16 12:45:00", tz="UTC") & Stn01_WL_m$DateTime < as.POSIXct("2019-07-17 13:15:00", tz="UTC"))] <- NA
+Stn01_WL_m$Stn01_WL_m[which(Stn01_WL_m$DateTime > as.POSIXct("2019-07-23 11:45:00", tz="UTC") & Stn01_WL_m$DateTime < as.POSIXct("2019-07-25 16:30:00", tz="UTC"))] <- NA
+Stn01_WL_m$Stn01_WLTemp_C[which(Stn01_WL_m$DateTime > as.POSIXct("2019-07-23 11:45:00", tz="UTC") & Stn01_WL_m$DateTime < as.POSIXct("2019-07-25 16:30:00", tz="UTC"))] <- NA
+Stn01_WL_m$Stn01_WLTemp_C[which(Stn01_WL_m$DateTime == as.POSIXct("2019-07-19 14:30:00", tz="UTC"))] <- NA
+Stn01_WL_m$Stn01_WLTemp_C[which(Stn01_WL_m$DateTime == as.POSIXct("2019-08-14 11:30:00", tz="UTC"))] <- NA
+
+MergedData_2019$Stn01_WL_m <- Stn01_WL_m$Stn01_WL_m
+MergedData_2019$Stn01_WLTemp_C <- Stn01_WL_m$Stn01_WLTemp_C
+rm(Stn01_WL_m)
+
+####Stn01_EC_uS
+Stn01_EC_uS <- MergedData_2019[,c("DateTime","Stn01_EC_uS","Stn01_ECTemp_C")]
+Stn01_EC_uS$Stn01_EC_uS[which(Stn01_EC_uS$Stn01_EC_uS<0)] <- NA
+Stn01_EC_uS$Stn01_EC_uS[which(Stn01_EC_uS$DateTime < as.POSIXct("2019-07-18 18:30:00", tz="UTC"))] <- NA
+Stn01_EC_uS$Stn01_EC_uS[which(Stn01_EC_uS$DateTime == as.POSIXct("2019-07-22 16:00:00", tz="UTC")|Stn01_EC_uS$DateTime == as.POSIXct("2019-08-01 16:00:00", tz="UTC")|Stn01_EC_uS$DateTime == as.POSIXct("2019-08-06 13:15:00", tz="UTC")|Stn01_EC_uS$DateTime == as.POSIXct("2019-08-05 16:15:00", tz="UTC")|Stn01_EC_uS$DateTime == as.POSIXct("2019-08-07 11:15:00", tz="UTC")|Stn01_EC_uS$DateTime == as.POSIXct("2019-08-07 17:45:00", tz="UTC")|Stn01_EC_uS$DateTime == as.POSIXct("2019-08-08 12:15:00", tz="UTC")|Stn01_EC_uS$DateTime == as.POSIXct("2019-08-08 12:30:00", tz="UTC"))] <- NA
+Stn01_EC_uS$Stn01_EC_uS[which(Stn01_EC_uS$DateTime > as.POSIXct("2019-07-16 12:45:00", tz="UTC") & Stn01_EC_uS$DateTime < as.POSIXct("2019-07-17 13:15:00", tz="UTC"))] <- NA
+
+MergedData_2019$Stn01_EC_uS <- Stn01_EC_uS$Stn01_EC_uS
+MergedData_2019$Stn01_ECTemp_C <- Stn01_EC_uS$Stn01_ECTemp_C
+rm(Stn01_EC_uS)
+
+#Stn01_DO_mg.L
+Stn01_DO_mg.L <- MergedData_2019[,c("DateTime","Stn01_DO_mg.L","Stn01_DOTemp_C")]
+Stn01_DO_mg.L$Stn01_DO_mg.L[which(Stn01_DO_mg.L$DateTime == as.POSIXct("2019-07-17 13:15:00", tz="UTC")|Stn01_DO_mg.L$DateTime == as.POSIXct("2019-07-23 12:00:00", tz="UTC"))] <- NA
+
+MergedData_2019$Stn01_DO_mg.L <- Stn01_DO_mg.L$Stn01_DO_mg.L
+MergedData_2019$Stn01_DOTemp_C <- Stn01_DO_mg.L$Stn01_DOTemp_C
+rm(Stn01_DO_mg.L)
+
+#Stn02_DO_mg.L
+Stn02_DO_mg.L <- MergedData_2019[,c("DateTime","Stn02_DO_mg.L","Stn02_DOTemp_C")]
+Stn02_DO_mg.L$Stn02_DO_mg.L[which(Stn02_DO_mg.L$DateTime == as.POSIXct("2019-07-29 11:15:00", tz="UTC"))] <- NA
+
+MergedData_2019$Stn02_DO_mg.L <- Stn02_DO_mg.L$Stn02_DO_mg.L
+MergedData_2019$Stn02_DOTemp_C <- Stn02_DO_mg.L$Stn02_DOTemp_C
+rm(Stn02_DO_mg.L)
+
+#Stn03_WL_m
+plot_ly(data = MergedData_2019, x = ~DateTime, y = ~Stn03_WLTemp_C)
+
+Stn03_WL_m <- MergedData_2019[,c("DateTime","Stn03_WL_m","Stn03_WLTemp_C")]
+Stn03_WL_m$Stn03_WL_m[which(Stn03_WL_m$Stn03_WL_m<0.05)] <- NA
+Stn03_WL_m$Stn03_WLTemp_C[which(Stn03_WL_m$DateTime == as.POSIXct("2019-07-23 12:45:00", tz="UTC")|Stn03_WL_m$DateTime == as.POSIXct("2019-07-23 13:00:00", tz="UTC")|Stn03_WL_m$DateTime == as.POSIXct("2019-07-23 13:15:00", tz="UTC"))] <- NA
+Stn03_WL_m$Stn03_WLTemp_C[which(Stn03_WL_m$DateTime == as.POSIXct("2019-07-25 16:00:00", tz="UTC")|Stn03_WL_m$DateTime == as.POSIXct("2019-08-02 14:30:00", tz="UTC")|Stn03_WL_m$DateTime == as.POSIXct("2019-08-09 10:30:00", tz="UTC")|Stn03_WL_m$DateTime == as.POSIXct("2019-08-09 10:45:00", tz="UTC"))] <- NA
+
+
+MergedData_2019$Stn03_WL_m <- Stn03_WL_m$Stn03_WL_m
+MergedData_2019$Stn03_WLTemp_C <- Stn03_WL_m$Stn03_WLTemp_C
+rm(Stn03_WL_m)
+
+#Stn04_DO_mg.L
+#DO looks wierd for some time periods... but temp data looks fine, so I'm keeping all of it
+
+#
+plot_ly(data = MergedData_2019, x = ~DateTime, y = ~Stn01_CO2_ppm)
+
+CO2 <- MergedData_2019[,c("DateTime","Stn01_CO2_ppm","Stn02_CO2_ppm","Stn03_CO2_ppm","Stn04_CO2_ppm")]
+CO2$Stn01_CO2_ppm[which(CO2$DateTime < as.POSIXct("2019-07-12 17:00:00", tz="UTC"))] <- NA
+CO2$Stn01_CO2_ppm[which(CO2$DateTime == as.POSIXct("2019-08-14 12:00:00", tz="UTC"))] <- NA
+CO2$Stn01_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-07-16 14:15:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-07-22 22:30:00", tz="UTC"))] <- NA
+CO2$Stn01_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-07-26 11:15:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-07-26 14:15:00", tz="UTC"))] <- NA
+CO2$Stn01_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-08-01 16:15:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-08-01 21:15:00", tz="UTC"))] <- NA
+CO2$Stn01_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-08-05 16:00:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-08-05 20:45:00", tz="UTC"))] <- NA
+CO2$Stn01_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-08-08 12:30:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-08-08 17:15:00", tz="UTC"))] <- NA
+
+CO2$Stn02_CO2_ppm[which(CO2$DateTime < as.POSIXct("2019-07-12 17:00:00", tz="UTC"))] <- NA
+CO2$Stn02_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-08-05 15:30:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-08-05 20:15:00", tz="UTC"))] <- NA
+
+CO2$Stn03_CO2_ppm[which(CO2$DateTime < as.POSIXct("2019-07-12 17:15:00", tz="UTC"))] <- NA
+CO2$Stn03_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-07-16 14:15:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-07-22 22:30:00", tz="UTC"))] <- NA
+CO2$Stn03_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-07-26 11:45:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-07-26 14:45:00", tz="UTC"))] <- NA
+CO2$Stn03_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-08-01 00:00:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-08-01 21:45:00", tz="UTC"))] <- NA
+CO2$Stn03_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-08-05 00:00:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-08-05 21:30:00", tz="UTC"))] <- NA
+CO2$Stn03_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-08-08 12:45:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-08-08 17:45:00", tz="UTC"))] <- NA
+CO2$Stn03_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-08-13 10:45:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-08-13 12:30:00", tz="UTC"))] <- NA
+
+CO2$Stn04_CO2_ppm[which(CO2$DateTime < as.POSIXct("2019-07-12 17:00:00", tz="UTC"))] <- NA
+CO2$Stn04_CO2_ppm[which(CO2$DateTime > as.POSIXct("2019-08-13 05:45:00", tz="UTC") & CO2$DateTime < as.POSIXct("2019-08-13 12:30:00", tz="UTC"))] <- NA
+
+MergedData_2019$Stn01_CO2_ppm <- CO2$Stn01_CO2_ppm
+MergedData_2019$Stn02_CO2_ppm <- CO2$Stn02_CO2_ppm
+MergedData_2019$Stn03_CO2_ppm <- CO2$Stn03_CO2_ppm
+MergedData_2019$Stn04_CO2_ppm <- CO2$Stn04_CO2_ppm
+rm(CO2)
+
+plot_ly(data = MergedData_2019, x = ~DateTime, y = ~Stn03_CO2_ppm)
+##############
+####2020#####
+##############
 
 #Solinst
 WL_01 <- read.csv(here::here("LongTermData/2020/WL_01_enero2020_compensated.csv"), skip = 11, header = TRUE)
@@ -114,12 +235,21 @@ df_2019to2020 <- df_2019to2020[,c("DateTime", "AirPress_kpa", "AirTemp_C",
                                       "Stn03_WL_m",     "Stn03_WLTemp_C", "Stn03_CO2_ppm",
                                       "Stn04_EC_uS" ,  "Stn04_ECTemp_C","Stn04_DO_mg.L",  "Stn04_DOTemp_C", "Stn04_CO2_ppm")]
 
+####plot####
+ggplot(df_2019to2020, aes(x=DateTime, y=AirTemp_C)) +
+  geom_point() 
 
-#
+#cleaning forever
 
-EC_01 <- read.csv("LongTermData/2020/EC_01_2021-06-09.csv")
-colnames(DO_04)=c("row","DateTime","WLPres_kpa","WLTemp_c")
-DO_04 <- DO_04[2:4]
-DO_04$DateTime <- as.POSIXct(DO_04$DateTime, tz="UTC",
-                             tryFormats = c("%m/%d/%y %I:%M:%S %p",
-                                            "%m/%d/%Y %H:%M"))
+#AirPress_kpa - look good!
+
+#AirTemp_C - clean during field season
+plot_ly(data = df_2019to2020, x = ~DateTime, y = ~AirTemp_C)
+
+df_2019to2020 <- df_2019to2020%>%
+  filter()
+
+#notes
+#air temp all messy during fied season
+#station 1 WL needs cleaning, and I adjusting for change in level
+####
