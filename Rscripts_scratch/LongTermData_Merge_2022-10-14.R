@@ -94,7 +94,6 @@ rm(Stn03_WL_m)
 #DO looks wierd for some time periods... but temp data looks fine, so I'm keeping all of it
 
 #
-plot_ly(data = MergedData_2019, x = ~DateTime, y = ~Stn01_CO2_ppm)
 
 CO2 <- MergedData_2019[,c("DateTime","Stn01_CO2_ppm","Stn02_CO2_ppm","Stn03_CO2_ppm","Stn04_CO2_ppm")]
 CO2$Stn01_CO2_ppm[which(CO2$DateTime < as.POSIXct("2019-07-12 17:00:00", tz="UTC"))] <- NA
@@ -136,7 +135,9 @@ WL_01$DateTime <- paste(WL_01$Date, WL_01$Time)
 WL_01$DateTime <- as.POSIXct(WL_01$DateTime, format="%m/%d/%y %I:%M:%S %p", tz="UTC")
 WL_01$DateTime <- round_date(WL_01$DateTime, "5 mins")
 WL_01 <- WL_01[,c("DateTime","LEVEL","TEMPERATURE")]
+WL_01$LEVEL <- WL_01$LEVEL/10
 colnames(WL_01) <- c("DateTime","Stn01_WL_m","Stn01_WLTemp_C")
+
 
 Baro <- read.csv(here::here("LongTermData/2020/Baro-enero-2020.csv"), skip = 10, header = TRUE)
 Baro$DateTime <- paste(Baro$Date, Baro$Time)
@@ -144,14 +145,16 @@ Baro$DateTime <- as.POSIXct(Baro$DateTime, format="%m/%d/%Y %I:%M:%S %p", tz="UT
 Baro$DateTime <- round_date(Baro$DateTime, "5 mins")
 Baro <- Baro[,c("DateTime","LEVEL","TEMPERATURE")]
 colnames(Baro) <- c("DateTime","AirPress_kpa","AirTemp_C")
+Baro$AirTemp_C[which(Baro$DateTime < as.POSIXct("2019-08-14 15:00:00", tz="UTC"))] <- NA
+
 
 WL_03 <- read.csv(here::here("LongTermData/2020/WL_03_enero2020_compensated.csv"), skip = 11, header = TRUE)
 WL_03$DateTime <- paste(WL_03$Date, WL_03$Time)
 WL_03$DateTime <- as.POSIXct(WL_03$DateTime, format="%m/%d/%Y %I:%M:%S %p", tz="UTC")
 WL_03$DateTime <- round_date(WL_03$DateTime, "5 mins")
 WL_03 <- WL_03[,c("DateTime","LEVEL","TEMPERATURE")]
+WL_03$LEVEL <- WL_03$LEVEL/10
 colnames(WL_03) <- c("DateTime","Stn03_WL_m","Stn03_WLTemp_C")
-
 
 #hobo
 #Dissolved O2
@@ -161,6 +164,10 @@ DO_01 <- DO_01[2:4]
 DO_01$DateTime <- as.POSIXct(DO_01$DateTime, tz="UTC",
                               tryFormats = c("%m/%d/%y %I:%M:%S %p",
                                              "%m/%d/%Y %H:%M"))
+DO_01$Stn01_DOTemp_C <- (DO_01$Stn01_DOTemp_C - 32) * 5/9
+DO_01$Stn01_DO_mg.L[which(DO_01$Stn01_DO_mg.L < -800)] <- NA
+DO_01$Stn01_DOTemp_C[which(DO_01$Stn01_DOTemp_C < -500)] <- NA
+
 
 DO_02 <- read.csv(here::here("LongTermData/2020/DO_02_January_2020.csv"), skip =1)
 colnames(DO_02)=c("row","DateTime","Stn02_DO_mg.L","Stn02_DOTemp_C")
@@ -168,6 +175,9 @@ DO_02 <- DO_02[2:4]
 DO_02$DateTime <- as.POSIXct(DO_02$DateTime, tz="UTC",
                              tryFormats = c("%m/%d/%y %I:%M:%S %p",
                                             "%m/%d/%Y %H:%M"))
+DO_02$Stn02_DOTemp_C <- (DO_02$Stn02_DOTemp_C - 32) * 5/9
+DO_02$Stn02_DO_mg.L[which(DO_02$Stn02_DO_mg.L < -800)] <- NA
+DO_02$Stn02_DOTemp_C[which(DO_02$Stn02_DOTemp_C < -500)] <- NA
 
 
 DO_04 <- read.csv(here::here("LongTermData/2020/DO_04_January_2020.csv"), skip =1)
@@ -176,6 +186,10 @@ DO_04 <- DO_04[2:4]
 DO_04$DateTime <- as.POSIXct(DO_04$DateTime, tz="UTC",
                              tryFormats = c("%m/%d/%y %I:%M:%S %p",
                                             "%m/%d/%Y %H:%M"))
+DO_04$Stn04_DOTemp_C <- (DO_04$Stn04_DOTemp_C - 32) * 5/9
+DO_04$Stn04_DO_mg.L[which(DO_04$Stn04_DO_mg.L < -800)] <- NA
+DO_04$Stn04_DOTemp_C[which(DO_04$Stn04_DOTemp_C < -500)] <- NA
+
 
 #conductivity
 EC_01 <- read.csv(here::here("LongTermData/2020/EC_01_January_2020.csv"), skip =1)
@@ -184,6 +198,10 @@ EC_01 <- EC_01[c(2,3,5)]
 EC_01$DateTime <- as.POSIXct(EC_01$DateTime, tz="UTC",
                              tryFormats = c("%m/%d/%y %I:%M:%S %p",
                                             "%m/%d/%Y %H:%M"))
+EC_01$Stn01_ECTemp_C <- (EC_01$Stn01_ECTemp_C - 32) * 5/9
+EC_01$Stn01_EC_uS[which(EC_01$DateTime == as.POSIXct("2019-08-14 12:30:00", tz="UTC"))] <- NA
+EC_01$Stn01_ECTemp_C[which(EC_01$DateTime == as.POSIXct("2019-08-14 12:30:00", tz="UTC"))] <- NA
+
 
 EC_02 <- read.csv(here::here("LongTermData/2020/EC_02_January_2020.csv"), skip =1)
 colnames(EC_02)=c("row","DateTime","Stn02_EC_uS","Condus_highrange","Stn02_ECTemp_C")
@@ -191,6 +209,9 @@ EC_02 <- EC_02[c(2,3,5)]
 EC_02$DateTime <- as.POSIXct(EC_02$DateTime, tz="UTC",
                              tryFormats = c("%m/%d/%y %I:%M:%S %p",
                                             "%m/%d/%Y %H:%M"))
+EC_02$Stn02_ECTemp_C <- (EC_02$Stn02_ECTemp_C - 32) * 5/9
+EC_02$Stn02_EC_uS[which(EC_02$DateTime == as.POSIXct("2019-08-14 13:15:00", tz="UTC"))] <- NA
+
 
 EC_04 <- read.csv(here::here("LongTermData/2020/EC_04_January_2020.csv"), skip =1)
 colnames(EC_04)=c("row","DateTime","Stn04_EC_uS","Condus_highrange","Stn04_ECTemp_C")
@@ -198,6 +219,9 @@ EC_04 <- EC_04[c(2,3,5)]
 EC_04$DateTime <- as.POSIXct(EC_04$DateTime, tz="UTC",
                              tryFormats = c("%m/%d/%y %I:%M:%S %p",
                                             "%m/%d/%Y %H:%M"))
+EC_04$Stn04_ECTemp_C <- (EC_04$Stn04_ECTemp_C - 32) * 5/9
+EC_04$Stn04_EC_uS[which(EC_04$DateTime == as.POSIXct("2019-08-14 14:15:00", tz="UTC"))] <- NA
+EC_04$Stn04_EC_uS[which(EC_04$DateTime == as.POSIXct("2019-08-14 14:30:00", tz="UTC"))] <- NA
 
 ##Merge
 MergedData_2020enero <- full_join(Baro,WL_01,by = "DateTime")
@@ -236,20 +260,21 @@ df_2019to2020 <- df_2019to2020[,c("DateTime", "AirPress_kpa", "AirTemp_C",
                                       "Stn04_EC_uS" ,  "Stn04_ECTemp_C","Stn04_DO_mg.L",  "Stn04_DOTemp_C", "Stn04_CO2_ppm")]
 
 ####plot####
-ggplot(df_2019to2020, aes(x=DateTime, y=AirTemp_C)) +
+
+#EC_01 us looks different in field seasonI think because field season data is high range (keep for now)
+
+ggplot(df_2019to2020, aes(x=DateTime, y=Stn03_WL_m)) +
   geom_point() 
 
-#cleaning forever
+plot_ly(data = df_2019to2020, x = ~DateTime, y = ~Stn03_WL_m)
 
-#AirPress_kpa - look good!
 
-#AirTemp_C - clean during field season
-plot_ly(data = df_2019to2020, x = ~DateTime, y = ~AirTemp_C)
-
-df_2019to2020 <- df_2019to2020%>%
-  filter()
-
-#notes
-#air temp all messy during fied season
-#station 1 WL needs cleaning, and I adjusting for change in level
 ####
+
+write.csv(MergedData_2020enero, here::here("LongTermData/MergedData_2019to2020.csv"),
+          row.names = FALSE)
+
+####
+
+#2021
+

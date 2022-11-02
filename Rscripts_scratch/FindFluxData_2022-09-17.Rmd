@@ -62,13 +62,13 @@ ggplot(FluxData%>%filter(Date==date),
 date <- "2022-10-15"
 #enter start and end time that wetland was sampled
 time_START <- "08:00:00"
-time_END <- "23:00:00"
+time_END <- "15:00:00"
 
 
 plot_ly(data=FluxData%>%filter(Date==date)%>%
-  filter(DateTime_adjusted > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  filter(DateTime_adjusted < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
-  x=~DateTime_adjusted,y=~Flux)
+  filter(DateTime > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  filter(DateTime < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
+  x=~DateTime,y=~Flux)
 
 ```
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
