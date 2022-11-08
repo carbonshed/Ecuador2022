@@ -49,7 +49,7 @@ ggplot(FluxData, aes(x=DateTime, y=Flux)) +
 #select day of sample
 ```{r Check sample day, echo=FALSE}
 #enter date of collection
-date <- "2022-10-15"
+date <- "2022-07-27"
 test <- FluxData%>%filter(Date==date)
 ggplot(FluxData%>%filter(Date==date),
        aes(x=DateTime, y=Flux)) +
@@ -59,7 +59,7 @@ ggplot(FluxData%>%filter(Date==date),
 
 ```{r select time, echo=FALSE}
 #enter date of collection
-date <- "2022-10-15"
+date <- "2022-07-27"
 #enter start and end time that wetland was sampled
 time_START <- "08:00:00"
 time_END <- "15:00:00"
