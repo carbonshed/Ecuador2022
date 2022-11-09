@@ -2,7 +2,7 @@
 library(here)
 library(lubridate)
 library(dplyr)
-
+library(plotly)
 ##2019 
 
 MergedData_2019 <- read.csv(here::here("LongTermData/2019/MergedData_2019.csv"))
