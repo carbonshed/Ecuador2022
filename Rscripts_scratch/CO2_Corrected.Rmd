@@ -127,7 +127,7 @@ for (site in site_names){
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
-plot_ly(CO2_01,#%>%
+plot_ly(CO2_02,#%>%
   #filter(DateTime < as.POSIXct("2021-07-30 07:27:00", tz = "UTC")), 
     x = ~DateTime, y = ~ppm, type = 'scatter', mode = 'markers') 
 
