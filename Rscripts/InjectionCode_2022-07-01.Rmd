@@ -470,4 +470,6 @@ WaterTempC_ave <- mean(df_avg_water$Temp)
 Sc <- 1911.1 - 118.11*WaterTempC_ave + 3.4527*(WaterTempC_ave)^2 - 0.04132*(WaterTempC_ave)^3
 
 K600 <- kCO2_mperd * (600/Sc)^(-0.5)
+
+print(K600)
 ```
