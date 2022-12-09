@@ -18,7 +18,12 @@ library(here)
 
 ## About
 
+On this day the pump for injecting salt was not working
+
+
 This file is the template for processing CO2 injection data and calculating k600 
+date: 2022-06-20
+Injection in tributary of Gavilan
 
 ### We start by reading in an then cleaning data, file 
 
@@ -105,7 +110,7 @@ Select data collected during injection period
 ```{r pressure, echo=FALSE}
 
 #DateTime when injection ended
-end <-  as.POSIXct("2022-06-20 15:45:00", tz = "UTC")
+end <-  as.POSIXct("2022-06-20 17:45:00", tz = "UTC")
 
 xn10m <- filter(xn10m, DateTime <= end)
 

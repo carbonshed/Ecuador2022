@@ -19,6 +19,8 @@ library(here)
 ## About
 
 This file is the template for processing CO2 injection data and calculating k600 
+Site: Colmillo
+Date 7/01/2022
 
 ### We start by reading in an then cleaning data, file 
 
@@ -331,18 +333,21 @@ platmean50m = mean(plat_50$adjusted_ppm)
 
 # find average at each station after the slug
 
+#viasalas taken up before return to baseline at x25 and x50
+
 #first, clean up data by focusing on wanted time
 postplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-07-01 12:55:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 12:58:00", tz = "UTC"))
 postplat_0 <- filter(df_x0m, DateTime >= as.POSIXct("2022-07-01 12:55:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 12:58:00", tz = "UTC"))
-postplat_25 <- filter(df_x25m, DateTime >= as.POSIXct("2022-07-01 12:55:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 12:58:00", tz = "UTC"))
-postplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-07-01 12:55:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 12:58:00", tz = "UTC"))
+#postplat_25 <- filter(df_x25m, DateTime >= as.POSIXct("2022-07-01 12:55:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 12:58:00", tz = "UTC"))
+#postplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-07-01 12:55:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 12:58:00", tz = "UTC"))
 
 #find mean of post plateau
 postplatmeann10m = mean(postplat_n10$adjusted_ppm)
 postplatmean0m = mean(postplat_0$adjusted_ppm)
-postplatmean25m = mean(postplat_25$adjusted_ppm)
-postplatmean50m = mean(postplat_50$adjusted_ppm)
-
+#postplatmean25m = mean(postplat_25$adjusted_ppm)
+postplatmean25m = NA
+#postplatmean50m = mean(postplat_50$adjusted_ppm)
+postplatmean50m = NA
 ```
 
 
@@ -350,13 +355,16 @@ postplatmean50m = mean(postplat_50$adjusted_ppm)
 ```{r plot, echo=FALSE}
 # Create new data frames for time when vaisalas are out of water
 air_n10 <-filter(df_xn10m, DateTime >= as.POSIXct("2022-07-01 9:40:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 9:53:00", tz = "UTC"))
-air_0 <- filter(df_x0m, DateTime >= as.POSIXct("2022-07-01 9:40:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 9:53:00", tz = "UTC"))
+
+#not working until 11:03 (after in water)
+#air_0 <- filter(df_x0m, DateTime >= as.POSIXct("2022-07-01 9:40:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 9:53:00", tz = "UTC"))
 air_25 <- filter(df_x25m, DateTime >= as.POSIXct("2022-07-01 9:40:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 9:53:00", tz = "UTC"))
 air_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-07-01 9:40:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-01 9:53:00", tz = "UTC"))
 
 # Now find mean for this time frame 
 airmean_n10m = mean(air_n10$adjusted_ppm)
-airmean_0m = mean(air_0$adjusted_ppm)
+#airmean_0m = mean(air_0$adjusted_ppm)
+airmean_0m = NA
 airmean_25m = mean(air_25$adjusted_ppm)
 airmean_10m = mean(air_50$adjusted_ppm)
 
@@ -401,23 +409,40 @@ adjusted for decay rate of CO2 over meters
   wi: co2 mass at 0m  (concentration * discharge)
   t: meters
 
+#notes for salt slug
+time: 12:04
+distance: -15m
+salt added: 238g/l * 1.5L = 357g
+
+time: 12:47
+distance: -15m
+salt added: 238g/l * 1.5L = 357g
+
+salt pour  | 12:04 | 12:47
+0m        | 91.13   | 
+50m       | 86.56   | 
+
+
+
 ```{r kdub rules the roost}
 #convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
 
 #difference between plateau and baseline for upstream and downstream
 C_mgperL_0m <- (platmean0m - mean(preplatmean0m,postplatmeann10m))
 
+C_mgperL_25m <- (platmean25m - mean(preplatmean25m))
+
 C_mgperL_50m <- (platmean50m - mean(preplatmean50m))
 
 #Discharge comes from hand held
 #multiply by 1000 to convert from m3/s to L/s
 #Q at 0m = 0.07623
-Q_0m = 0.07623 * 1000
+Q_0m = 91.13 #0.07623 * 1000
 # Q for 50m = 0.090885
-Q_50m = 0.090885 * 1000 
+Q_50m = 86.56 #0.090885 * 1000 
 
 #stream reach length
-dist = 65
+dist = 50
 
 km <- -log(C_mgperL_50m*Q_50m/(C_mgperL_0m*Q_0m))/dist
 #km units: 1/m
@@ -437,8 +462,9 @@ v: mean velocity of stream
 #discharge at 50m; poured in salt at 12:04, peak at 12:13; 88.7?
 #start: 12:04
 # velocity in m/s
+dist_salt = 15+50
 diff_one <- (13 - 4) * 60
-velocity_one <- dist / diff_one
+velocity_one <- dist_salt / diff_one
 
 
 #Slug Two
@@ -446,7 +472,7 @@ velocity_one <- dist / diff_one
 #start: 12:47
 # velocity in m/s
 diff_two <- (57 - 47) * 60
-velocity_two<- dist / diff_two
+velocity_two<- dist_salt / diff_two
 
 avg_v <- mean(velocity_one, velocity_two)
 

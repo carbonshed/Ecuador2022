@@ -20,6 +20,7 @@ library(Bolstad2)
 ## About
 
 In this file I clean and collect CO2 data collected at Cayambe Coca, EC salt injection from June 6, 2022
+Injection in mainstem of Gavilan
 
 ### We start by reading in an then cleaning data, file 
 
@@ -261,6 +262,7 @@ together_plot <- ggplot(df_plot, aes(DateTime, adjusted_ppm, color = Station)) +
 
 together_plot + facet_wrap(~Station, ncol= 3, scales = "free")
 
+
 together_plot
 
 ```
@@ -275,9 +277,9 @@ EXPORT to excel somehow to make a nice table or something
 
 # find average for each station before plateau
 
-preplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:15:00", tz = "UTC"))
-preplat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:15:00", tz = "UTC"))
-preplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:15:00", tz = "UTC"))
+preplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:05:00", tz = "UTC"))
+preplat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:05:00", tz = "UTC"))
+preplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:05:00", tz = "UTC"))
 
 #calculate mean
 preplatmeann10m = mean(preplat_n10$adjusted_ppm)
@@ -287,7 +289,7 @@ preplatmean50m = mean(preplat_50$adjusted_ppm)
 ### Change data frame, date and wanted time frame as needed 
 plat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 14:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 14:45:00", tz = "UTC"))
 plat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 14:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 14:45:00", tz = "UTC"))
-plat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 14:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 14:45:00", tz = "UTC"))
+plat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 14:45:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:00:00", tz = "UTC"))
 
 #now find the mean of this filtered subset
 platmeann10m = mean(plat_n10$adjusted_ppm)
@@ -299,7 +301,7 @@ platmean50m = mean(plat_50$adjusted_ppm)
 #first, clean up data by focusing on wanted time
 postplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 15:10:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
 postplat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 15:10:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
-postplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:10:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
+postplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:20:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:24:00", tz = "UTC"))
 
 #find mean of post plateau
 postplatmeann10m = mean(postplat_n10$adjusted_ppm)
@@ -450,4 +452,6 @@ WaterTempC_ave <- mean(df_avg_water$Temp)
 Sc <- 1911.1 - 118.11*WaterTempC_ave + 3.4527*(WaterTempC_ave)^2 - 0.04132*(WaterTempC_ave)^3
 
 K600 <- kCO2_mperd * (600/Sc)^(-0.5)
+
+print(K600)
 ```
