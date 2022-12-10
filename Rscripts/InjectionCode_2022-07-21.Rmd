@@ -426,16 +426,35 @@ adjusted for decay rate of CO2 over meters
   
 #salt slug info
 
-time: 11:50
+time: 10:45
 dist: -10m
-weight: didn't write down, I think same as previous, 238g/l*1.5 -- BUT it's pretty different from discharge collected with the handheld wich makies me doubtfull. UG. I think we should use the handheld discharges for this :(
+weight: 101.7
 
-x25
-Q = 80.5
-peak at 7/6/22 11:51:49
-x50
-Q = 83.15
-Peak at  7/6/22 11:52:30
+x0
+Q = 3.96
+peak at 10:45:52 
+x15
+Q = 5.08
+Peak at  7/21/2022  10:47:30 AM
+x30
+Q = 9.82
+Peak at 7/21/2022  10:49:09 AM
+
+-------
+
+time: 11:13
+dist: -10m
+weight: 298.51
+
+x0
+Q = 3.58 L/s
+peak at 7/21/2022  11:13:56 AM
+x15
+Q = 5.4
+Peak at  7/21/2022  11:15:33 AM
+x30
+Q = 9.99 L/s
+Peak at  7/21/22 7/21/2022  11:17:36 AM
 
 ```{r kdub rules the roost}
 #convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
@@ -450,9 +469,9 @@ C_mgperL_50m <- (platmean50m - mean(preplatmean50m,postplatmean50m))
 #Discharge comes from hand held
 #multiply by 1000 to convert from m3/s to L/s
 #Q at 0m = 
-Q_0m = 41.455
+Q_0m = 
 # Q for 50m = 
-Q_50m = 52.515
+Q_50m =
 
 #stream reach length
 dist = 50
