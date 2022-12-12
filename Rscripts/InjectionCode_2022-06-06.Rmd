@@ -22,6 +22,12 @@ library(Bolstad2)
 In this file I clean and collect CO2 data collected at Cayambe Coca, EC salt injection from June 6, 2022
 Injection in mainstem of Gavilan
 
+Start:
+CO2 @ 13:00
+Salt @ 13:26 - salt continuous injection
+
+#Salt
+
 ### We start by reading in an then cleaning data, file 
 
 ```{r pressure, echo=FALSE}
@@ -306,7 +312,7 @@ postplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:20:00", tz 
 #find mean of post plateau
 postplatmeann10m = mean(postplat_n10$adjusted_ppm)
 postplatmean10m = mean(postplat_10$adjusted_ppm)
-postplatmean50m = mean(postplat_50$adjusted_ppm)
+postplatmean50m = mean(postplat_50$adjusted_ppm) 
 
 ```
 
@@ -321,8 +327,8 @@ air_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:25:30", tz = "UT
 # Now find mean for this time frame 
 airmean_n10m = mean(air_n10$adjusted_ppm)
 airmean_10m = mean(air_10$adjusted_ppm)
-airmean_50m = mean(air_50$adjusted_ppm)
-
+#airmean_50m = mean(air_50$adjusted_ppm) # not plugged in for long enough to collect good air measurement
+airmean_50m = NA
 ```
 
 ## Create data table with important objects and export to excel 

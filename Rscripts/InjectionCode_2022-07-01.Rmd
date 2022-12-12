@@ -275,10 +275,6 @@ plot_ly(df_x50m,
 ```
 
 
-
-
-
-
 ## Plot all CO2 data together 
 ```{r check CO2 data plot, echo=FALSE}
 # join data frames to make plotting easier
@@ -414,15 +410,28 @@ time: 12:04
 distance: -15m
 salt added: 238g/l * 1.5L = 357g
 
+x0m
+Q = 92.12 L/s
+Peak = 7/1/2022  12:05:45 PM
+
+x50m 
+(handheld)
+Q = 72.53
+peak = 12:12:50 PM
+(salt)
+Q = 88.7
+peak = 7/1/2022  12:13:57 PM (peak time different from shiney app)
+-------------
 time: 12:47
 distance: -15m
 salt added: 238g/l * 1.5L = 357g
 
-salt pour  | 12:04 | 12:47
-0m        | 91.13   | 
-50m       | 86.56   | 
+x0m
+Conductivity started too late >:(
 
-
+x50m (salt)
+Q = 86.56 L/s
+peak = 
 
 ```{r kdub rules the roost}
 #convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
@@ -437,9 +446,9 @@ C_mgperL_50m <- (platmean50m - mean(preplatmean50m))
 #Discharge comes from hand held
 #multiply by 1000 to convert from m3/s to L/s
 #Q at 0m = 0.07623
-Q_0m = 91.13 #0.07623 * 1000
+Q_0m = 92.12 #0.07623 * 1000
 # Q for 50m = 0.090885
-Q_50m = 86.56 #0.090885 * 1000 
+Q_50m = 88.7 #0.090885 * 1000 
 
 #stream reach length
 dist = 50
