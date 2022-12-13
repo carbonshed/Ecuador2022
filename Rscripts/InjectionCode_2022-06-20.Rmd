@@ -18,10 +18,14 @@ library(here)
 
 ## About
 
-On this day the pump for injecting salt was not working
+For SOME reason, the injection didn't reach 30m downstream. Wich is crazy. I couldn't raise the co2 concentration any higher, or it would be too high for the sensor at 0m
 
+ugg yeah. its bad data. I quit.
 
-This file is the template for processing CO2 injection data and calculating k600 
+On this day the pump for injecting salt was not working, so we used a syphon - wich is not the most perfect method
+
+This is the day that we tried going to the field during the Paro, and were stopped by a tire fire in the middle of the road coming home. Also I had covid and felt terrible
+
 date: 2022-06-20
 Injection in tributary of Gavilan
 

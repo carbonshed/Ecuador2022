@@ -166,7 +166,7 @@ df_corr <- na.omit(df_corr)
 ## Correct old Vaisalas 
 Old vaisalas need to be corrected for temperature and pressure 
 Also need to be corrected for individual calibration -- calibration equations are from vaisalacalibration csv
-x10m and x50m are old 
+x10m and x30m are old 
 
 ```{r check CO2 data plot, echo=FALSE}
 
@@ -249,7 +249,7 @@ plot_ly(df_xn10m,
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
-plot_ly(df_x10m,
+plot_ly(x0m,
     x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
 
 ```
@@ -265,7 +265,7 @@ plot_ly(df_x50m,
 ```{r check CO2 data plot, echo=FALSE}
 # join data frames to make plotting easier
 
-df_plot <- rbind(df_xn10m, df_x10m, df_x50m)
+df_plot <- rbind(df_xn10m,  df_x15m, df_x30m)
 
 # use facet wrap to plot multiple stations
 
