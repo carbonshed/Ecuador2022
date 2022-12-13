@@ -554,7 +554,7 @@ backgrond_df <- filter(backgrond_df, DateTime >= as.POSIXct("2022-07-21 09:45:00
 
 ##calc k600
 
-CO2_air_ppm <- air_n10
+CO2_air_ppm <- airmean_n10m
 R=0.08205736608096
 gCO2asC <- 12
 #convert hpa to atm; 1hPa = 0.0009869233 atm
