@@ -380,7 +380,7 @@ co2_table <- data.frame(vaisala, air_co2_ppm, pre_plateau_co2_ppm, plateau_co2_p
 
 co2_table
 
-write.csv(co2_table,here::here("Injections/2022-06-06/injection_co2_result.csv"))
+#write.csv(co2_table,here::here("Injections/2022-07-01/injection_co2_result.csv"))
 
 # Export table to excel
 
@@ -446,18 +446,17 @@ peak = 12:56:48 PM
 #convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
 
 #difference between plateau and baseline for upstream and downstream
-C_mgperL_0m <- (platmean0m - mean(preplatmean0m,postplatmeann10m))
+C_mgperL_0m <- (platmean0m - mean(c(preplatmean0m,postplatmean0m)))
 
 C_mgperL_25m <- (platmean25m - mean(preplatmean25m))
 
 C_mgperL_50m <- (platmean50m - mean(preplatmean50m))
 
-#Discharge comes from hand held
-#multiply by 1000 to convert from m3/s to L/s
-#Q at 0m = 0.07623
-Q_0m = mean(92.12,91.13) #0.07623 * 1000
-# Q for 50m = 0.090885
-Q_50m = mean(86.56,88.7) #0.090885 * 1000 
+#Discharge 
+#Q at 0m
+Q_0m = mean(c(92.12,91.13)) 
+# Q for 50m 
+Q_50m = mean(c(86.56,88.7)) 
 
 #stream reach length
 dist = 50-0
@@ -477,8 +476,8 @@ v: mean velocity of stream
 #used data from handwritten data 
 
 # Slug One
-#discharge at 50m; poured in salt at 12:04, peak at 12:13; 88.7?
-#time for slug to go between 0m and 50m 12:05:45 PM	 to	12:13:57 PM
+#discharge at 50m; poured in salt at 12:04, peak at 12:13
+#time for slug to go between 0m and 50m 12:05:45 PM to	12:13:57 PM
 #start: 12:04
 # velocity in m/s
 dist_salt = 50
@@ -487,22 +486,12 @@ velocity_one <- dist_salt / diff_one
 
 
 #Slug Two
-
-#don't have reliagble second 0m at the moment, so we just use the first elocity for notw
-
-#discharge at 50m; poured in salt at 12:47, peak at 12:57 
-#start: 12:47
-# velocity in m/s
-#diff_two <- (57 - 47) * 60
-#velocity_two<- dist_salt / diff_two
-
-#avg_v <- mean(velocity_one, velocity_two)
-
-
+#missing peak time at 0m
 
 kt = km * velocity_one #units (1/s)
 kCO2_mperd <- kt*86400
   
+print(c(velocity_one,kCO2_mperd))
 ```
 
 #k600

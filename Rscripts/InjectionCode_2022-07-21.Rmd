@@ -14,6 +14,9 @@ library(lubridate)
 library(tidyverse)
 library(plotly)
 library(here)
+library(tidyr)
+library(reshape2)
+library(imputeTS)
 ```
 
 ## About
@@ -289,10 +292,6 @@ plot_ly(df_x30m,
 ```
 
 
-
-
-
-
 ## Plot all CO2 data together 
 ```{r check CO2 data plot, echo=FALSE}
 # join data frames to make plotting easier
@@ -397,7 +396,7 @@ co2_table <- data.frame(vaisala, air_co2_ppm, pre_plateau_co2_ppm, plateau_co2_p
 
 co2_table
 
-write.csv(co2_table,here::here("Injections/2022-07-21/injection_co2_result.csv"))
+#write.csv(co2_table,here::here("Injections/2022-07-21/injection_co2_result.csv"))
 
 # Export table to excel
 
@@ -458,18 +457,18 @@ Peak at  7/21/22 7/21/2022  11:17:36 AM
 #convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
 
 #difference between plateau and baseline for upstream and downstream
-C_mgperL_0m <- (platmean0m - mean(preplatmean0m,postplatmeann10m))
+C_mgperL_0m <- (platmean0m - mean(c(preplatmean0m,postplatmean0m)))
 
-C_mgperL_15m <- (platmean15m - mean(preplatmean15m,postplatmean15m))
+C_mgperL_15m <- (platmean15m - mean(c(preplatmean15m,postplatmean15m)))
 
 C_mgperL_30m <- (platmean30m - mean(preplatmean30m))
 
 #Discharge comes from hand held
 #multiply by 1000 to convert from m3/s to L/s
 #Q at 0m = 
-Q_0m = mean(3.96,3.58)
+Q_0m = mean(c(3.96,3.58))
 # Q for 50m = 
-Q_50m = mean(9.82,9.99)
+Q_50m = mean(c(9.82,9.99))
 
 #stream reach length
 dist = 30
@@ -503,8 +502,7 @@ dist_salt = 30
 diff_two <- (17-13)*60 + (36-56)
 velocity_two <- dist_salt / diff_two
 
-avg_v <- mean(velocity_one,velocity_two) # why is mean() not working???
-avg_v <- (velocity_one+velocity_two)/2
+avg_v <- mean(c(velocity_one,velocity_two)) 
 
 
 
@@ -549,19 +547,59 @@ backgrond_df <- left_join(flux_n10,df_xn10m, by="DateTime")
 backgrond_df <- filter(backgrond_df, DateTime >= as.POSIXct("2022-07-21 09:45:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-21 11:15:00", tz = "UTC"))
 
 #add baro data because we need air temp
+#missing baro file, so use the installed baro
+
+baro_n10 <- read.csv(here::here("Water_Level/BaroPress/Baro_01_2022-07-27.csv"),skip = 10)[,c(1:2,4:5)]
+colnames(baro_n10) <- c("Date","Time","AirPress_kpa","AirTemp_c")
+baro_n10$DateTime <- as.POSIXct(paste(baro_n10$Date,baro_n10$Time), format="%m/%d/%Y %I:%M:%S %p", tz = "UTC")
+baro_n10 <- baro_n10[,c("DateTime","AirPress_kpa","AirTemp_c")]
+
+#backgrond_df <- left_join(backgrond_df,baro_n10,by="DateTime")
+
+# and now we have to interpolate to 5 min >:(
+
+#interpolate 1hr to 15 min 
+
+DateTime <- seq(ISOdate(2022,07,20), ISOdate(2022,07,21), by = "5 min")
+DateTime_df <- data.frame(DateTime)
+DateTime_df$DateTime <- as.POSIXct(DateTime_df$DateTime, format="%y-%m-%d %H:%M:%S", tz="UTC")
+
+baro_n10 <- left_join(DateTime_df, baro_n10, by = "DateTime")
+baro_n10 <- baro_n10[ order(baro_n10$DateTime , decreasing = TRUE ),]
+
+## Round timestamps to closest 5-minute
+timestep <- baro_n10$DateTime[2]-baro_n10$DateTime[1]
+baro_n10 <- data.frame(DateTime=seq.POSIXt(baro_n10$DateTime[1], baro_n10$DateTime[length(baro_n10$DateTime)], by=timestep))%>%
+  mutate(DateTime=round_date(DateTime,'5 minutes'))%>%
+  left_join(baro_n10)%>%
+  na_interpolation(option = 'linear', maxgap = Inf)
+
+backgrond_df <- left_join(backgrond_df,baro_n10,by="DateTime")
 
 
+#######
+##calculate k600
+########
 
-##calc k600
+#concentration of air
+#use vaisala when in the air
 
-CO2_air_ppm <- airmean_n10m
+AirPress_hpa <- mean(backgrond_df$AirPress_kpa)*10
+AirTemp_mean <- mean(backgrond_df$AirTemp_c)
+
+CO2_air <- mean(air_n10$ppm) * (1 + (1013 - AirPress_hpa) * 0.0015) * (1 - (25 - AirTemp_mean) * 0.003)
+CO2_air <-(CO2_air * 1.06933) -105.52898
+CO2_air_ppm <- CO2_air*10^-6
+
 R=0.08205736608096
 gCO2asC <- 12
-#convert hpa to atm; 1hPa = 0.0009869233 atm
-backgrond_df$air_pressure_atm <- backgrond_df$Total_hPa * 0.0009869233
+
+#convert hpa to atm; 1kPa = 1/101.3 atm
+backgrond_df$AirPress_atm <- backgrond_df$AirPress_kpa / 101.3
+
 backgrond_df$VaporPressure_atm <- 10^(5.40221-(1838.675/((backgrond_df$AirTemp_c + 273.15)-31.737)))
 
-backgrond_df$TotalAir_atm <- backgrond_df$air_pressure_atm - backgrond_df$VaporPressure_atm
+backgrond_df$TotalAir_atm <- backgrond_df$AirPress_atm - backgrond_df$VaporPressure_atm
 backgrond_df$Total_air_MolperL <- backgrond_df$TotalAir_atm/(R*(backgrond_df$AirTemp_c + 273.15)) 
 backgrond_df$CO2_air_MolesPerLiter <- backgrond_df$Total_air_MolperL * CO2_air_ppm
 # 12 grams of C in 1 mole of CO2
@@ -581,12 +619,11 @@ backgrond_df$CO2_air_gCO2asCPerLiter <- backgrond_df$CO2_air_MolesPerLiter * gCO
 #set constants
 kH_STP_mol.L.atm = .035
 D_K = 2400 
-df$WaterTemp_K <- df$WaterTemp_c + 273.15
+backgrond_df$Watertemp_K <- backgrond_df$Temp + 273.15
 T_STP_K = 298.15
 
 #calculate henry's law constant using 
-backgrond_df$KH_mol.L.atm <- kH_STP_mol.L.atm * exp(D_K*(1/df$WaterTemp_K - 1/T_STP_K))
-
+backgrond_df$KH_mol.L.atm <- kH_STP_mol.L.atm * exp(D_K*(1/backgrond_df$Watertemp_K - 1/T_STP_K))
 
 UatmToatm <- 10^6
 
@@ -598,7 +635,8 @@ backgrond_df$CO2_water_gCO2asCPerLiter <- (backgrond_df$adjusted_ppm / UatmToatm
 LiterToCubicMeter = 1000
 
 backgrond_df$deltaCO2_gCO2asCperM3 <-  (backgrond_df$CO2_water_gCO2asCPerLiter - backgrond_df$CO2_air_gCO2asCPerLiter)  *
-  backgrond_df$KH_mol.L.atm  * LiterToCubicMeter
+  backgrond_df$KH_mol.L.atm  * 
+  LiterToCubicMeter
 
 
 #convert flux to mole/m2/d
@@ -609,7 +647,7 @@ UmoleToMole <- 10^6
 #convert moles to grams of Carbon dioxide as Carbon
 #gCO2asC <- 12
 
-backgrond_df$Flux_gCO2asCperM2perDay <- backgrond_df$Flux_ave * SecToDay /  UmoleToMole *gCO2asC
+backgrond_df$Flux_gCO2asCperM2perDay <- backgrond_df$Flux * SecToDay /  UmoleToMole *gCO2asC
 
 #Fick' Law: calculate K
 
@@ -636,10 +674,10 @@ backgrond_df$k_m.d <- backgrond_df$Flux_gCO2asCperM2perDay  / backgrond_df$delta
 #SC= schmidst constant, temperature dependent
 #SC = 1911.1 - 118.11*T + 3.4527*T^2 - 0.04132*T^3
 #T = temperature in c
-backgrond_df$Sc <- 1911.1 - 118.11*backgrond_df$WaterTemp_c + 3.4527*(backgrond_df$WaterTemp_c)^2 - 0.04132*(backgrond_df$WaterTemp_c)^3
+backgrond_df$Sc <- 1911.1 - 118.11*backgrond_df$Temp + 3.4527*(backgrond_df$Temp)^2 - 0.04132*(backgrond_df$Temp)^3
 
-backgrond_df$K600.effective <- backgrond_df$k_m.d * (600/backgrond_df$Sc)^(-0.5)
+backgrond_df$K600 <- backgrond_df$k_m.d * (600/backgrond_df$Sc)^(-0.5)
 
 
-
+summary(backgrond_df)
 ```

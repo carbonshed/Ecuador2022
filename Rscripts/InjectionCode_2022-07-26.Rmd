@@ -388,7 +388,7 @@ co2_table <- data.frame(vaisala, air_co2_ppm, pre_plateau_co2_ppm, plateau_co2_p
 
 co2_table
 
-write.csv(co2_table,here::here("Injections/2022-07-26/injection_co2_result.csv"))
+#write.csv(co2_table,here::here("Injections/2022-07-26/injection_co2_result.csv"))
 
 # Export table to excel
 
@@ -453,11 +453,11 @@ peak at
 #convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
 
 #difference between plateau and baseline for upstream and downstream
-C_mgperL_0m <- (platmean0m - mean(preplatmean0m,postplatmeann10m))
+C_mgperL_0m <- (platmean0m - mean(c(preplatmean0m,postplatmean0m)))
 
-C_mgperL_25m <- (platmean25m - mean(postplatmean25m))
+C_mgperL_25m <- (platmean25m - mean(c(preplatmean25m, postplatmean25m)))
 
-C_mgperL_50m <- (platmean50m - mean(preplatmean50m,postplatmean50m))
+C_mgperL_50m <- (platmean50m - mean(c(preplatmean50m,postplatmean50m)))
 
 #Discharge comes from hand held
 #Q at 0m = 
@@ -500,6 +500,7 @@ avg_v <- mean(velocity_one)
 kt = km * avg_v #units (1/s)
 kCO2_mperd <- kt*86400
   
+print(c(avg_v, kCO2_mperd))
 ```
 
 #k600

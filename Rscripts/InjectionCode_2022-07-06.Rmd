@@ -266,16 +266,12 @@ plot_ly(df_x25m,
 
 
 
-
 ## Plot CO2 for 50m Viasala
 ```{r check CO2 data plot, echo=FALSE}
 ##check data
 plot_ly(df_x50m,
     x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
 ```
-
-
-
 
 
 
@@ -381,7 +377,7 @@ co2_table <- data.frame(vaisala, air_co2_ppm, pre_plateau_co2_ppm, plateau_co2_p
 
 co2_table
 
-write.csv(co2_table,here::here("Injections/2022-07-06/injection_co2_result.csv"))
+#write.csv(co2_table,here::here("Injections/2022-07-06/injection_co2_result.csv"))
 
 # Export table to excel
 
@@ -412,6 +408,9 @@ time: 11:50
 dist: -10m
 weight: didn't write down, I think same as previous, 238g/l*1.5 -- BUT it's pretty different from discharge collected with the handheld wich makies me doubtfull. UG. I think we should use the handheld discharges for this :(
 
+x0
+Q = 54.98
+peak at7/6/2022  11:50:24 AM
 x25
 Q = 80.5
 peak at 7/6/22 11:51:49
@@ -423,11 +422,11 @@ Peak at  7/6/22 11:52:30
 #convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
 
 #difference between plateau and baseline for upstream and downstream
-C_mgperL_0m <- (platmean0m - mean(preplatmean0m,postplatmeann10m))
+C_mgperL_0m <- (platmean0m - mean(c(preplatmean0m,postplatmean0m)))
 
-C_mgperL_25m <- (platmean25m - mean(postplatmean25m))
+C_mgperL_25m <- (platmean25m - mean(c(postplatmean25m)))
 
-C_mgperL_50m <- (platmean50m - mean(preplatmean50m,postplatmean50m))
+C_mgperL_50m <- (platmean50m - mean(c(preplatmean50m,postplatmean50m)))
 
 #Discharge comes from hand held
 #multiply by 1000 to convert from m3/s to L/s
@@ -454,11 +453,11 @@ v: mean velocity of stream
 #used data from handwritten data 
 
 # Slug One
-#discharge at 50m; poured in salt at 11:50 Peak at  7/6/22 11:52:30
+#discharge at 50m; poured in salt at 11:50 x0m peak at peak at7/6/2022  11:50:24 AM, x50m peak at  7/6/22 11:52:30
 #start: 1
 # velocity in m/s
-dist_salt = 60
-diff_one <- 2.5 * 60
+dist_salt = 50
+diff_one <- (52-50)*60 + (30-24)
 velocity_one <- dist_salt / diff_one
 
 
@@ -473,7 +472,7 @@ kCO2_mperd <- kt*86400
 
 #k600
 convert to k to k600
-```{r convert to k6000}
+```{r convert to k600}
 
 # Find average water temp for injection
 

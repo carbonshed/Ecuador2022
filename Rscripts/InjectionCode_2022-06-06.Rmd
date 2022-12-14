@@ -240,17 +240,12 @@ plot_ly(df_x10m,
 
 
 
-
 ## Plot CO2 for 50m Viasala
 ```{r check CO2 data plot df_x50m, echo=FALSE}
 ##check data
 plot_ly(df_x50m,
     x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
 ```
-
-
-
-
 
 
 ## Plot all CO2 data together 
@@ -378,9 +373,9 @@ adjusted for decay rate of CO2 over meters
 #convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
 
 #difference between plateu and baseline for upstream and downstream
-C_mgperL_10m <- (platmean10m - mean(preplatmean10m,postplatmeann10m))
+C_mgperL_10m <- (platmean10m - mean(c(preplatmean10m,postplatmean10m)))
 
-C_mgperL_50m <- (platmean50m - mean(preplatmean50m))
+C_mgperL_50m <- (platmean50m - mean(c(preplatmean50m,postplatmean50m)))
 
 #Discharge comes from salt injection
 #multiply by 1000 to convert from m3/s to L/s
@@ -411,7 +406,7 @@ start <- as.POSIXct("2022-06-06 13:26:00",tz="UTC")
 end <- as.POSIXct("2022-06-06 14:48:00",tz="UTC")
 
 #we will use the EC data collected at 50m
-EC_Data <- read.csv(here::here("Injections/2022-06-06/Inj_EC_50m_2022-06-06.csv"),skip=1)[,c(2:5)]
+EC_Data <- read.csv(here::here("Injections/2022-06-06/Discharge/EC/Inj_EC_50m_2022-06-06.csv"),skip=1)[,c(2:5)]
 colnames(EC_Data) <- c("DateTime","LowRange","HighRange","Temp_c")
 EC_Data$DateTime <- as.POSIXct(EC_Data$DateTime,format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
 EC_Data <- EC_Data%>%filter(DateTime > start & DateTime < end)
@@ -498,8 +493,11 @@ adjustment <-filter(baro_n10, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz =
 AirPress_hpa <- mean(adjustment$AirPress_kpa)*10
 AirTemp_mean <- mean(adjustment$AirTemp_c)
 
-CO2_air <- mean(air_n10$ppm) * (1 + (1013 - AirPress_hpa) * 0.0015) * (1 - (25 - AirTemp_mean) * 0.003)
-CO2_air <-(CO2_air * 1.06933) -105.52898
+#for this injection, the background vaisala was new
+#correct the adjusted ppm and correct for individual vaisala calibration
+
+CO2_air <- mean(air_n10$ppm) * (1 + (1013 - AirPress_hpa) * 0.0015) 
+CO2_air <-(CO2_air * 1.00054) + 65.15813
 CO2_air_ppm <- CO2_air*10^-6
 
 R=0.08205736608096

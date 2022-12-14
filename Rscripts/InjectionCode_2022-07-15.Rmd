@@ -143,7 +143,7 @@ setwd(here::here(paste("Injections/"),folder))
 
 
 # first, read in WL hobo at -10m 
-waterlevel_n10 <- read.csv("Injection_Temp_xn10m_2022-07-15.csv", skip = 1)
+waterlevel_n10 <- read.csv("Temp_injection_2022-07-15.csv", skip = 1)
 waterlevel_n10 <- waterlevel_n10[,c(2:4)]
 colnames(waterlevel_n10) <- c("DateTime", "WL_Pressure", "Temp")
 
@@ -249,15 +249,22 @@ plot_ly(df_xn10m,
 ```{r check CO2 data plot, echo=FALSE}
 
 ##check data
-plot_ly(x0m,
+plot_ly(df_x0m,
     x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
 
 ```
 
-## Plot CO2 for 50m Viasala
+## Plot CO2 for 15m Viasala
 ```{r check CO2 data plot, echo=FALSE}
 ##check data
-plot_ly(df_x50m,
+plot_ly(df_x15m,
+    x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
+```
+
+#30m vaisala data
+```{r check CO2 data plot 30m, echo=FALSE}
+##check data
+plot_ly(df_x30m,
     x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
 ```
 
@@ -265,7 +272,7 @@ plot_ly(df_x50m,
 ```{r check CO2 data plot, echo=FALSE}
 # join data frames to make plotting easier
 
-df_plot <- rbind(df_xn10m,  df_x15m, df_x30m)
+df_plot <- rbind(df_xn10m,  df_x0m, df_x15m, df_x30m)
 
 # use facet wrap to plot multiple stations
 
@@ -290,36 +297,43 @@ EXPORT to excel somehow to make a nice table or something
 
 # find average for each station before plateau
 
-preplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:15:00", tz = "UTC"))
-preplat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:15:00", tz = "UTC"))
-preplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:15:00", tz = "UTC"))
+preplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-07-15 10:50:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 10:55:00", tz = "UTC"))
+preplat_0 <- filter(df_x0m, DateTime >= as.POSIXct("2022-07-15 10:45:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 10:50:00", tz = "UTC"))
+preplat_15 <- filter(df_x15m, DateTime >= as.POSIXct("2022-07-15 10:50:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 10:55:00", tz = "UTC"))
+preplat_30 <- filter(df_x30m, DateTime >= as.POSIXct("2022-07-15 10:45:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 10:50:00", tz = "UTC"))
 
 #calculate mean
 preplatmeann10m = mean(preplat_n10$adjusted_ppm)
-preplatmean10m = mean(preplat_10$adjusted_ppm)
-preplatmean50m = mean(preplat_50$adjusted_ppm)
+preplatmean0m = mean(preplat_0$adjusted_ppm)
+preplatmean15m = mean(preplat_15$adjusted_ppm)
+preplatmean30m = mean(preplat_30$adjusted_ppm)
 
 ### Change data frame, date and wanted time frame as needed 
-plat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 14:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 14:45:00", tz = "UTC"))
-plat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 14:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 14:45:00", tz = "UTC"))
-plat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 14:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 14:45:00", tz = "UTC"))
+plat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-07-15 12:20:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 12:25:00", tz = "UTC"))
+plat_0 <- filter(df_x0m, DateTime >= as.POSIXct("2022-07-15 12:20:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 12:25:00", tz = "UTC"))
+plat_15 <- filter(df_x15m, DateTime >= as.POSIXct("2022-07-15 12:20:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 12:25:00", tz = "UTC"))
+plat_30 <- filter(df_x30m, DateTime >= as.POSIXct("2022-07-15 12:20:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 12:25:00", tz = "UTC"))
 
 #now find the mean of this filtered subset
 platmeann10m = mean(plat_n10$adjusted_ppm)
-platmean10m = mean(plat_10$adjusted_ppm)
-platmean50m = mean(plat_50$adjusted_ppm)
+platmean0m = mean(plat_0$adjusted_ppm)
+platmean15m = mean(plat_15$adjusted_ppm)
+platmean30m = mean(plat_30$adjusted_ppm)
 
 # find average at each station after the slug
 
 #first, clean up data by focusing on wanted time
-postplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 15:10:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
-postplat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 15:10:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
-postplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:10:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
+#postplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-07-15 13:25:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 13:30:00", tz = "UTC"))
+postplat_0 <- filter(df_x0m, DateTime >= as.POSIXct("2022-07-15 13:25:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 13:30:00", tz = "UTC"))
+postplat_15 <- filter(df_x15m, DateTime >= as.POSIXct("2022-07-15 13:25:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 13:30:00", tz = "UTC"))
+postplat_30 <- filter(df_x30m, DateTime >= as.POSIXct("2022-07-15 13:25:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 13:30:00", tz = "UTC"))
 
 #find mean of post plateau
-postplatmeann10m = mean(postplat_n10$adjusted_ppm)
-postplatmean10m = mean(postplat_10$adjusted_ppm)
-postplatmean50m = mean(postplat_50$adjusted_ppm)
+#postplatmeann10m = mean(postplat_n10$adjusted_ppm)
+postplatmeann10m = NA
+postplatmean0m = mean(postplat_0$adjusted_ppm)
+postplatmean15m = mean(postplat_15$adjusted_ppm)
+postplatmean30m = mean(postplat_30$adjusted_ppm)
 
 ```
 
@@ -327,14 +341,16 @@ postplatmean50m = mean(postplat_50$adjusted_ppm)
 ## Calculating CO2 in the air (look at data before or after vaisalas went into the water)
 ```{r plot, echo=FALSE}
 # Create new data frames for time when vaisalas are out of water
-air_n10 <-filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 15:26:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:27:00", tz = "UTC"))
-air_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 12:36:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 12:38:00", tz = "UTC"))
-air_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:25:30", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:26:00", tz = "UTC"))
+air_n10 <-filter(df_xn10m, DateTime >= as.POSIXct("2022-07-15 09:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 09:35:00", tz = "UTC"))
+air_0 <- filter(df_x0m, DateTime >= as.POSIXct("2022-07-15 09:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 09:35:00", tz = "UTC"))
+air_15 <- filter(df_x15m, DateTime >= as.POSIXct("2022-07-15 09:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 09:35:00", tz = "UTC"))
+air_30 <- filter(df_x30m, DateTime >= as.POSIXct("2022-07-15 09:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 09:35:00", tz = "UTC"))
 
 # Now find mean for this time frame 
 airmean_n10m = mean(air_n10$adjusted_ppm)
-airmean_10m = mean(air_10$adjusted_ppm)
-airmean_10m = mean(air_50$adjusted_ppm)
+airmean_0m = mean(air_0$adjusted_ppm)
+airmean_15m = mean(air_15$adjusted_ppm)
+airmean_30m = mean(air_30$adjusted_ppm)
 
 ```
 
@@ -342,17 +358,17 @@ airmean_10m = mean(air_50$adjusted_ppm)
 focus on calculated vars: pre plateau, plateau, post plateau, and air 
 ```{r plot, echo=FALSE}
 # Create a data frame 
-vaisala <- c('xn10m', 'x10m', 'x50m')
-air_co2_ppm <- c(airmean_n10m, airmean_10m, airmean_10m)
-pre_plateau_co2_ppm <- c(preplatmeann10m, preplatmean10m, preplatmean50m) 
-plateau_co2_ppm <- c(platmeann10m, platmean10m, platmean50m)
-post_plateau_co2_ppm <- c(postplatmeann10m, postplatmean10m, postplatmean50m)
+vaisala <- c('xn10m', 'x0m', 'x15m', 'x30m')
+air_co2_ppm <- c(airmean_n10m, airmean_0m, airmean_15m, airmean_30m)
+pre_plateau_co2_ppm <- c(preplatmeann10m, preplatmean0m, preplatmean15m, preplatmean30m) 
+plateau_co2_ppm <- c(platmeann10m, platmean0m,platmean15m, platmean30m)
+post_plateau_co2_ppm <- c(postplatmeann10m, postplatmean0m,postplatmean15m, postplatmean30m)
 
 co2_table <- data.frame(vaisala, air_co2_ppm, pre_plateau_co2_ppm, plateau_co2_ppm, post_plateau_co2_ppm)
 
 co2_table
 
-write.csv(co2_table,here::here("Injections/2022-06-06/injection_co2_result.csv"))
+write.csv(co2_table,here::here("Injections/2022-07-15/injection_co2_result.csv"))
 
 # Export table to excel
 
@@ -376,26 +392,59 @@ adjusted for decay rate of CO2 over meters
   wf: co2 mass at 50 m (concentration * discharge)
   wi: co2 mass at 10m  (concentration * discharge)
   t: meters
+  
+  --------
+  # Salt slug
+ Time start: 11:33
+ mass = 264.68g
+ 
+ x0m
+Q L/s= 3.32
+ peak at 7/15/2022  11:36:23 AM
+ 
+ x15m
+ Q L/s = 3.13
+ peak at 7/15/2022  11:38:38 AM
+ 
+ x30m
+ Q L/s = 6.01 
+ peak at 7/15/2022  11:41:03 AM
+ 
+ ---
+  Time start: 11:59
+ mass = 264.68g
+ 
+ x0m
+ Q L/s = 2.9
+ 7/15/2022  12:00:12 PM
+  
+
+ x15m
+ Q L/s = 3.26
+ peak at 7/15/2022  12:02:27 PM
+ 
+ 
+ x30m
+Q L/s = 5.88
+ peak at 7/15/2022  12:04:55 PM
 
 ```{r kdub rules the roost}
 #convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
 
 #difference between plateu and baseline for upstream and downstream
-C_mgperL_10m <- (platmean10m - mean(preplatmean10m,postplatmeann10m))
+C_mgperL_0m <- (platmean0m - mean(c(preplatmean0m,postplatmean0m)))
 
-C_mgperL_50m <- (platmean50m - mean(preplatmean50m))
+C_mgperL_30m <- (platmean30m - mean(c(preplatmean30m,postplatmean30m)))
 
 #Discharge comes from salt injection
-#multiply by 1000 to convert from m3/s to L/s
-#Q at 10m = 0.003140479
-Q_10m = 0.003140479 * 1000
+Q_0m = (3.32 + 2.9)/2
 # Q for 50m = .003311749
-Q_50m = 0.003311749 * 1000 
+Q_30m = (6.01+5.88)/2 
 
 #stream reach length
-dist = 50-10
+dist = 30-0
 
-km <- -log(C_mgperL_50m*Q_50m/(C_mgperL_10m*Q_10m))/dist
+km <- -log(C_mgperL_30m*Q_30m/(C_mgperL_0m*Q_0m))/dist
 #km units: 1/m
 ```
 #convert k in meters to time
@@ -406,45 +455,32 @@ kgas,m: decay rate over meters (calculates in chunk above)
 v: mean velocity of stream
 
 ```{r meters to time }
-#mean velocity of stream reach from salt injection
+#mean velocity of stream reach from salt injection is time it took salt to reach peak 
+#used data from handwritten data 
 
-#start: 13:26
-start <- as.POSIXct("2022-06-06 13:26:00",tz="UTC")
-#End: 14:48
-end <- as.POSIXct("2022-06-06 14:48:00",tz="UTC")
+# Slug One @ 11:33
+#at 0m  peak at 7/15/2022  11:36:23 AM
+#at 30m  peak at 7/15/2022  11:41:03 AM 
+# velocity in m/s
 
-#we will use the EC data collected at 50m
-EC_Data <- read.csv(here::here("Injections/2022-06-06/Inj_EC_50m_2022-06-06.csv"),skip=1)[,c(2:5)]
-colnames(EC_Data) <- c("DateTime","LowRange","HighRange","Temp_c")
-EC_Data$DateTime <- as.POSIXct(EC_Data$DateTime,format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
-EC_Data <- EC_Data%>%filter(DateTime > start & DateTime < end)
+dist_salt = 30
+diff_one <- (41-36)*60 + (03-23)
+velocity_one <- dist_salt / diff_one
 
-plot_ly(EC_Data, x = ~DateTime, y = ~LowRange, type = 'scatter', mode = 'markers') 
+# Slug One @ 11:59
+#at 0m  peak 7/15/2022  12:00:12 PM
+#at 30m   peak at 7/15/2022  12:04:55 PM
+# velocity in m/s
+dist_salt = 30
+diff_two <- (04-00)*60 + (55-12)
+velocity_two <- dist_salt / diff_two
 
-#manually found plateau time
-plateau <- as.POSIXct("2022-06-06 13:48:40",tz="UTC")
+avg_v <- mean(velocity_one,velocity_two) # why is mean() not working???
+avg_v <- (velocity_one+velocity_two)/2
 
-#isolate time between salt injection and plateu, subtract out background
 
-df <- EC_Data%>%filter(DateTime<plateau)
-df$LowRange <- df$LowRange - 11 #background is 11
-df$Time <- format(as.POSIXct(df$DateTime), format = "%H:%M:%S")
-df$seconds <- period_to_seconds(hms(df$Time)) - min(period_to_seconds(hms(df$Time)))
 
-#find Mean Travel Time (MTT)
-x <- sintegral(df$seconds, df$LowRange, n.pts = nrow(df))
-df_int <- data.frame(matrix(ncol = 2, nrow = nrow(df)))
-colnames(df_int) <- c("sec","sum")
-df_int$sec <- x$x
-df_int$sum <- x$y
-AUC <- x$int
-
-MTT <- df_int[which.min(abs(AUC/2-df_int$sum)),]$sec
-
-dist = 50
-
-v = dist/MTT #units (m/s)
-kt = km * v #units (1/s)
+kt = km * avg_v #units (1/s)
 kCO2_mperd <- kt*86400
   
 ```
@@ -455,7 +491,7 @@ convert to k to k600
 
 # Find average water temp for injection
 
-df_avg_water <- filter(df_corr, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:00:00", tz = "UTC"))
+df_avg_water <- filter(df_corr, DateTime >= as.POSIXct("2022-07-15 09:45:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 12:30:00", tz = "UTC"))
 WaterTempC_ave <- mean(df_avg_water$Temp)
 
 #calc sc
@@ -481,10 +517,10 @@ flux_n10 <- flux_n10[,c("DateTime","Flux")]
 
 backgrond_df <- left_join(flux_n10,df_xn10m, by="DateTime")
 
-backgrond_df <- filter(backgrond_df, DateTime >= as.POSIXct("2022-07-15 10:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 13:00:00", tz = "UTC"))
+backgrond_df <- filter(backgrond_df, DateTime >= as.POSIXct("2022-07-15 10:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 12:30:00", tz = "UTC"))
 #add baro data because we need air temp
 
-baro_n10 <- read.csv(here::here("Injections/2022-07-26/Injection_Baro_2022-07-26.csv"),skip = 1)[2:4]
+baro_n10 <- read.csv(here::here("Injections/2022-07-15/Injection_Baro_xn10m_2022-07-15.csv"),skip = 1)[2:4]
 colnames(baro_n10) <- c("DateTime","AirPress_kpa","AirTemp_c")
 baro_n10$DateTime <- as.POSIXct(baro_n10$DateTime, format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
 
@@ -493,8 +529,8 @@ backgrond_df <- left_join(backgrond_df,baro_n10,by="DateTime")
 #######
 ##calculate k600
 ########
-adjustment <-filter(baro_n10, DateTime >= as.POSIXct("2022-07-26 10:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:50:00", tz = "UTC"))
-
+adjustment <-filter(baro_n10, DateTime >= as.POSIXct("2022-07-15 10:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-15 12:50:00", tz = "UTC"))
+adjustment <- adjustment%>%drop_na(AirPress_kpa)
 #concentration of air
 #use vaisala when in the air
 
