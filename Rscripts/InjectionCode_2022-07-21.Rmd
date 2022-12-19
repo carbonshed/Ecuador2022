@@ -468,12 +468,12 @@ C_mgperL_30m <- (platmean30m - mean(preplatmean30m))
 #Q at 0m = 
 Q_0m = mean(c(3.96,3.58))
 # Q for 50m = 
-Q_50m = mean(c(9.82,9.99))
+Q_30m = mean(c(9.82,9.99))
 
 #stream reach length
 dist = 30
 
-km <- -log(C_mgperL_30m*Q_50m/(C_mgperL_0m*Q_0m))/dist
+km <- -log(C_mgperL_30m*Q_30m/(C_mgperL_0m*Q_0m))/dist
 #km units: 1/m
 ```
 #convert k in meters to time
