@@ -20,6 +20,13 @@ library(Bolstad2)
 ## About
 
 In this file I clean and collect CO2 data collected at Cayambe Coca, EC salt injection from June 6, 2022
+Injection in mainstem of Gavilan
+
+Start:
+CO2 @ 13:00
+Salt @ 13:26 - salt continuous injection
+
+#Salt
 
 ### We start by reading in an then cleaning data, file 
 
@@ -233,17 +240,12 @@ plot_ly(df_x10m,
 
 
 
-
 ## Plot CO2 for 50m Viasala
 ```{r check CO2 data plot df_x50m, echo=FALSE}
 ##check data
 plot_ly(df_x50m,
     x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
 ```
-
-
-
-
 
 
 ## Plot all CO2 data together 
@@ -261,6 +263,7 @@ together_plot <- ggplot(df_plot, aes(DateTime, adjusted_ppm, color = Station)) +
 
 together_plot + facet_wrap(~Station, ncol= 3, scales = "free")
 
+
 together_plot
 
 ```
@@ -275,9 +278,9 @@ EXPORT to excel somehow to make a nice table or something
 
 # find average for each station before plateau
 
-preplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:15:00", tz = "UTC"))
-preplat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:15:00", tz = "UTC"))
-preplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:15:00", tz = "UTC"))
+preplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:05:00", tz = "UTC"))
+preplat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:05:00", tz = "UTC"))
+preplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 13:05:00", tz = "UTC"))
 
 #calculate mean
 preplatmeann10m = mean(preplat_n10$adjusted_ppm)
@@ -287,7 +290,7 @@ preplatmean50m = mean(preplat_50$adjusted_ppm)
 ### Change data frame, date and wanted time frame as needed 
 plat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 14:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 14:45:00", tz = "UTC"))
 plat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 14:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 14:45:00", tz = "UTC"))
-plat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 14:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 14:45:00", tz = "UTC"))
+plat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 14:45:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:00:00", tz = "UTC"))
 
 #now find the mean of this filtered subset
 platmeann10m = mean(plat_n10$adjusted_ppm)
@@ -299,12 +302,12 @@ platmean50m = mean(plat_50$adjusted_ppm)
 #first, clean up data by focusing on wanted time
 postplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-06-06 15:10:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
 postplat_10 <- filter(df_x10m, DateTime >= as.POSIXct("2022-06-06 15:10:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
-postplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:10:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
+postplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:20:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:24:00", tz = "UTC"))
 
 #find mean of post plateau
 postplatmeann10m = mean(postplat_n10$adjusted_ppm)
 postplatmean10m = mean(postplat_10$adjusted_ppm)
-postplatmean50m = mean(postplat_50$adjusted_ppm)
+postplatmean50m = mean(postplat_50$adjusted_ppm) 
 
 ```
 
@@ -319,8 +322,8 @@ air_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-06-06 15:25:30", tz = "UT
 # Now find mean for this time frame 
 airmean_n10m = mean(air_n10$adjusted_ppm)
 airmean_10m = mean(air_10$adjusted_ppm)
-airmean_50m = mean(air_50$adjusted_ppm)
-
+#airmean_50m = mean(air_50$adjusted_ppm) # not plugged in for long enough to collect good air measurement
+airmean_50m = NA
 ```
 
 ## Create data table with important objects and export to excel 
@@ -370,9 +373,9 @@ adjusted for decay rate of CO2 over meters
 #convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
 
 #difference between plateu and baseline for upstream and downstream
-C_mgperL_10m <- (platmean10m - mean(preplatmean10m,postplatmeann10m))
+C_mgperL_10m <- (platmean10m - mean(c(preplatmean10m,postplatmean10m)))
 
-C_mgperL_50m <- (platmean50m - mean(preplatmean50m))
+C_mgperL_50m <- (platmean50m - mean(c(preplatmean50m,postplatmean50m)))
 
 #Discharge comes from salt injection
 #multiply by 1000 to convert from m3/s to L/s
@@ -403,7 +406,7 @@ start <- as.POSIXct("2022-06-06 13:26:00",tz="UTC")
 end <- as.POSIXct("2022-06-06 14:48:00",tz="UTC")
 
 #we will use the EC data collected at 50m
-EC_Data <- read.csv(here::here("Injections/2022-06-06/Inj_EC_50m_2022-06-06.csv"),skip=1)[,c(2:5)]
+EC_Data <- read.csv(here::here("Injections/2022-06-06/Discharge/EC/Inj_EC_50m_2022-06-06.csv"),skip=1)[,c(2:5)]
 colnames(EC_Data) <- c("DateTime","LowRange","HighRange","Temp_c")
 EC_Data$DateTime <- as.POSIXct(EC_Data$DateTime,format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
 EC_Data <- EC_Data%>%filter(DateTime > start & DateTime < end)
@@ -450,4 +453,140 @@ WaterTempC_ave <- mean(df_avg_water$Temp)
 Sc <- 1911.1 - 118.11*WaterTempC_ave + 3.4527*(WaterTempC_ave)^2 - 0.04132*(WaterTempC_ave)^3
 
 K600 <- kCO2_mperd * (600/Sc)^(-0.5)
+
+print(K600)
+```
+
+
+#k600 at -10m
+```{r k600 at -10m}
+# first, read in WL hobo at -10m 
+flux_n10 <- read.csv(here::here("Injections/2022-07-21/Injections_Flux_xn10m_2022-07-21.csv"))
+flux_n10 <- flux_n10[,c(1:5)]
+#colnames(flux_n10) <- c("DateTime", "WL_Pressure", "Temp")
+flux_n10$Date<-as.Date(with(flux_n10,paste(Year,Month,Day,sep="-")),"%y-%m-%d")
+flux_n10$DateTime <- as.POSIXct(paste(flux_n10$Date, flux_n10$Time), format="%Y-%m-%d %H:%M:%S", tz = "UTC")
+flux_n10 <- flux_n10%>%filter(Date == "2022-06-06")
+#before october, EOS was in EST, not ecuador time, so subtract 1 hour
+flux_n10$DateTime <- flux_n10$DateTime - hours(1)
+flux_n10 <- flux_n10[,c("DateTime","Flux")]
+
+backgrond_df <- left_join(flux_n10,df_xn10m, by="DateTime")
+
+backgrond_df <- filter(backgrond_df, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
+#add baro data because we need air temp
+
+baro_n10 <- read.csv(here::here("Injections/2022-06-06/Inj_Baro_-10m_2022-06-06.csv"),skip = 1)[2:4]
+colnames(baro_n10) <- c("DateTime","AirPress_kpa","AirTemp_c")
+baro_n10$DateTime <- as.POSIXct(baro_n10$DateTime, format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
+
+backgrond_df <- left_join(backgrond_df,baro_n10,by="DateTime")
+
+#######
+##calculate k600
+########
+adjustment <-filter(baro_n10, DateTime >= as.POSIXct("2022-06-06 13:00:00", tz = "UTC") & DateTime < as.POSIXct("2022-06-06 15:20:00", tz = "UTC"))
+
+#concentration of air
+#use vaisala when in the air
+
+AirPress_hpa <- mean(adjustment$AirPress_kpa)*10
+AirTemp_mean <- mean(adjustment$AirTemp_c)
+
+#for this injection, the background vaisala was new
+#correct the adjusted ppm and correct for individual vaisala calibration
+
+CO2_air <- mean(air_n10$ppm) * (1 + (1013 - AirPress_hpa) * 0.0015) 
+CO2_air <-(CO2_air * 1.00054) + 65.15813
+CO2_air_ppm <- CO2_air*10^-6
+
+R=0.08205736608096
+gCO2asC <- 12
+
+#convert hpa to atm; 1kPa = 1/101.3 atm
+backgrond_df$AirPress_atm <- backgrond_df$AirPress_kpa / 101.3
+
+backgrond_df$VaporPressure_atm <- 10^(5.40221-(1838.675/((backgrond_df$AirTemp_c + 273.15)-31.737)))
+
+backgrond_df$TotalAir_atm <- backgrond_df$AirPress_atm - backgrond_df$VaporPressure_atm
+backgrond_df$Total_air_MolperL <- backgrond_df$TotalAir_atm/(R*(backgrond_df$AirTemp_c + 273.15)) 
+backgrond_df$CO2_air_MolesPerLiter <- backgrond_df$Total_air_MolperL * CO2_air_ppm
+# 12 grams of C in 1 mole of CO2
+backgrond_df$CO2_air_gCO2asCPerLiter <- backgrond_df$CO2_air_MolesPerLiter * gCO2asC
+
+
+### Calculate concentration CO2 in water (gCO2-C per Liter) using Henry's law ###
+#Equation below can be used to adjust Henry's constant to the temperature of the environment
+# *NOTE: we may need to do an additional calculation to adjust for low pressure in our environment?*
+#**KH = KH(STP) x exp(D(1/T-1/T(STP)))**
+#* KH(STP) = Henry's law constant at STP (0.035 mol/L)
+#*NOTE: the cited literature say that this in mol/(kg x bar)*
+#  * D = Temperature dependence constant (2400 K)
+#* T = Water Temperature (K)
+#* T(STP) = Temp at STP (298.15 K)
+
+#set constants
+kH_STP_mol.L.atm = .035
+D_K = 2400 
+backgrond_df$Watertemp_K <- backgrond_df$Temp + 273.15
+T_STP_K = 298.15
+
+#calculate henry's law constant using 
+backgrond_df$KH_mol.L.atm <- kH_STP_mol.L.atm * exp(D_K*(1/backgrond_df$Watertemp_K - 1/T_STP_K))
+
+UatmToatm <- 10^6
+
+#calculate mass equivalence of CO2 in water
+backgrond_df$CO2_water_gCO2asCPerLiter <- (backgrond_df$adjusted_ppm / UatmToatm) * backgrond_df$KH_mol.L.atm * gCO2asC
+
+#calculate concntration difference between CO2 in the water and in the air
+#for some reason, unclear to me, Mcdowell multiplies by henry's constant AGAIN. Let's try it
+LiterToCubicMeter = 1000
+
+backgrond_df$deltaCO2_gCO2asCperM3 <-  (backgrond_df$CO2_water_gCO2asCPerLiter - backgrond_df$CO2_air_gCO2asCPerLiter)  *
+  backgrond_df$KH_mol.L.atm  * 
+  LiterToCubicMeter
+
+
+#convert flux to mole/m2/d
+#seconds per day (86,400)
+SecToDay <- 86400
+#umole to mole
+UmoleToMole <- 10^6
+#convert moles to grams of Carbon dioxide as Carbon
+#gCO2asC <- 12
+
+backgrond_df$Flux_gCO2asCperM2perDay <- backgrond_df$Flux * SecToDay /  UmoleToMole *gCO2asC
+
+#Fick' Law: calculate K
+
+#**F(aq) = K[pCO2(aq) - pCO2(air)] x KH**
+#  * k = F/(pCO2(aq)-pC02(air))/KH
+#* F = Flux mole/m2/d
+#* K = gas transfer rate m/d
+#* KH = henry's constant for molar concentration of CO2 in water 
+
+#*rearrange equation to solve for k*
+#**k = F(aq) / ([pCO2(aq) - pCO2(air)] x KH)**
+
+#convert Liters to cubic meters
+#LiterToCubicMeter <- 1000
+#df$deltaCO2_gCO2asCPerCubicMeter <- df$deltaCO2_gCO2asCPerLiter * LiterToCubicMeter
+
+#calculate
+
+backgrond_df$k_m.d <- backgrond_df$Flux_gCO2asCperM2perDay  / backgrond_df$deltaCO2_gCO2asCperM3
+
+
+#convert to k600
+#k600 = kCO2 * (600/SC)^-0.5
+#SC= schmidst constant, temperature dependent
+#SC = 1911.1 - 118.11*T + 3.4527*T^2 - 0.04132*T^3
+#T = temperature in c
+backgrond_df$Sc <- 1911.1 - 118.11*backgrond_df$Temp + 3.4527*(backgrond_df$Temp)^2 - 0.04132*(backgrond_df$Temp)^3
+
+backgrond_df$K600 <- backgrond_df$k_m.d * (600/backgrond_df$Sc)^(-0.5)
+
+
+summary(backgrond_df)
 ```

@@ -18,7 +18,16 @@ library(here)
 
 ## About
 
-This file is the template for processing CO2 injection data and calculating k600 
+For SOME reason, the injection didn't reach 30m downstream. Wich is crazy. I couldn't raise the co2 concentration any higher, or it would be too high for the sensor at 0m
+
+ugg yeah. its bad data. I quit.
+
+On this day the pump for injecting salt was not working, so we used a syphon - wich is not the most perfect method
+
+This is the day that we tried going to the field during the Paro, and were stopped by a tire fire in the middle of the road coming home. Also I had covid and felt terrible
+
+date: 2022-06-20
+Injection in tributary of Gavilan
 
 ### We start by reading in an then cleaning data, file 
 
@@ -105,7 +114,7 @@ Select data collected during injection period
 ```{r pressure, echo=FALSE}
 
 #DateTime when injection ended
-end <-  as.POSIXct("2022-06-20 15:45:00", tz = "UTC")
+end <-  as.POSIXct("2022-06-20 17:45:00", tz = "UTC")
 
 xn10m <- filter(xn10m, DateTime <= end)
 

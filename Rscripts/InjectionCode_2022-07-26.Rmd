@@ -1,0 +1,652 @@
+---
+
+title: "CO2_EC"
+author: "Kayla Emerson"
+date: "12/07/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(tidyverse)
+library(plotly)
+library(here)
+```
+
+## About
+
+This Rmarkdown analyses data collected during an injection experiment on 2022-07-6
+colmillo
+
+### We start by reading in an then cleaning data, file 
+Sensors in water: 10:30
+
+CO2 injection start: 10:47
+end: 12:20
+
+Tank leaking so CO2 was stopped and started again
+
+```{r pressure, echo=FALSE}
+#enter date of injection wich is also the name of the folder for the injection
+
+folder <- "2022-07-26"
+
+setwd(here::here(paste("Injections/"), folder ,"/CO2"))
+
+all_files=list.files(pattern=".csv")        #pulls out the csv files from CO2 folder
+
+#sites_rp=gsub("_.*","",all_files) #selects the correct pattern so as to select only desired files
+#sites_rp = sub('_[^_]+$', '', all_files)
+
+
+#shorten site name by removing underscores
+sites_rp = sapply(strsplit(all_files, "_"), function(x) x[3])
+
+site_names=unique(sites_rp) #creates list of site names for following loop
+
+
+
+#rm old files, if they exist
+rm(CO2Data)
+rm(Temp_CO2Data)
+
+for (site in site_names){
+ # if(str_contains("CO2"){
+
+  list1=list.files(pattern=site) #finds all files for the site
+  sitelist_csv=grep(".csv",list1) #creates list of all files for site
+  file_list=list1[sitelist_csv]
+  
+  #reads in files in list and appends
+  for (file in file_list){
+    if (!exists("CO2Data")){
+      CO2Data <- read.csv(file, skip=6, header = TRUE)
+      CO2Data=CO2Data[,1:3]
+        if(names(CO2Data)[1] == "Date"){
+          colnames(CO2Data) <- c("Date","Time","ppm")
+        CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%m/%d/%Y %I:%M:%S %p", tz = "UTC")
+      } else { 
+        colnames(CO2Data) <- c("Date","Time","ppm")
+        CO2Data$DateTime <- as.POSIXct(paste(CO2Data$Date, CO2Data$Time), format="%d/%m/%Y %H:%M:%S", tz = "UTC")
+      }
+      
+      CO2Data$Station <- site
+    }
+    if (exists("CO2Data")) {
+      Temp_CO2Data <- read.csv(file, skip=6, header = TRUE)  
+      Temp_CO2Data=Temp_CO2Data[,1:3]
+      if(colnames(Temp_CO2Data)[1]=="Date"){
+        colnames(Temp_CO2Data) <- c("Date","Time","ppm")
+        Temp_CO2Data$DateTime <- as.POSIXct(paste(Temp_CO2Data$Date, Temp_CO2Data$Time), format="%m/%d/%Y %I:%M:%S %p", tz = "UTC")
+        Temp_CO2Data$Station <- site
+      } else {
+#        Temp_CO2Data$Fecha <- as.Date(Temp_CO2Data$Fecha, format = "%d / %m / %Y")
+        Temp_CO2Data$DateTime <- as.POSIXct(paste(Temp_CO2Data$Fecha, Temp_CO2Data$Tiempo), format="%d/%m/%Y%H:%M:%S", tz = "UTC")
+        colnames(Temp_CO2Data) <- c("Date","Time","ppm","DateTime")
+        Temp_CO2Data$Station <- site
+      }
+      CO2Data <- rbind(CO2Data, Temp_CO2Data)
+      rm(Temp_CO2Data)
+    }
+    
+  }
+  
+ #  CO2Data$DateTime <- round_date(CO2Data$DateTime, "15 mins") #Round if needed
+
+  CO2Data=unique(CO2Data)
+  CO2Data$Date <- NULL
+  CO2Data$Time <- NULL
+   CO2Data$ppm <- as.numeric(as.character(CO2Data$ppm))
+  CO2Data <- CO2Data[,c(3,2,1)]
+  assign((paste(site,sep="_")),CO2Data) #creates object with new appended data
+  rm(CO2Data) #removes CO2 data so that multiple sites aren't appended together
+}
+```
+
+## Clean up CO2 data
+
+Select data collected during injection period
+```{r pressure, echo=FALSE}
+
+#DateTime when injection ended
+end <-  as.POSIXct("2022-07-26 17:00:00", tz = "UTC")
+
+xn10m = filter(xn10m, DateTime <= end)
+
+x0m = filter(x0m, DateTime <= end)
+
+x25m = filter(x25m, DateTime <= end)
+
+x50m = filter(x50m, DateTime <= end)
+
+# Now join all sites into a singular data frame so it is easier to analyze 
+df_new <- rbind(xn10m, x0m, x25m, x50m)
+
+```
+
+## Notes from the notebook to decipher which viasala box was at each station
+
+
+xn10m is an old viasala labeled k600
+x0m is an new Viasala labeled Box 1
+x25m is an new viasala labeled Box 3
+x50m is an new viasala labeled Station 3
+
+
+
+## Correct viasalas temperature and pressure with HOBO data for the time period we collected data
+```{r check CO2 data plot, echo=FALSE}
+
+
+setwd(here::here(paste("Injections/"),folder))
+
+
+# first, read in WL hobo at -10m 
+waterlevel_n10 <- read.csv("Injection_Temp_xn10m_2022-07-26.csv", skip = 1)
+waterlevel_n10 <- waterlevel_n10[,c(2:4)]
+colnames(waterlevel_n10) <- c("DateTime", "WL_Pressure", "Temp")
+
+# format DateTime in WL 
+waterlevel_n10$DateTime <- as.POSIXct(paste(waterlevel_n10$Date, waterlevel_n10$Time), format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
+
+# correct kpa to hpa 
+##1 kPa = 10 hPa
+##1 kPa = 0.101972 m
+waterlevel_n10$WL_Pressure <- waterlevel_n10$WL_Pressure * 10
+
+#full_join to join CO2 data to WL by datetime
+df_corr <- full_join(df_new, waterlevel_n10, by = "DateTime" )
+
+# clean data <- remove NA values bc vaisala reads every 1s and WL reads ever 10s
+df_corr <- na.omit(df_corr) 
+
+
+```
+## Correct old Vaisalas 
+Old vaisalas need to be corrected for temperature and pressure 
+Also need to be corrected for individual calibration -- calibration equations are from vaisalacalibration csv
+x10m and x50m are old 
+
+```{r check CO2 data plot, echo=FALSE}
+
+# Make a new data frame from df_corr but just with old vaisalas
+
+df_oldv <- df_corr %>% 
+      filter(Station =='xn10m')
+
+# Now correct the adjusted ppm 
+df_oldv$adjusted_ppm <- df_oldv$ppm * (1 + (1013 - df_oldv$WL_Pressure) * 0.0015) * (1 - (25 - df_oldv$Temp) * 0.003)
+
+# Now correct for individual vaisala calibration 
+
+# xn10m was an old Viasala labeled K600
+
+df_xn10m <- df_oldv %>% 
+      filter(Station =='xn10m')
+
+df_xn10m$adjusted_ppm <-(df_xn10m$adjusted_ppm * 1.06933) -105.52898
+
+
+```
+
+## Correct new Vaisalas
+New vaisalas need to be corrected for just pressure
+
+vaisala @ 0 m
+Box 1 New
+
+vaisala @ 25m 
+Box 3 new
+
+vaisala @ 50m 
+R37391 Station 3
+
+```{r check CO2 data plot, echo=FALSE}
+# Make a new data frame from df_corr but just with new vaisalas
+df_newv <- df_corr %>% 
+      filter(Station =='x0m'|
+               Station =='x25m'|
+               Station =='x50m')
+
+# Now correct the adjusted ppm 
+df_newv$adjusted_ppm <- (df_newv$ppm  )* (1 + (1013 - df_newv$WL_Pressure) * 0.0015)
+
+# Now correct for individual vaisala calibration
+
+# x0m,  Box 1 New
+df_x0m <- df_newv %>% 
+      filter(Station =='x0m')
+
+df_x0m$adjusted_ppm <- (df_x0m$adjusted_ppm * 1.00054) + 65.15813
+
+# x25m, Box 3 new
+df_x25m <- df_newv %>% 
+      filter(Station =='x25m')
+
+df_x25m$adjusted_ppm <- (df_x25m$adjusted_ppm * 1.05036) -6.27667
+
+
+# 50m, R37391 Station 3
+df_x50m <- df_newv %>% 
+      filter(Station =='x50m')
+
+df_x50m$adjusted_ppm <- (df_x50m$adjusted_ppm * 0.948723) - 13.68636
+
+```
+
+## Plot CO2 for Viasala @ -10m
+
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(df_xn10m,
+    x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+## Plot CO2 for Viasala @ 0m
+
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(df_x0m,
+    x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+## Plot CO2 for Viasala @ 25m
+
+```{r check CO2 data plot, echo=FALSE}
+
+##check data
+plot_ly(df_x25m,
+    x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
+
+```
+
+
+
+
+## Plot CO2 for 50m Viasala
+```{r check CO2 data plot, echo=FALSE}
+##check data
+plot_ly(df_x50m,
+    x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
+```
+
+
+
+
+
+
+## Plot all CO2 data together 
+```{r check CO2 data plot, echo=FALSE}
+# join data frames to make plotting easier
+
+df_plot <- rbind(df_xn10m, df_x0m, df_x25m, df_x50m)
+
+# use facet wrap to plot multiple stations
+
+together_plot <- ggplot(df_plot, aes(DateTime, adjusted_ppm, color = Station)) +
+  geom_point(size = 2) +
+  xlab(NULL) +
+  ylab(NULL)
+
+together_plot + facet_wrap(~Station, ncol= 3, scales = "free")
+
+together_plot
+
+```
+
+
+
+## Finding the mean for before, during, and after the plateau
+
+EXPORT to excel somehow to make a nice table or something 
+
+```{r plot, echo=FALSE}
+
+# find average for each station before plateau
+
+preplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-07-26 10:35:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 10:40:00", tz = "UTC"))
+preplat_0 <- filter(df_x0m, DateTime >= as.POSIXct("2022-07-26 10:35:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 10:40:00", tz = "UTC"))
+preplat_25 <- filter(df_x25m, DateTime >= as.POSIXct("2022-07-26 10:35:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 10:40:00", tz = "UTC"))
+preplat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-07-26 10:35:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 10:40:00", tz = "UTC"))
+
+#calculate mean
+preplatmeann10m = mean(preplat_n10$adjusted_ppm)
+preplatmean0m = mean(preplat_0$adjusted_ppm)
+preplatmean25m = mean(preplat_25$adjusted_ppm)
+preplatmean50m = mean(preplat_50$adjusted_ppm)
+
+### Change data frame, date and wanted time frame as needed 
+plat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-07-26 12:17:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:27:00", tz = "UTC"))
+plat_0 <- filter(df_x0m, DateTime >= as.POSIXct("2022-07-26 12:17:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:22:00", tz = "UTC"))
+plat_25 <- filter(df_x25m, DateTime >= as.POSIXct("2022-07-26 12:22:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:27:00", tz = "UTC"))
+plat_50 <- filter(df_x50m, DateTime >= as.POSIXct("2022-07-26 12:22:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:27:00", tz = "UTC"))
+
+#now find the mean of this filtered subset
+platmeann10m = mean(plat_n10$adjusted_ppm)
+platmean0m = mean(plat_0$adjusted_ppm)
+platmean25m = mean(plat_25$adjusted_ppm)
+platmean50m = mean(plat_50$adjusted_ppm)
+
+# find average at each station after the slug
+
+#first, clean up data by focusing on wanted time
+postplat_n10 <- filter(df_xn10m, DateTime >= as.POSIXct("2022-07-26 12:50:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:53:00", tz = "UTC"))
+
+postplat_0 <- filter(df_x0m, DateTime >= as.POSIXct("2022-07-26 12:50:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:53:00", tz = "UTC"))
+
+postplat_25 <- filter(df_x25m, DateTime >=  as.POSIXct("2022-07-26 12:50:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:53:00", tz = "UTC"))
+
+postplat_50 <- filter(df_x50m, DateTime >=  as.POSIXct("2022-07-26 12:50:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:53:00", tz = "UTC"))
+
+#find mean of post plateau
+postplatmeann10m = mean(postplat_n10$adjusted_ppm)
+postplatmean0m = mean(postplat_0$adjusted_ppm)
+postplatmean25m = mean(postplat_25$adjusted_ppm)
+postplatmean50m = mean(postplat_50$adjusted_ppm)
+
+```
+
+
+## Calculating CO2 in the air (look at data before or after vaisalas went into the water)
+```{r plot, echo=FALSE}
+# Create new data frames for time when vaisalas are out of water
+air_n10 <-filter(df_xn10m, DateTime >= as.POSIXct("2022-07-26 09:22:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 09:32:00", tz = "UTC"))
+air_0 <-filter(df_x0m, DateTime >= as.POSIXct("2022-07-26 09:22:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 09:32:00", tz = "UTC"))
+air_25 <-filter(df_x25m, DateTime >= as.POSIXct("2022-07-26 09:22:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 09:32:00", tz = "UTC"))
+air_50 <-filter(df_x50m, DateTime >= as.POSIXct("2022-07-26 09:22:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 09:32:00", tz = "UTC"))
+
+
+# Now find mean for this time frame 
+airmean_n10m = mean(air_n10$adjusted_ppm)
+#airmean_0m = mean(air_0$adjusted_ppm)
+airmean_0m <- NA
+#airmean_25m = mean(air_25$adjusted_ppm)
+airmean_25m <- NA
+#airmean_50m = mean(air_50$adjusted_ppm)
+airmean_50m <- NA
+```
+
+## Create data table with important objects and export to excel 
+focus on calculated vars: pre plateau, plateau, post plateau, and air 
+```{r plot, echo=FALSE}
+# Create a data frame 
+vaisala <- c('xn10m', 'x0m','x25m', 'x50m')
+air_co2_ppm <- c(airmean_n10m, airmean_0m, airmean_25m, airmean_50m)
+pre_plateau_co2_ppm <- c(preplatmeann10m, preplatmean0m,preplatmean25m, preplatmean50m) 
+plateau_co2_ppm <- c(platmeann10m, platmean0m, platmean25m, platmean50m)
+post_plateau_co2_ppm <- c(postplatmeann10m, postplatmean0m, postplatmean25m, postplatmean50m)
+
+co2_table <- data.frame(vaisala, air_co2_ppm, pre_plateau_co2_ppm, plateau_co2_ppm, post_plateau_co2_ppm)
+
+co2_table
+
+#write.csv(co2_table,here::here("Injections/2022-07-26/injection_co2_result.csv"))
+
+# Export table to excel
+
+```
+##calc kc02 for river stretch using kriddie's own brain 
+I'm going off road, baby
+
+#First comes the flux
+
+We are pulling from methods in stream ecology now 
+eq) 31.1  describes decay rate of leaves over time
+  -k = loge(Wf/Wi)/t
+  k: decay rate
+  wf: final weight
+  wi: initial weight
+  t: time
+  
+adjusted for decay rate of CO2 over meters
+  -k = loge(Wf/Wi)/t
+  k: decay rate
+  wf: co2 mass at 50 m (concentration * discharge)
+  wi: co2 mass at 10m  (concentration * discharge)
+  t: meters
+  
+#salt slug info
+
+time: 11:50
+dist: -10m
+weight: 277.42
+
+x0
+Q = 125.41
+Peak at 7/26/2022   11:51:28 AM
+
+x25
+Q = 143.53
+peak at 7/26/2022  11:55:47 AM
+
+x50
+Q= 138.8
+peak at 7/26/2022  11:57:27 AM
+
+-------
+
+
+time: 12:15
+dist: -10m
+weight: 251.63s
+
+x0
+Q = 150.76
+Peak at 7/26/2022  12:16:21 PM
+
+x25
+Q = 
+peak at 
+
+x50
+Q=
+peak at
+```{r kdub rules the roost}
+#convert ppm to mg/l is the easiest thing in the world becaust it is 1:1
+
+#difference between plateau and baseline for upstream and downstream
+C_mgperL_0m <- (platmean0m - mean(c(preplatmean0m,postplatmean0m)))
+
+C_mgperL_25m <- (platmean25m - mean(c(preplatmean25m, postplatmean25m)))
+
+C_mgperL_50m <- (platmean50m - mean(c(preplatmean50m,postplatmean50m)))
+
+#Discharge comes from hand held
+#Q at 0m = 
+Q_0m = 125.41
+# Q for 50m = 
+Q_50m = 138.8
+
+#stream reach length
+dist = 50
+
+km <- -log(C_mgperL_50m*Q_50m/(C_mgperL_0m*Q_0m))/dist
+#km units: 1/m
+```
+#convert k in meters to time
+kgas,t = kgas,m * v
+
+kgas,t: decay rate over time
+kgas,m: decay rate over meters (calculates in chunk above)
+v: mean velocity of stream
+
+```{r meters to time }
+#mean velocity of stream reach from salt injection is time it took salt to reach peak 
+#used data from handwritten data 
+
+# Slug One
+#discharge at 50m; poured in salt at 11:50 
+# 0m Peak at  Peak at 7/26/2022   11:51:28 AM 
+# 50m  peak at 7/26/2022  11:57:27 AM
+#start: 1
+# velocity in m/s
+dist_salt = 50
+diff_one <- (57 - 51)*60 + (27-28)
+velocity_one <- dist_salt / diff_one
+
+
+avg_v <- mean(velocity_one)
+
+
+
+kt = km * avg_v #units (1/s)
+kCO2_mperd <- kt*86400
+  
+print(c(avg_v, kCO2_mperd))
+```
+
+#k600
+convert to k to k600
+```{r convert to k6000}
+
+# Find average water temp for injection
+
+df_avg_water <- filter(df_corr, DateTime >= as.POSIXct("2022-07-26 10:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:50:00", tz = "UTC"))
+WaterTempC_ave <- mean(df_avg_water$Temp)
+
+#calc sc
+Sc <- 1911.1 - 118.11*WaterTempC_ave + 3.4527*(WaterTempC_ave)^2 - 0.04132*(WaterTempC_ave)^3
+
+K600 <- kCO2_mperd * (600/Sc)^(-0.5)
+
+print(K600)
+```
+
+
+#k600 at -10m
+```{r k600 at -10m}
+# first, read in WL hobo at -10m 
+flux_n10 <- read.csv(here::here("Injections/2022-07-26/Injection_Flux_xn10m_2022-07-26.csv"))
+flux_n10 <- flux_n10[,c(1:5)]
+#colnames(flux_n10) <- c("DateTime", "WL_Pressure", "Temp")
+flux_n10$Date<-as.Date(with(flux_n10,paste(Year,Month,Day,sep="-")),"%y-%m-%d")
+flux_n10$DateTime <- as.POSIXct(paste(flux_n10$Date, flux_n10$Time), format="%Y-%m-%d %H:%M:%S", tz = "UTC")
+flux_n10 <- flux_n10%>%filter(Date == "2022-07-26")
+#before october, EOS was in EST, not ecuador time, so subtract 1 hour
+flux_n10$DateTime <- flux_n10$DateTime - hours(1)
+flux_n10 <- flux_n10[,c("DateTime","Flux")]
+
+backgrond_df <- left_join(flux_n10,df_xn10m, by="DateTime")
+
+backgrond_df <- filter(backgrond_df, DateTime >= as.POSIXct("2022-07-26 10:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 13:00:00", tz = "UTC"))
+#add baro data because we need air temp
+
+baro_n10 <- read.csv(here::here("Injections/2022-07-26/Injection_Baro_2022-07-26.csv"),skip = 1)[2:4]
+colnames(baro_n10) <- c("DateTime","AirPress_kpa","AirTemp_c")
+baro_n10$DateTime <- as.POSIXct(baro_n10$DateTime, format="%m/%d/%y %I:%M:%S %p", tz = "UTC")
+
+backgrond_df <- left_join(backgrond_df,baro_n10,by="DateTime")
+
+#######
+##calculate k600
+########
+adjustment <-filter(baro_n10, DateTime >= as.POSIXct("2022-07-26 10:30:00", tz = "UTC") & DateTime < as.POSIXct("2022-07-26 12:50:00", tz = "UTC"))
+
+#concentration of air
+#use vaisala when in the air
+
+AirPress_hpa <- mean(adjustment$AirPress_kpa)*10
+AirTemp_mean <- mean(adjustment$AirTemp_c)
+
+CO2_air <- mean(air_n10$ppm) * (1 + (1013 - AirPress_hpa) * 0.0015) * (1 - (25 - AirTemp_mean) * 0.003)
+CO2_air <-(CO2_air * 1.06933) -105.52898
+CO2_air_ppm <- CO2_air*10^-6
+
+R=0.08205736608096
+gCO2asC <- 12
+
+#convert hpa to atm; 1kPa = 1/101.3 atm
+backgrond_df$AirPress_atm <- backgrond_df$AirPress_kpa / 101.3
+
+backgrond_df$VaporPressure_atm <- 10^(5.40221-(1838.675/((backgrond_df$AirTemp_c + 273.15)-31.737)))
+
+backgrond_df$TotalAir_atm <- backgrond_df$AirPress_atm - backgrond_df$VaporPressure_atm
+backgrond_df$Total_air_MolperL <- backgrond_df$TotalAir_atm/(R*(backgrond_df$AirTemp_c + 273.15)) 
+backgrond_df$CO2_air_MolesPerLiter <- backgrond_df$Total_air_MolperL * CO2_air_ppm
+# 12 grams of C in 1 mole of CO2
+backgrond_df$CO2_air_gCO2asCPerLiter <- backgrond_df$CO2_air_MolesPerLiter * gCO2asC
+
+
+### Calculate concentration CO2 in water (gCO2-C per Liter) using Henry's law ###
+#Equation below can be used to adjust Henry's constant to the temperature of the environment
+# *NOTE: we may need to do an additional calculation to adjust for low pressure in our environment?*
+#**KH = KH(STP) x exp(D(1/T-1/T(STP)))**
+#* KH(STP) = Henry's law constant at STP (0.035 mol/L)
+#*NOTE: the cited literature say that this in mol/(kg x bar)*
+#  * D = Temperature dependence constant (2400 K)
+#* T = Water Temperature (K)
+#* T(STP) = Temp at STP (298.15 K)
+
+#set constants
+kH_STP_mol.L.atm = .035
+D_K = 2400 
+backgrond_df$Watertemp_K <- backgrond_df$Temp + 273.15
+T_STP_K = 298.15
+
+#calculate henry's law constant using 
+backgrond_df$KH_mol.L.atm <- kH_STP_mol.L.atm * exp(D_K*(1/backgrond_df$Watertemp_K - 1/T_STP_K))
+
+UatmToatm <- 10^6
+
+#calculate mass equivalence of CO2 in water
+backgrond_df$CO2_water_gCO2asCPerLiter <- (backgrond_df$adjusted_ppm / UatmToatm) * backgrond_df$KH_mol.L.atm * gCO2asC
+
+#calculate concntration difference between CO2 in the water and in the air
+#for some reason, unclear to me, Mcdowell multiplies by henry's constant AGAIN. Let's try it
+LiterToCubicMeter = 1000
+
+backgrond_df$deltaCO2_gCO2asCperM3 <-  (backgrond_df$CO2_water_gCO2asCPerLiter - backgrond_df$CO2_air_gCO2asCPerLiter)  *
+  backgrond_df$KH_mol.L.atm  * 
+  LiterToCubicMeter
+
+
+#convert flux to mole/m2/d
+#seconds per day (86,400)
+SecToDay <- 86400
+#umole to mole
+UmoleToMole <- 10^6
+#convert moles to grams of Carbon dioxide as Carbon
+#gCO2asC <- 12
+
+backgrond_df$Flux_gCO2asCperM2perDay <- backgrond_df$Flux * SecToDay /  UmoleToMole *gCO2asC
+
+#Fick' Law: calculate K
+
+#**F(aq) = K[pCO2(aq) - pCO2(air)] x KH**
+#  * k = F/(pCO2(aq)-pC02(air))/KH
+#* F = Flux mole/m2/d
+#* K = gas transfer rate m/d
+#* KH = henry's constant for molar concentration of CO2 in water 
+
+#*rearrange equation to solve for k*
+#**k = F(aq) / ([pCO2(aq) - pCO2(air)] x KH)**
+
+#convert Liters to cubic meters
+#LiterToCubicMeter <- 1000
+#df$deltaCO2_gCO2asCPerCubicMeter <- df$deltaCO2_gCO2asCPerLiter * LiterToCubicMeter
+
+#calculate
+
+backgrond_df$k_m.d <- backgrond_df$Flux_gCO2asCperM2perDay  / backgrond_df$deltaCO2_gCO2asCperM3
+
+
+#convert to k600
+#k600 = kCO2 * (600/SC)^-0.5
+#SC= schmidst constant, temperature dependent
+#SC = 1911.1 - 118.11*T + 3.4527*T^2 - 0.04132*T^3
+#T = temperature in c
+backgrond_df$Sc <- 1911.1 - 118.11*backgrond_df$Temp + 3.4527*(backgrond_df$Temp)^2 - 0.04132*(backgrond_df$Temp)^3
+
+backgrond_df$K600 <- backgrond_df$k_m.d * (600/backgrond_df$Sc)^(-0.5)
+
+
+summary(backgrond_df)
+```
