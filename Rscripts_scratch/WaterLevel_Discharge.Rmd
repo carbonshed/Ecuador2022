@@ -210,7 +210,7 @@ plot the water level so that each station data can be cleaned
 ```{r plot, echo=FALSE}
 
 ##clean data
-plot_ly(WL_01, x = ~DateTime, y = ~WLPres_kpa, type = 'scatter', mode = 'markers') 
+plot_ly(WL_06, x = ~DateTime, y = ~WLPres_kpa, type = 'scatter', mode = 'markers') 
 
 ```
 
@@ -218,6 +218,17 @@ plot_ly(WL_01, x = ~DateTime, y = ~WLPres_kpa, type = 'scatter', mode = 'markers
 this script is for cleaning each station. There may be additional lines written for each data file downloaded
 
 ```{r clean, echo=FALSE}
+#WL 01
+WL_01 <- WL_01%>%filter(DateTime != as.POSIXct("2022-06-07 10:45", tz="UTC"))%>%filter(DateTime != as.POSIXct("2022-06-07 11:00", tz="UTC"))
+
+#WL 02
+WL_02 <- WL_02%>%filter(DateTime != as.POSIXct("2022-06-30 13:30", tz="UTC"))%>%filter(DateTime != as.POSIXct("2022-07-12 10:30", tz="UTC"))
+
+#wl 05
+#march 16 2022, 15:30
+#june 26 2022, 11:30
+WL_05 <- WL_05%>%filter(DateTime != as.POSIXct("2022-03-16 15:30", tz="UTC"))%>%filter(DateTime != as.POSIXct("2022-07-26 11:30", tz="UTC"))
+
 
 ```
 ### bind
@@ -291,8 +302,6 @@ Baro <- Baro%>%filter(DateTime > as.POSIXct("2021-06-11 13:30:00", tz = "UTC"))
 ```{r baro correct, echo=FALSE}
 
 #correct for baro 
-
-plot_ly(Baro, x = ~DateTime, y = ~Baro_kpa, type = 'scatter', mode = 'markers') 
 
 Baro_corrected <- left_join(Baro,All_WL,by="DateTime")
 

@@ -126,15 +126,10 @@ for (site in site_names){
 ```{r clean data and plot, echo=FALSE}
 
 
-ggplot(data = WL_Wetland01, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
-plot_ly(data = WL_Wetland01, x = ~DateTime, y = ~WLPres_kpa)
-
 #wetland01
 WL_Wetland01 <- WL_Wetland01%>%filter(DateTime >= as.POSIXct("2022-06-17 11:00:00",tz = "UTC"))
 WL_Wetland01 <- WL_Wetland01%>%filter(DateTime < as.POSIXct("2022-07-14 10:00:00",tz="UTC")|
                                         DateTime > as.POSIXct("2022-07-14 11:00:00",tz = "UTC"))
-
-plot_ly(data = WL_Wetland01, x = ~DateTime, y = ~WLPres_kpa)
 
 #wetland02
 WL_Wetland02 <- WL_Wetland02%>%filter(DateTime != as.POSIXct("2022-06-16 11:30:00",tz = "UTC"))
@@ -156,8 +151,17 @@ WL_Wetland04_2 <- WL_Wetland04%>%filter(DateTime > as.POSIXct("2022-06-29 12:00:
 WL_Wetland04 <- rbind(WL_Wetland04_1,WL_Wetland04_2)
 rm(WL_Wetland04_1,WL_Wetland04_2)
 
+WL_Wetland04 <- WL_Wetland04%>%
+  filter(DateTime != as.POSIXct("2022-07-15 13:45:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-10-16 10:00:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-10-16 09:45:00",tz = "UTC"))
+
 #wetland05
-WL_Wetland05 <- WL_Wetland05%>%filter(DateTime != as.POSIXct("2022-07-27 11:15:00",tz = "UTC"))
+WL_Wetland05 <- WL_Wetland05%>%filter(DateTime > as.POSIXct("2022-06-16 14:00:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-07-27 11:15:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-07-27 11:15:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-06-28 10:00:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-07-19 09:30:00",tz = "UTC"))
 
 #wetland06
 WL_Wetland06 <- WL_Wetland06%>%filter(DateTime != as.POSIXct("2022-06-16 14:15:00",tz = "UTC"))%>%
@@ -165,7 +169,9 @@ WL_Wetland06 <- WL_Wetland06%>%filter(DateTime != as.POSIXct("2022-06-16 14:15:0
   filter(DateTime != as.POSIXct("2022-07-19 13:15:00",tz = "UTC"))
 
 #wetland07
-WL_Wetland07 <- WL_Wetland07%>%filter(DateTime != as.POSIXct("2022-07-11 12:45:00",tz = "UTC"))
+WL_Wetland07 <- WL_Wetland07%>%filter(DateTime >= as.POSIXct("2022-06-16 15:30:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-07-11 12:45:00",tz = "UTC"))
+
 
 #wetland08
 WL_Wetland08 <- WL_Wetland08%>%filter(DateTime > as.POSIXct("2022-07-05 10:00:00",tz="UTC"))%>%
@@ -175,7 +181,9 @@ WL_Wetland08 <- WL_Wetland08%>%filter(DateTime > as.POSIXct("2022-07-05 10:00:00
 #wetland09
 WL_Wetland09 <- WL_Wetland09%>%filter(DateTime > as.POSIXct("2022-07-05 11:30:00",tz="UTC"))%>%
   filter(DateTime < as.POSIXct("2022-07-08 10:00:00",tz="UTC")|
-                                        DateTime > as.POSIXct("2022-07-08 12:30:00",tz = "UTC"))
+        DateTime > as.POSIXct("2022-07-08 12:30:00",tz = "UTC")) %>%
+  filter(DateTime < as.POSIXct("2022-10-16 16:45:00",tz="UTC")|
+        DateTime > as.POSIXct("2022-10-17 20:45:00",tz = "UTC"))
 
 #wetland10
 WL_Wetland10 <- WL_Wetland10%>%filter(DateTime != as.POSIXct("2022-07-12 11:15:00",tz="UTC"))
@@ -189,12 +197,22 @@ rm(WL_Wetland10_1,WL_Wetland10_2)
 
 #wetland11
 WL_Wetland11 <- WL_Wetland11%>%filter(DateTime > as.POSIXct("2022-07-11 12:30:00",tz="UTC"))%>%
-  filter(DateTime != as.POSIXct("2022-07-28 12:15:00",tz="UTC"))
+  filter(DateTime != as.POSIXct("2022-07-28 12:15:00",tz="UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-10-15 13:15:00",tz="UTC"))%>%
+  filter(DateTime >= as.POSIXct("2022-07-11 14:00:00",tz="UTC"))
+
+
 
 #wetland12
-WL_Wetland12 <- WL_Wetland12%>%filter(DateTime > as.POSIXct("2022-06-07 14:15:00",tz="UTC"))
+WL_Wetland12 <- WL_Wetland12%>%filter(DateTime > as.POSIXct("2022-06-07 14:15:00",tz="UTC"))%>%
+  filter(DateTime < as.POSIXct("2022-07-28 11:30:00",tz="UTC")|
+        DateTime > as.POSIXct("2022-07-28 13:00:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-10-12 13:00:00",tz="UTC"))%>%
+  filter(DateTime != as.POSIXct("2022-10-12 13:15:00",tz="UTC"))
 
-plot_ly(data = WL_Wetland09, x = ~DateTime, y = ~WLPres_kpa)
+ggplot(data = WL_Wetland04, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
+plot_ly(data = WL_Wetland11, x = ~DateTime, y = ~WLPres_kpa)
+plot_ly(data = WL_Wetland11, x = ~DateTime, y = ~WLTemp_c)
 ```
 ##  Plot
 plot all water level data
@@ -263,7 +281,9 @@ BaroSTATION <- Baro
 #correct for baro press
 ```{r subtract baro, echo=FALSE}
 
-WL_Wetland <- left_join(WL_Wetland,BaroSTATION,by="DateTime")
+BaroSTATION <- BaroSTATION%>%filter(DateTime > as.POSIXct("2022-06-01 00:00:00",tz="UTC"))
+
+WL_Wetland <- left_join(BaroSTATION,WL_Wetland,by="DateTime")
 
 WL_Wetland$WaterLevel_m <- (WL_Wetland$WLPres_kpa - WL_Wetland$Baro_kpa) * 0.10197442889221
 
@@ -285,7 +305,7 @@ plot the water level and water temp for the entire day
 #enter wetland dataframe
 wetland <- "WL_Wetland07" #WL_Wetland01, WL_Wetland02
 #enter date of collection
-date <- "2022-07-11"
+date <- "2022-09-23"
 #code below extract desired wetland, do not change
 wetland_data <- WL_Wetland%>%filter(Station==wetland)
 #this is where you run it line by line

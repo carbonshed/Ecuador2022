@@ -1,0 +1,133 @@
+---
+title: "plotting in R using ggplot"
+author: "Kriddie"
+date: "2022-10-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Summary
+
+This R markdown file is intended to help you work your way through plotting in R. I have tried to give you the barebones of what you need to know to plot our wetland data. Try to write code following the steps I lay out below. 
+
+Learning R is all about learning how to steal code that someone else wrote.
+*grab code from scripts that i have already written whenever you can*
+
+If you want more background of r coding before jumping in, there are a billion sites that can help you to start learning R. For a source that will walk you through the basics of coding in R, try the link below:
+
+https://datacarpentry.org/R-ecology-lesson/index.html
+
+we will return to that site at the end of this Rmarkdown file
+
+
+##Step 1: Load Packages
+
+When you open R, many functions are already installed and ready to use. These functions are called "base R". We will use many of these functions. Other functions are not automatically included and must be loaded after opening R. Rstudio is open source - many people have written functions that are super useful and free to use. All we have to do is load these packages that include the functions
+
+Run the code below to load needed packages.
+
+
+```{r load packages}
+library(tidyverse) # includes package ggplot that we will use to visualize data
+library(lubridate) # helps with formating date and time
+library(dplyr) # lots of useful functions in this package
+library(here) # use this when reading in data, here sets our working directory to the folder containing our R project. This makes code sharing easier.
+```
+
+## Step 2: Read in Data
+
+to "read in" means to bring the csv file into r so that you can play with it. This is similar to when you open microsoft excel and go to file>open to open a file
+
+the function to read in data that I use is read.csv()
+
+look at other rscripts that I have used to read in your dataframe  (or google it). There is a line of code near the top in every Rscript I have written. *You will need to adjust the code to read in the datafile *
+
+### google it option:
+If you are having a hard time using my code, google can help.
+You can google it yourself or follow link below:
+
+https://flowingdata.com/2015/02/18/loading-data-and-basic-formatting-in-r/
+
+
+
+```{r read in data}
+# 1. use this chunk to read the wetlands data frame into R. use this function: read.csv()
+
+```
+
+## Step 3: Format data
+
+Inspect the data the that you just read in by clicking by clicking the element in the Environment data. How does it look?
+
+#Name columns
+
+when you read in data r will use the column names that you have in your csv file. However, you may want to rename columns to make the names easier to work with, below is sample code that you can adjust the names. Inspect the data before moving on to make sure everything looks good.
+
+colnames(dataframe) <- c("1st column","2nd column","3rd column")
+
+#formate data type
+
+You may need to tell r what type of data is in each column. 
+For example, water level data is numeric. The *name* of each wetland is a character.
+
+R is often able to automatically detect the type of data that is in each column. But it does sometimes make mistakes.
+
+Under the Environment tab, click the arrow to the left of your dataframe. You will see each column listed with the type of data (ex. num = numeric, chr = character). Check to make sure the data type is correct. 
+
+The most tricky column is the date/time/date time  column or columns. Look at code that i have written (or google it) to find a line of code that you can adjust to work for your dataframe. 
+
+Look for this function:
+- as.POSIXct()
+
+
+### google it option:
+If you are having a hard time using my code, google can help.
+You can google it yourself or follow link below:
+
+https://flowingdata.com/2015/02/18/loading-data-and-basic-formatting-in-r/
+
+It was hard for me to find a beginner-friendly source for using the function as.POSIXct(). You can try the link below
+
+https://shanghai.hosting.nyu.edu/data/r/dates-and-times.html
+
+
+```{r format data}
+# 1. re-name columns
+
+
+# 2. format column where necessary 
+  # for date, use this function: as.POSIXct()
+
+
+```
+
+##Step 4.
+
+Now that we have the data in r and have formatted the columns, we can start to plot the data. 
+
+You can plot in base r, or you can use additional packages to plot.
+
+I like using the package, ggplot, so will start plotting with that.
+
+before you try to plot your own data, take some time to familiarize yourself with ggplot. There are LOTS of good resources to help you learn ggplot. I picked out a site that, I think, does a pretty good job of walking you through it.
+
+#Open the link below in your browser
+
+https://datacarpentry.org/R-ecology-lesson/04-visualization-ggplot2
+
+#Open up the rscript in Amy folder named datacarpentry_code.R
+
+Use the site to learn about how to use ggplot to plot your data. Use the script to play around with examples of how to plot someone else's data in ggplot.
+
+While you work through this lesson, think about how you want to plot your data
+
+
+```{r plot data in ggplot}
+
+
+
+
+```

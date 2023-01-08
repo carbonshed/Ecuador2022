@@ -98,7 +98,7 @@ p
 ############################### 
 
 p <- ggplot(df_merge %>%subset(AquaticSystem == "wetland")%>%
-              subset(Wetland == "10"| Wetland == "11"| Wetland =="12")
+              subset(Wetland == "8"| Wetland == "9"| Wetland =="10")
           #  %>% subset(CH4.ppm.NOT.CORRECTED < 200)
             , 
             aes(x=as.factor(Date), y=CH4.ppm.NOT.CORRECTED)) + 
