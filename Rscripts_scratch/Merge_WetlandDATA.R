@@ -229,7 +229,7 @@ ggplot(df_summer, aes(x=Wetland, y=log10(CO2_ppm))) +
 #co2 with oct data
 ggplot(df, aes(x=Wetland, y=log10(ppm_NOTcorrected))) + 
   geom_point(#fill="red",
-    aes(fill=Date_asfactor),
+    aes(fill=Date),
     shape=21, size = 3)
 #flux
 ggplot(df_summer, aes(x=Wetland, y=log10(Flux_mean))) + 
@@ -264,6 +264,12 @@ ggplot(df, aes(x=Date, y=log10(Flux_mean))) +
 
 ggplot(df, aes(x=Date, y=log10(CO2_ppm))) + 
   geom_point() + facet_grid(~Wetland)
+
+
+ggplot(df, aes(x=log10(CO2_ppm), y=log10(Flux_mean))) + 
+  geom_point(aes(color=as.factor(Wetland)))
+#3-d plot
+
 
 ###############################
 #### use this to show DIEGO ####
