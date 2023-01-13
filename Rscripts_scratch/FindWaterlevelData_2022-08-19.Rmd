@@ -220,7 +220,7 @@ plot_ly(data = WL_Wetland11, x = ~DateTime, y = ~WLTemp_c)
 plot all water level data
 
 ```{r merge and plot, echo=FALSE}
-WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11,WL_Wetland12)
+WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11)#,WL_Wetland12)
 
 p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
 p1 + facet_wrap(~Station)
@@ -303,18 +303,11 @@ plot the water level and water temp for the entire day
 #start here amy!!
 
 ```{r select time, echo=FALSE}
-<<<<<<< HEAD
-=======
 #enter wetland dataframe
-wetland <- "WL_Wetland10" #WL_Wetland01, WL_Wetland02
+wetland <- "WL_Wetland09" #WL_Wetland01, WL_Wetland02
 #enter date of collection
 date <- "2022-10-19"
->>>>>>> 747405b09cc8f74f3b990b1540935f27ae60d0ab
 
-#enter wetland dataframe
-wetland <- "WL_Wetland07" #WL_Wetland01, WL_Wetland02
-#enter date of collection
-date <- "2022-09-23"
 #code below extract desired wetland, do not change
 wetland_data <- WL_Wetland%>%filter(Station==wetland)
 #this is where you run it line by line
