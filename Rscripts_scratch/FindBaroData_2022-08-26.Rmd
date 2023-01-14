@@ -57,7 +57,7 @@ does the data "make sense"?
 
 ```{r Check sample day, echo=FALSE}
 #enter date of collection
-date <- "2022-07-07"
+date <- "2022-06-30"
 
 
 ggplot(BaroData %>%
@@ -86,10 +86,10 @@ If not, then we can use the average calculated at the end of the chunk
 
 ```{r Check sample day, echo=FALSE}
 #enter date of collection
-date <- "2022-07-07"
+date <- "2022-06-30"
 #enter start and end time that wetland was sampled
-time_START <- "10:16:00"
-time_END <- "10:48:00"
+time_START <- "09:33:00"
+time_END <- "10:10:00"
 
 
 ggplot(BaroData %>%
