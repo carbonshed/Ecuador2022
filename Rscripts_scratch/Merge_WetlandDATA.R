@@ -268,6 +268,9 @@ ggplot(df, aes(x=Date, y=log10(CO2_ppm))) +
 
 ggplot(df, aes(x=log10(CO2_ppm), y=log10(Flux_mean))) + 
   geom_point(aes(color=as.factor(Wetland)))
+
+ggplot(df, aes(x=CO2_ppm, y=Flux_mean)) + 
+  geom_point(aes(color=as.factor(Wetland)))
 #3-d plot
 
 
@@ -298,3 +301,14 @@ rm(WaterChem1,WaterChem2)
 
 WaterChem <- WaterChem[,c("Date","site","time","DOC..mg.L.","TDN..mg.L.")]
 colnames(WaterChem) <- c("Date","Site","Time","DOC_mgL","TDN_mgL")
+
+##############
+
+ggplot(df, aes(x=CO2_ppm, y=Flux_mean)) + 
+  geom_point(aes(color=as.factor(Wetland)), size = 3) +
+  scale_y_log10() +
+  scale_x_log10() +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  xlab("CO2 [ppm]") + ylab("CO2 Flux [umol/m2/s]") +labs(colour="Wetland ID")
+
