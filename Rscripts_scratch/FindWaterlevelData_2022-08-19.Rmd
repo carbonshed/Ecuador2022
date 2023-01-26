@@ -311,9 +311,9 @@ plot the water level and water temp for the entire day
 
 ```{r select time, echo=FALSE}
 #enter wetland dataframe
-wetland <- "WL_Wetland10" #WL_Wetland01, WL_Wetland02
+wetland <- "WL_Wetland01" #WL_Wetland01, WL_Wetland02
 #enter date of collection
-date <- "2022-10-19"
+date <- "2022-06-16"
 
 #code below extract desired wetland, do not change
 wetland_data <- WL_Wetland%>%filter(Station==wetland)
