@@ -265,9 +265,22 @@ ggplot(df, aes(x=Date, y=log10(Flux_mean))) +
 ggplot(df, aes(x=Date, y=log10(CO2_ppm))) + 
   geom_point() + facet_grid(~Wetland)
 
+install.packages("ggforce")
+library(ggforce)
+#####prelim plot
+df$Wetland_asfactor <- as.factor(df$Wetland)
+ggplot(df%>%drop_na(Wetland), aes(x=CO2_ppm, y=Flux_mean)) + 
+  geom_point(aes(fill=as.factor(Wetland)),
+                 shape=21,size=3)+
+  xlab("CO2 (ppm)") +  ylab("CO2 Flux [umol/m2/s]") +
+  scale_x_log10() + scale_y_log10() +
+  theme_bw()+
+  theme(text = element_text(size = 30))   +
+  labs(fill="Wetland ID") +
+  geom_mark_ellipse(expand = .01,aes(fill=as.factor(Wetland)))
 
-ggplot(df, aes(x=log10(CO2_ppm), y=log10(Flux_mean))) + 
-  geom_point(aes(color=as.factor(Wetland)))
+  
+#######
 
 ggplot(df, aes(x=CO2_ppm, y=Flux_mean)) + 
   geom_point(aes(color=as.factor(Wetland)))
