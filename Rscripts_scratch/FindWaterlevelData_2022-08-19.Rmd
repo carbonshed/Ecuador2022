@@ -297,6 +297,10 @@ WL_Wetland <- left_join(BaroSTATION,WL_Wetland,by="DateTime")
 WL_Wetland$WaterLevel_m <- (WL_Wetland$WLPres_kpa - WL_Wetland$Baro_kpa) * 0.10197442889221
 
 
+
+p_baro <- ggplot(data = BaroSTATION , aes(x = DateTime, y = Baro_kpa)) + geom_point()
+p_baro
+
 p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WaterLevel_m)) + geom_point()
 p1 + facet_wrap(~Station)
 
