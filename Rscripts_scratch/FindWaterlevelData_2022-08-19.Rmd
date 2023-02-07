@@ -127,7 +127,7 @@ for (site in site_names){
 
 
 #wetland01
-WL_Wetland01 <- WL_Wetland01%>%filter(DateTime >= as.POSIXct("2022-06-17 11:00:00",tz = "UTC"))
+WL_Wetland01 <- WL_Wetland01%>%filter(DateTime >= as.POSIXct("2022-06-16 11:00:00",tz = "UTC"))
 WL_Wetland01 <- WL_Wetland01%>%filter(DateTime < as.POSIXct("2022-07-14 10:00:00",tz="UTC")|
                                         DateTime > as.POSIXct("2022-07-14 11:00:00",tz = "UTC"))
 WL_Wetland01 <- WL_Wetland01%>%filter(DateTime != as.POSIXct("2022-07-25 10:00:00",tz = "UTC"))%>%
