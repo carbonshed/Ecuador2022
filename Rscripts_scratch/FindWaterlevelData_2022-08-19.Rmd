@@ -334,8 +334,8 @@ plot_ly(data=wetland_data %>%
   x=~DateTime,y=~WLTemp_c)
 #Most likely during the sample period there is data missing or the numbers look very different from before and after sampling. This is because we pulled up and downloaded the logger during the same time - changing both the pressure and temperature
 #select an hour time period just before logger was downloaded. 
-DateTime_BEFORE <- "2022-07-14 08:00:00"
-DateTime_AFTER <- "2022-07-14 09:00:00"
+DateTime_BEFORE <- "2022-06-16 11:00:00"
+DateTime_AFTER <- "2022-06-16 12:00:00"
 #calculate average
 ave <- wetland_data %>%
   filter(DateTime >= as.POSIXct(DateTime_BEFORE, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
