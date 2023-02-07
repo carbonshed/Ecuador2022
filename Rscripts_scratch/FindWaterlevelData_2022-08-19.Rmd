@@ -127,7 +127,7 @@ for (site in site_names){
 
 
 #wetland01
-WL_Wetland01 <- WL_Wetland01%>%filter(DateTime >= as.POSIXct("2022-06-17 11:00:00",tz = "UTC"))
+WL_Wetland01 <- WL_Wetland01%>%filter(DateTime >= as.POSIXct("2022-06-16 11:00:00",tz = "UTC"))
 WL_Wetland01 <- WL_Wetland01%>%filter(DateTime < as.POSIXct("2022-07-14 10:00:00",tz="UTC")|
                                         DateTime > as.POSIXct("2022-07-14 11:00:00",tz = "UTC"))
 WL_Wetland01 <- WL_Wetland01%>%filter(DateTime != as.POSIXct("2022-07-25 10:00:00",tz = "UTC"))%>%
@@ -297,6 +297,10 @@ WL_Wetland <- left_join(BaroSTATION,WL_Wetland,by="DateTime")
 WL_Wetland$WaterLevel_m <- (WL_Wetland$WLPres_kpa - WL_Wetland$Baro_kpa) * 0.10197442889221
 
 
+
+p_baro <- ggplot(data = BaroSTATION , aes(x = DateTime, y = Baro_kpa)) + geom_point()
+p_baro
+
 p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WaterLevel_m)) + geom_point()
 p1 + facet_wrap(~Station)
 
@@ -311,9 +315,9 @@ plot the water level and water temp for the entire day
 
 ```{r select time, echo=FALSE}
 #enter wetland dataframe
-wetland <- "WL_Wetland01" #WL_Wetland01, WL_Wetland02
+wetland <- "WL_Wetland10" #WL_Wetland01, WL_Wetland02
 #enter date of collection
-date <- "2022-06-16"
+date <- "2022-11-20"
 
 #code below extract desired wetland, do not change
 wetland_data <- WL_Wetland%>%filter(Station==wetland)
@@ -330,8 +334,8 @@ plot_ly(data=wetland_data %>%
   x=~DateTime,y=~WLTemp_c)
 #Most likely during the sample period there is data missing or the numbers look very different from before and after sampling. This is because we pulled up and downloaded the logger during the same time - changing both the pressure and temperature
 #select an hour time period just before logger was downloaded. 
-DateTime_BEFORE <- "2022-07-14 08:00:00"
-DateTime_AFTER <- "2022-07-14 09:00:00"
+DateTime_BEFORE <- "2022-11-20 10:20:00"
+DateTime_AFTER <- "2022-11-20 11:20:00"
 #calculate average
 ave <- wetland_data %>%
   filter(DateTime >= as.POSIXct(DateTime_BEFORE, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
