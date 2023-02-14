@@ -14,8 +14,8 @@ Vial_Vol <- Vial_Vol[,c(1:5)]
 Vial_loc <-  read.csv(here::here("Methane/Vial_sample_location.csv"), skip=0, header = TRUE, sep = ",",
                       quote = "\"",dec = ".", fill = TRUE, comment.char = "")
 
-Vial_loc <- Vial_loc[,c(1:9)]
-colnames(Vial_loc) <- c("AquaticSystem","Wetland","Bottle_Number","Location","Time","Date","Rep","Notes","Notes2")
+Vial_loc <- Vial_loc[,c(1:7)]
+colnames(Vial_loc) <- c("AquaticSystem","Wetland","Bottle_Number","Location","Time","Date","Rep")
 
 exsist <-read.csv(here::here("Methane/Vials'that'exist.csv"), skip=0, header = TRUE, sep = ",",
                   quote = "\"",dec = ".", fill = TRUE, comment.char = "")
@@ -90,4 +90,10 @@ colnames(Baro) <- c("Wetland","Date","Time_Baro","AirPress_kpa","AirTemp_C")
 
 ##merge 
 df <- full_join(Methane,Baro, by=c("Wetland","Date"))
+
+
+#read out
+
+write.csv(df, here::here("methane_df_2023-02-13.csv"),
+          row.names = FALSE)
 
