@@ -30,6 +30,9 @@ df_merge_2 <- df_merge[,c("Bottle_Number","Zinc_Chloride","Date","Exsist","Sampl
 df_merge_2 <-df_merge_2 %>% drop_na(Date)
 df_merge_2 <-df_merge_2 %>% drop_na(Exsist)
 df_merge_2 <-df_merge_2 %>% drop_na(Zinc_Chloride)
+
+df_merge <- df_merge[,c("Bottle_Number","Water_Weight","Date","AquaticSystem","Wetland","Location","Rep")]
+
 #
 
 ## Merge with data 
@@ -40,45 +43,33 @@ sample_data <-  read.csv(here::here("Methane/GHG_Data_2022-09-28.csv"), skip=0, 
 #names(GHG_df)[names(GHG_df) == "Bottle_Number"] <- "Vial_no"
 #sample_data$Bottle_Number <- as.numeric(sample_data$Bottle_Number)
 
+sample_data <- sample_data[,c("Bottle_Number","CH4.ppm.NOT.CORRECTED","N20.ppm.NOT.CORRECTED")]
+
 
 df_merge <- full_join(df_merge,sample_data,by="Bottle_Number")
 
-Methane <- df_merge%>%drop_na(Bottle_Number)%>%drop_na(AquaticSystem)%>%filter(AquaticSystem=="wetland")
-
-Methane <- rename(Methane, Vial_no = Bottle_Number)
-Methane$Vial_no <- as.integer(Methane$Vial_no)
+#Methane <- df_merge%>%drop_na(Bottle_Number)%>%drop_na(AquaticSystem)%>%filter(AquaticSystem=="wetland")
+#Methane <- rename(Methane, Vial_no = Bottle_Number)
+#Methane$Vial_no <- as.integer(Methane$Vial_no)
 
 #methane processing
 processing <-  read.csv(here::here("Methane/Methane_Processing_Info.csv"), skip=6, header = TRUE, sep = ",",
                         quote = "\"",dec = ".", fill = TRUE, comment.char = "")
 
+processing <- processing[,c("Vial_n0_9ml","Date.headspace.introduced","Time.headspace.introduced",
+                                                      "Extract.Headspace.Date","Extract.Headspace.time","headspace_ml")]
+
 #rename column names
-processing <- rename(processing, Vial_no = Vial_n0_9ml)
-processing$Vial_no <- as.integer(processing$Vial_no)
-processing$Field.blank.Date <- NULL
-processing$Field.blank.vol <- NULL
-processing$Fieil.blank.vol <- NULL
-processing$Field.Blank.time <- NULL
+processing <- rename(processing, Bottle_Number = Vial_n0_9ml)
+processing$Bottle_Number <- as.integer(processing$Bottle_Number)
 
+df_merge <- full_join(df_merge,processing, by="Bottle_Number")
 
-Methane <- left_join(Methane,processing, by="Vial_no")
-
-
+df_merge <- df_merge%>%drop_na(CH4.ppm.NOT.CORRECTED)
+df_merge <- df_merge%>%drop_na(AquaticSystem)
 
 #Methane <- Methane[c("Wetland","Location","Time","Date","CH4.ppm.NOT.CORRECTED","N20.ppm.NOT.CORRECTED")]  
 #colnames(Methane) <- c("Wetland","Location","Time_CH4","Date","CH4.ppm.NOT.CORRECTED","N20.ppm.NOT.CORRECTED")  
-
-Methane$Notes <- NULL
-Methane$Notes2 <- NULL
-Methane$CH4.area <- NULL
-Methane$N2O.area <- NULL
-Methane$Title <- NULL
-Methane$batch <- NULL
-Methane$AquaticSystem <- NULL
-
-Methane$Wetland <- as.integer(Methane$Wetland)
-Methane$Location <- as.integer(Methane$Location)
-
 
 
 #Baro
@@ -87,6 +78,10 @@ Baro <- read.csv(here::here("Wetlands/Wetlands_BaroData_2022-09-29.csv"), skip=0
 Baro$Date <- as.Date(Baro$Date, format = "%m/%d/%y")
 Baro <- Baro[,c("Wetland","Date","Time_start","AirPress_kpa","AirTemp_C")]
 colnames(Baro) <- c("Wetland","Date","Time_Baro","AirPress_kpa","AirTemp_C")
+
+#environmental data
+enviroData <- read.csv(here::here("wetlands_df_2022-10-18.csv"))
+enviroData <- enviroData[,c("Wetland","Location","Date","Watertemp_c","AirPress_kpa","AirTemp_C","k_m.d")]
 
 ##merge 
 df <- full_join(Methane,Baro, by=c("Wetland","Date"))

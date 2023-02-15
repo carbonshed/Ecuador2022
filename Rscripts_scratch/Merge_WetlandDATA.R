@@ -210,8 +210,8 @@ df$K600 <- df$k_m.d * (600/df$Sc)^(-0.5)
 #write out#
 ##########
 
-write.csv(df, here::here("wetlands_df_2022-10-18.csv"),
-          row.names = FALSE)
+#write.csv(df, here::here("wetlands_df_2022-10-18.csv"),
+#          row.names = FALSE)
 
 ##########
 
