@@ -21,26 +21,50 @@ library(plotly)
 # read precipitation data
 precipt <- read.csv("../daniela/M5025_Precipitación_subhorario-validado.csv")
 WL <- read.csv("../daniela/WL_data.csv")
+day_precip <- read.csv("../daniela/daily_precipitation.csv")
+
 # rename columns
 colnames(precipt)[1] = "DateTime"
 colnames(precipt)[2] = "Precipitation"
+colnames(day_precip)[1] = "DateTime"
+colnames(day_precip)[2] = "Precipitation"
 
 ```
 
 ## Scatterplot
 ```{r scatterplot}
 ## plot 
-ggplot(precipt, 
+precipt$DateTime <- as.POSIXct(precipt$DateTime, tz="UTC",
+                                         tryFormats = c("%m/%d/%y %I:%M:%S %p",
+                                                        "%m/%d/%Y %H:%M"))
+day_precip$DateTime <- as.POSIXct(day_precip$DateTime, tz="UTC")
+
+ggplot(day_precip, 
        aes(x = DateTime, y = Precipitation)) + 
-  geom_point() +
+  geom_col() +
   xlab("Date") +
+  ylab("Precipitation(mm)") +
   theme_minimal()
 
 ```
 
 ## Join data
 ```{r join}
-WL_precip <- merge(precipt,
+WL_precip <- merge(day_precip,
                    WL,
                    by = "DateTime")
+plot1 <- ggplot(data = WL_precip, aes(x = Precipitation, y = WaterLevel_m)) + geom_point()
+plot1 + facet_wrap(~Station)
+
+```
+
+## Stacked plots
+```{r more plots}
+p1 <- ggplot(data = WL_precip, aes(x = DateTime, y = WaterLevel_m)) + geom_line()
+p2 <- ggplot(data = WL_precip, aes(x = DateTime, y = Precipitation)) + geom_col()
+
+library(grid)
+grid.newpage()
+grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), size = "last"))
+
 ```

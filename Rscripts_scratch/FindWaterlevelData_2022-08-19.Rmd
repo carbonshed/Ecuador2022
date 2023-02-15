@@ -101,6 +101,7 @@ for (site in site_names){
         Temp_WLData$WLTemp_c <- as.numeric(as.character(Temp_WLData$WLTemp_c), digits=5)
       }
       
+      
       Temp_WLData$DateTime <- as.POSIXct(Temp_WLData$DateTime, tz="UTC",
                                          tryFormats = c("%m/%d/%y %I:%M:%S %p",
                                                         "%m/%d/%Y %H:%M"))
@@ -229,8 +230,6 @@ plot all water level data
 ```{r merge and plot, echo=FALSE}
 WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11,WL_Wetland12)
 
-write.csv(WL_Wetland, "../daniela/WL_data.csv")
-
 p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
 p1 + facet_wrap(~Station)+theme(text=element_text(size=21))
 
@@ -306,6 +305,9 @@ p_baro
 p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WaterLevel_m)) + geom_point()
 p1 + facet_wrap(~Station)
 
+#export data (dani)
+write.csv(WL_Wetland, "../daniela/WL_data.csv")
+
 ```
 
 ##select data
@@ -317,9 +319,9 @@ plot the water level and water temp for the entire day
 
 ```{r select time, echo=FALSE}
 #enter wetland dataframe
-wetland <- "WL_Wetland11" #WL_Wetland01, WL_Wetland02
+wetland <- "WL_Wetland01" #WL_Wetland01, WL_Wetland02
 #enter date of collection
-date <- "2022-11-20"
+date <- "2023-01-28"
 
 #code below extract desired wetland, do not change
 wetland_data <- WL_Wetland%>%filter(Station==wetland)
