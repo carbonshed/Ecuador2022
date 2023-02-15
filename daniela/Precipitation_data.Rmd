@@ -1,0 +1,46 @@
+---
+title: "Precipitation data"
+author: "Dani Zarate"
+date: "2/15/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+
+```
+
+## Read in data
+
+```{r}
+# read precipitation data
+precipt <- read.csv("../daniela/M5025_Precipitación_subhorario-validado.csv")
+WL <- read.csv("../daniela/WL_data.csv")
+# rename columns
+colnames(precipt)[1] = "DateTime"
+colnames(precipt)[2] = "Precipitation"
+
+```
+
+## Scatterplot
+```{r scatterplot}
+## plot 
+ggplot(precipt, 
+       aes(x = DateTime, y = Precipitation)) + 
+  geom_point() +
+  xlab("Date") +
+  theme_minimal()
+
+```
+
+## Join data
+```{r join}
+WL_precip <- merge(precipt,
+                   WL,
+                   by = "DateTime")
+```
