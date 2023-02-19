@@ -81,10 +81,16 @@ colnames(Baro) <- c("Wetland","Date","Time_Baro","AirPress_kpa","AirTemp_C")
 
 #environmental data
 enviroData <- read.csv(here::here("wetlands_df_2022-10-18.csv"))
-enviroData <- enviroData[,c("Wetland","Location","Date","Watertemp_c","AirPress_kpa","AirTemp_C","k_m.d")]
+enviroData <- enviroData[,c("Wetland","Date","Watertemp_c","AirPress_kpa","AirTemp_C")]
+enviroData$Date <- as.Date(enviroData$Date)
+enviroData <- enviroData%>%drop_na(Watertemp_c)%>%distinct()
+
 
 ##merge 
-df <- full_join(Methane,Baro, by=c("Wetland","Date"))
+df_merge <- df_merge%>%filter(AquaticSystem=="wetland")
+df_merge$Wetland <- as.integer(df_merge$Wetland)
+
+df <- full_join(df_merge,enviroData, by=c("Wetland","Date"))
 
 
 #read out
