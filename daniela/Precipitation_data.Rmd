@@ -19,9 +19,9 @@ library(plotly)
 
 ```{r}
 # read precipitation data
-precipt <- read.csv("../daniela/M5025_Precipitación_subhorario-validado.csv")
-WL <- read.csv("../daniela/WL_data.csv")
-day_precip <- read.csv("../daniela/daily_precipitation.csv")
+precipt <- read_csv("../daniela/M5025_Precipitación_subhorario-validado.csv")
+WL <- read_csv("../daniela/WL_data.csv")
+day_precip <- read_csv("../daniela/daily_precipitation.csv")
 
 # rename columns
 colnames(precipt)[1] = "DateTime"
@@ -34,9 +34,7 @@ colnames(day_precip)[2] = "Precipitation"
 ## Scatterplot
 ```{r scatterplot}
 ## plot 
-precipt$DateTime <- as.POSIXct(precipt$DateTime, tz="UTC",
-                                         tryFormats = c("%m/%d/%y %I:%M:%S %p",
-                                                        "%m/%d/%Y %H:%M"))
+precipt$DateTime <- as.POSIXct(precipt$DateTime, tz="UTC")
 day_precip$DateTime <- as.POSIXct(day_precip$DateTime, tz="UTC")
 
 ggplot(day_precip, 
