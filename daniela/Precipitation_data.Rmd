@@ -12,6 +12,8 @@ library(dplyr)
 library(tidyverse)
 library(ggplot2)
 library(plotly)
+library(ggpubr)
+library(cowplot)
 
 ```
 
@@ -20,8 +22,8 @@ library(plotly)
 ```{r}
 # read precipitation data
 precipt <- read_csv("../daniela/M5025_Precipitación_subhorario-validado.csv")
-WL <- read_csv("../daniela/WL_data.csv")
 day_precip <- read_csv("../daniela/daily_precipitation.csv")
+WL <- read_csv("../daniela/WL_data.csv")
 
 # rename columns
 colnames(precipt)[1] = "DateTime"
@@ -34,35 +36,127 @@ colnames(day_precip)[2] = "Precipitation"
 ## Scatterplot
 ```{r scatterplot}
 ## plot 
-precipt$DateTime <- as.POSIXct(precipt$DateTime, tz="UTC")
+precipt$DateTime <- as.POSIXct(precipt$DateTime, format="%Y%m%d %H:%M")
 day_precip$DateTime <- as.POSIXct(day_precip$DateTime, tz="UTC")
 
-ggplot(day_precip, 
+daily_precip <- ggplot(day_precip, 
        aes(x = DateTime, y = Precipitation)) + 
   geom_col() +
   xlab("Date") +
   ylab("Precipitation(mm)") +
   theme_minimal()
 
+daily_precip
 ```
 
 ## Join data
 ```{r join}
-WL_precip <- merge(day_precip,
+WL_preci <- merge(day_precip,
                    WL,
                    by = "DateTime")
-plot1 <- ggplot(data = WL_precip, aes(x = Precipitation, y = WaterLevel_m)) + geom_point()
-plot1 + facet_wrap(~Station)
+WL_precip <- na.omit(WL_preci, cols= 'WaterLevel_m')
+WL_na <- WL %>% drop_na(Station)
+plot1 <- ggplot(data = WL_na, aes(x = DateTime, y = WaterLevel_m)) + geom_point()
+plot1 + facet_wrap(~Station, drop = TRUE)
 
 ```
 
 ## Stacked plots
 ```{r more plots}
-p1 <- ggplot(data = WL_precip, aes(x = DateTime, y = WaterLevel_m)) + geom_line()
-p2 <- ggplot(data = WL_precip, aes(x = DateTime, y = Precipitation)) + geom_col()
+p1 <- ggplot(data = WL_precip, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+p2 <- ggplot(data = WL_precip, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
 
-library(grid)
-grid.newpage()
-grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), size = "last"))
+#library(grid)
+#grid.newpage()
+#grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), size = "last"))
+
+cowplot::plot_grid(p1, p2, align = "v", ncol = 1)
+
+
+```
+
+##by Wetland
+```{r}
+W1 <- subset(WL_precip, Station=='WL_Wetland01')
+W2 <- subset(WL_precip, Station=='WL_Wetland02')
+W3 <- subset(WL_precip, Station=='WL_Wetland03')
+W4 <- subset(WL_precip, Station=='WL_Wetland04')
+W5 <- subset(WL_precip, Station=='WL_Wetland05')
+W6 <- subset(WL_precip, Station=='WL_Wetland06')
+W7 <- subset(WL_precip, Station=='WL_Wetland07')
+W8 <- subset(WL_precip, Station=='WL_Wetland08')
+W9 <- subset(WL_precip, Station=='WL_Wetland09')
+W10 <- subset(WL_precip, Station=='WL_Wetland10')
+W11 <- subset(WL_precip, Station=='WL_Wetland11')
+
+pW1 <- ggplot(data = W1, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank())
+
+pP1 <- ggplot(data = W1, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() +
+    theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+cowplot::plot_grid(pP1, pW1, align = "hv", ncol = 1)
+
+pW2 <- ggplot(data = W2, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+pP2 <- ggplot(data = W2, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
+cowplot::plot_grid(pP2, pW2, align = "v", ncol = 1)
+
+pW3 <- ggplot(data = W3, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+pP3 <- ggplot(data = W3, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
+cowplot::plot_grid(pP3, pW3, align = "v", ncol = 1)
+
+pW4 <- ggplot(data = W4, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+pP4 <- ggplot(data = W4, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
+cowplot::plot_grid(pP4, pW4, align = "v", ncol = 1)
+
+pW5 <- ggplot(data = W5, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+pP5 <- ggplot(data = W5, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
+cowplot::plot_grid(pP5, pW5, align = "v", ncol = 1)
+
+pW6 <- ggplot(data = W6, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+pP6 <- ggplot(data = W6, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
+cowplot::plot_grid(pP6, pW6, align = "v", ncol = 1)
+
+pW7 <- ggplot(data = W7, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+pP7 <- ggplot(data = W7, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
+cowplot::plot_grid(pP7, pW7, align = "v", ncol = 1)
+
+pW8 <- ggplot(data = W8, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+pP8 <- ggplot(data = W8, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
+cowplot::plot_grid(pP8, pW8, align = "v", ncol = 1)
+
+pW9 <- ggplot(data = W9, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+pP9 <- ggplot(data = W9, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
+cowplot::plot_grid(pP9, pW9, align = "v", ncol = 1)
+
+pW10 <- ggplot(data = W10, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+pP10 <- ggplot(data = W10, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
+cowplot::plot_grid(pP10, pW10, align = "v", ncol = 1)
+
+pW11 <- ggplot(data = W11, aes(x = DateTime, y = WaterLevel_m)) + geom_line() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank())
+pP11 <- ggplot(data = W11, aes(x = DateTime, y = Precipitation)) + geom_col() + scale_y_reverse() + theme(axis.title.x = element_blank())
+cowplot::plot_grid(pP11, pW11, align = "v", ncol = 1)
 
 ```

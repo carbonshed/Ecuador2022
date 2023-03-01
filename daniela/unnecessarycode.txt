@@ -1,0 +1,47 @@
+W1 <- subset(WL, Station=='WL_Wetland01')
+W2 <- subset(WL, Station=='WL_Wetland02')
+W3 <- subset(WL, Station=='WL_Wetland03')
+W4 <- subset(WL, Station=='WL_Wetland04')
+W5 <- subset(WL, Station=='WL_Wetland05')
+W6 <- subset(WL, Station=='WL_Wetland06')
+W7 <- subset(WL, Station=='WL_Wetland07')
+W8 <- subset(WL, Station=='WL_Wetland08')
+W9 <- subset(WL, Station=='WL_Wetland09')
+W10 <- subset(WL, Station=='WL_Wetland10')
+W11 <- subset(WL, Station=='WL_Wetland11')
+
+W1_p <- merge(precipt,
+                   W1,
+                   by = "DateTime")
+W2_p <- merge(precipt,
+                   W2,
+                   by = "DateTime")
+W3_p <- merge(precipt,
+                   W3,
+                   by = "DateTime")
+W4_p <- merge(precipt,
+                   W4,
+                   by = "DateTime")
+W5_p <- merge(precipt,
+                   W5,
+                   by = "DateTime")
+W6_p <- merge(precipt,
+                   W6,
+                   by = "DateTime")
+W7_p <- merge(precipt,
+                   W7,
+                   by = "DateTime")
+W8_p <- merge(precipt,
+                   W8,
+                   by = "DateTime")
+W9_p <- merge(precipt,
+                   W9,
+                   by = "DateTime")
+W10_p <- merge(precipt,
+                   W10,
+                   by = "DateTime")
+W11_p <- merge(precipt,
+                   W11,
+                   by = "DateTime")
+pW1 <- ggplot(data = W1_p, aes(x = DateTime, y = WaterLevel_m)) + geom_line()
+pW1p <- ggplot(data = W1_p, aes(x = DateTime, y = Precipitation)) + geom_col()
