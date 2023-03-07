@@ -414,7 +414,7 @@ two.way <- lm(log(wetland_flux) ~ wetland_watertemp + Wetland_wind + CO2_ppm, da
 two.way <- lm(log(wetland_flux) ~ wetland_watertemp + Wetland_wind + (log(CO2_ppm)), data = wetland.data)
 
 summary(two.way)
-
+#look here 
 
 interaction <- aov(wetland_flux ~ wetland_watertemp*Wetland_wind, data = wetland.data)
 
