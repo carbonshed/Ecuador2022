@@ -1,6 +1,6 @@
-update.packages()
 ```{r load packages}
-install.packages("rlang")
+remove.packages("tidyverse")
+install.packages("tidyverse")
 library(tidyverse) # includes package ggplot that we will use to visualize data
 library(lubridate) # helps with formating date and time
 library(dplyr) # lots of useful functions in this package
