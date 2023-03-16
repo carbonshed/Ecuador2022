@@ -2,56 +2,11 @@
 
 library(dplyr)
 library(tidyverse)
-library(here)
-library(lubridate)
-
-########
-###This is if you've already run Calc_K600_McDowell and want to add envirofactors
-df <- read.csv(here::here("Wetlands/Wetland_df_2023-03-14.csv"))
-df$X <- NULL
-df$Date <- as.Date(df$Date,format = "%Y-%m-%d")
-df$DateTime <- as.POSIXct(paste(df$Date,df$Time_Baro), format="%Y-%m-%d %H:%M",tz="UTC")
-df$DateTime <- round_date(df$DateTime,unit = "5 minutes")
-
-##read in enviro data from la virgen weather station
-viento_df <- read.csv(here::here("Wetlands/WeatherStation_LaVirgen/M5025_Dirección del viento_subhorario-validado.csv"))
-colnames(viento_df) <- c("DateTime","windspeed_m_s","winddirecion") 
-viento_df$DateTime <- as.POSIXct(viento_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
-
-Solar_df <- read.csv(here::here("Wetlands/WeatherStation_LaVirgen/M5025_Radiación Solar_subhorario-validado.csv"))
-colnames(Solar_df) <- c("DateTime","solarrad_W_m2")
-Solar_df$DateTime <- as.POSIXct(Solar_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
-
-humidad_df <- read.csv(here::here("Wetlands/WeatherStation_LaVirgen/M5025_Humedad del aire_subhorario-validado.csv"))
-colnames(humidad_df) <- c("DateTime","humidity_%")
-humidad_df$DateTime <- as.POSIXct(humidad_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
-
-precip_df <- read.csv(here::here("Wetlands/WeatherStation_LaVirgen/M5025_Precipitación_subhorario-validado.csv"))
-colnames(precip_df) <- c("DateTime","precipt_mm")
-precip_df$DateTime <- as.POSIXct(precip_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
-precip_df$Date <- as.Date(precip_df$DateTime,format="%Y-%m-%d")
-precip_summary <- precip_df%>%group_by(Date)%>%summarise(PrecipAccuDay_mm = sum(precipt_mm))
-precip_summary$Date <- precip_summary$Date - 1
 
 
 
-enviro_df <- full_join(viento_df,Solar_df,by="DateTime")
-enviro_df <- full_join(enviro_df,humidad_df,by="DateTime")
-#enviro_df <- full_join(enviro_df,precip_df,by="DateTime")
 
-#join enviro data
-df <- left_join(df,enviro_df,by="DateTime")
-df <- left_join(df,precip_summary,by="Date")
-
-df$airwaterTemp_diff <-  df$AirTemp_c - df$Watertemp_c
-
-#write
-write.csv(df, here::here("Wetlands/Wetland_df_2023-03-15.csv"))
-
-
-###########
-#df#########
-##########
+#df
 df <-  read.csv(here::here("Wetlands/SamplingNotes/Wetlands_data_master_excel.csv"), skip=0, header = TRUE, sep = ",",
                       quote = "\"",dec = ".", fill = TRUE, comment.char = "")
 df$Date <- as.Date(df$Date, format = "%m/%d/%Y")
