@@ -7,12 +7,27 @@ library(ggplot2)
 library(jtools)
 library(lmerTest)
 
-#repeated measures
+#####################
+#### study design####
+#####################
+# 12 wetlands, sampled 3 times within a 2 month and a half period
+  # wetlands were sampled on different days throughout the period - not exactly evenly spread throughout the period
+  # sampled and CO2 concentration, CO2 degassing, gas transfer velocity (k)
+  # other factors: weather data - precipitation, winddirection, wind velocity, water temp, air temp
 
+##Mixed model with repeated measures
+  #CO2 degassing is the response variable
+  #Other variables are predictors (fixed effects)
+  #Wetland site is random variable
 
-
+#ead in data
 df <- read.csv(here::here("Wetlands/Wetland_df_2023-03-15.csv"))
 df$X <- NULL
+
+
+#transform regressors for normality and scale
+hist(df$CO2_ppm)
+hist(log(df$CO2_ppm))
 
 df$CO2_ppm_scale <- scale(log(df$CO2_ppm),center=TRUE,scale=TRUE)
 df$precpt_scale <- scale(log(df$PrecipAccuDay_mm+1),center=TRUE,scale=TRUE)
@@ -22,21 +37,21 @@ df$airwaterTemp_diff_scale <- scale(df$airwaterTemp_diff,center=TRUE,scale=TRUE)
 df$AirTemp_scale <- scale(df$AirTemp_c,center=TRUE,scale=TRUE)
 df$Watertemp_scale <- scale(df$Watertemp_c,center=TRUE,scale=TRUE)
 
-
+hist(df$CO2_ppm_scale)
 hist(df$AirTemp_scale)
 hist(df$airwaterTemp_diff_scale)
 hist(df$WindVelocity_scale)
 hist(df$winddirr_scale)
 hist(df$precpt_scale)
-hist(df$CO2_ppm_scale)
 
+#what other assumptions should I test for? Other transformations?
 
-
-#predictor vari
-
+#in these tests- should I also transform the response variable?
+#should I be testing for cross effects, or does that not apply in this case?
+#how do I interpret the model summary (both parts)?
 
 #predictions: precipitation effects CO2 concentration
-ggplot(df,aes(x=precpt_scale,y=CO2_ppm_scale, color = Wetland)) + geom_point() #+
+ggplot(df,aes(x=precpt_scale,y=CO2_ppm, color = Wetland)) + geom_point() #+
 
   
 M1A <- lm(CO2_ppm ~ PrecipAccuDay_mm, data =df)
@@ -46,26 +61,31 @@ summary(M1B)
 summ(M1B)
 ranova(M1B)
 
-# I guess not : (
-
 #CO2 concentrations effect flux
 
-M2 <- lmer(Flux_umol_m2_s ~ CO2_ppm_scale + (1|Wetland),data=df)
-summary(M2)
-summ(M2)
-ranova(M2)
+ggplot(df,aes(x=CO2_ppm_scale,y=Flux_umol_m2_s, color = Wetland)) + geom_point() +
+  scale_colour_manual(values = rainbow(12))
+ggplot(df,aes(x=CO2_ppm_scale,y=log(Flux_umol_m2_s), color = Wetland)) + geom_point() +
+  scale_colour_manual(values = rainbow(12))
+
+M2A <- lmer(Flux_umol_m2_s ~ CO2_ppm_scale + (1|Wetland),data=df)
+M2B <- lmer(log(Flux_umol_m2_s) ~ CO2_ppm_scale + (1|Wetland),data=df)
+  #WHY THIS ERROR?? Am I supposed to get rid of of the random effect here?
+summary(M2A)
+summary(M2B)
 
 #yes!
 
-
 ##wind direction and velocity effect k
+# how to interpret these multiple regressors?
+#how do I decide how complicated my model should be?
+#does it matter what order these re in?
 
-M3A <- lmer(K600 ~ winddirr_scale + WindVelocity_scale +(1|Wetland),data=df)
+M3A <- lmer(k_m.d ~ winddirr_scale + WindVelocity_scale + Watertemp_scale + AirTemp_scale  + (1|Wetland),data=df)
 M3A <- lmer(k_m.d ~ winddirr_scale  +(1|Wetland),data=df)
 
 summary(M3A)
-summ(M3A)
-ranova(M3A)
+
 
 #air-wind effects flux/k not sure wich
 
@@ -74,16 +94,18 @@ M4 <- lmer(k_m.d ~ airwaterTemp_diff_scale + (1|Wetland),data=df)
 M4 <- lmer(k_m.d ~ AirTemp_scale + (1|Wetland),data=df)
 
 summary(M4)
-summ(M4)
-ranova(M4)
 
 #put them all together
-M5 <- lmer(Flux_umol_m2_s ~ CO2_ppm_scale + winddirr_scale + airwaterTemp_diff_scale + (1|Wetland),data=df)
-summary(M5)
-summ(M5)
-ranova(M5)
+M5 <- lmer(log(Flux_umol_m2_s) ~ CO2_ppm_scale + winddirr_scale + airwaterTemp_diff_scale + (1|Wetland),data=df)
 
-###Visulaze
+summary(M5)
+
+###Visualize
+## good way to visualize mixed methods model?
+
+
+######STOP HERE FOR STATS SESSSION#######
+
 
 
 
