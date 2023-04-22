@@ -4,7 +4,7 @@
 
 #use this to standardize regression coefficients in mixed effects model post-hoc
 
-    #. https://rdrr.io/github/gmonette/spida15/man/vif.lme.html
+    # https://rdrr.io/github/gmonette/spida15/man/vif.lme.html
  
 stdCoef.merMod <- function(object) {
   sdy <- sd(getME(object,"y"))
@@ -17,7 +17,7 @@ stdCoef.merMod <- function(object) {
 
 ###to test for variance inflation
 
-#.  https://rdrr.io/github/gmonette/spida15/man/vif.lme.html
+#  https://rdrr.io/github/gmonette/spida15/man/vif.lme.html
 
 #########
 
@@ -46,6 +46,7 @@ library(lubridate)
 ####predictions for co2
   #precipitation
   #landscape position (watershed size) - GIS
+  #Volumn:perimeter ratio
 #### prediction for flux
   #CO2
   #k (see below)
@@ -53,8 +54,6 @@ library(lubridate)
   #temperature of air, water
   #wind speed and direction (depending on position on landscape, aspect) - GIS
   #wetland size - GIS
-
-
 
 #read in data
 df <- read.csv(here::here("Wetlands/Wetland_df_2023-03-15.csv"))
@@ -79,6 +78,7 @@ df$precpt_scale <- scale(log(df$PrecipAccuDay_mm+1),center=TRUE,scale=TRUE)
 
 hist(df$PrecipAccuDay_mm)
 hist(log(df$PrecipAccuDay_mm))
+hist(df$winddirecion)
 
 plot(log(df$PrecipAccuDay_mm),df$Flux_umol_m2_s)
 
@@ -129,6 +129,9 @@ ggplot(df,aes(x=CO2_ppm_scale,y=log(Flux_umol_m2_s), color = Wetland)) + geom_po
 
 #M2A <- lmer(Flux_umol_m2_s ~ CO2_ppm_scale + (1|Wetland),data=df)
 M2B <- lmer(log(Flux_umol_m2_s + 1) ~ CO2_ppm_scale + (1|Wetland),data=df)
+
+M2B <- lmer(log(Flux_umol_m2_s + 1) ~ log(CO2_ppm) + (1|Wetland),data=df)
+summary(M2B)
   #WHY THIS ERROR?? Am I supposed to get rid of of the random effect here?
         #because loging negatives
 #summary(M2A)
