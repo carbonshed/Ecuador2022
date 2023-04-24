@@ -75,17 +75,16 @@ df_merge <- left_join(df_merge,processing, by="Bottle_Number")
 enviroData <- read.csv(here::here("wetlands_df_2022-10-18.csv"))
 enviroData <- enviroData[,c("Wetland","Location","Date","Watertemp_c","AirPress_kpa","AirTemp_C")]
 enviroData$Date <- as.Date(enviroData$Date, format = "%m/%d/%y")
-#enviroData <- enviroData%>%drop_na(Watertemp_c)%>%distinct()
-
+enviroData$Location <- NULL
+enviroData <- unique(enviroData)
+enviroData <- enviroData%>%filter(Date< as.Date("2022-10-01"))
 
 ##merge 
-#df_merge <- df_merge%>%filter(AquaticSystem=="wetland")
-#df_merge$Wetland <- as.integer(df_merge$Wetland)
 
 df <- left_join(df_merge,enviroData, by=c("Wetland","Date"))
 
 
 #read out
 
-#write.csv(df, here::here("methane_df_2023-02-13.csv"), row.names = FALSE)
+write.csv(df, here::here("methane_df_2023-02-13.csv"), row.names = FALSE)
 
