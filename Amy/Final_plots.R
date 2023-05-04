@@ -5,11 +5,13 @@ library(tidyverse) # includes package ggplot that we will use to visualize data
 library(lubridate) # helps with formating date and time
 library(dplyr) # lots of useful functions in this package
 library(here) # use this when reading in data, here sets our working directory to the folder containing our R project. This makes code sharing easier.
+
 library(ggplot2)
 
 wetland.data <- read.csv(file="wetlands_df.csv")         
-colnames(wetland.data) <- c("Wetland", "Location","Date","Watertemp_c","Waterlevel","ppm_NOTcorrected","Flux_mean","Flux_stdev","Time_Baro","AirPress_kpa", "AirTemp_C", "AirPress_hpa", "CO2_ppm","AirPress_atm","VaporPressure_atm","TotalAir_atm", "Total_air_MolperL","CO2_air_MolesPerLiter","CO2_air_gCO2asCPerLiter","Watertemp_K","KH_mol.L.atm", "CO2_water_gCO2asCPerLiter","deltaCO2_gCO2asCperM3", "Flux_gCO2asCperM2perDay",	"k_m.d", "Sc", "K600", "Average_wind", "Solar_radiation", "Wetland_wind", "wetland_solar", "wetland_watertemp", "Wetlandairtemp", "wetland_flux", "Average_area", "average_precip", "average_Co2","AverageWL", "Wetlandpt2")
+colnames(wetland.data) <- c("Wetland", "Location","Date","Watertemp_c","Waterlevel","ppm_NOTcorrected","Flux_mean","Flux_stdev","Time_Baro","AirPress_kpa", "AirTemp_C", "AirPress_hpa", "CO2_ppm","AirPress_atm","VaporPressure_atm","TotalAir_atm", "Total_air_MolperL","CO2_air_MolesPerLiter","CO2_air_gCO2asCPerLiter","Watertemp_K","KH_mol.L.atm", "CO2_water_gCO2asCPerLiter","deltaCO2_gCO2asCperM3", "Flux_gCO2asCperM2perDay",	"k_m.d", "Sc", "K600", "Average_wind", "Solar_radiation", "Wetland_wind", "wetland_solar", "wetland_watertemp", "Wetlandairtemp", "wetland_flux", "Average_area", "average_precip", "average_Co2","AverageWL", "Wetlandpt2", "average_k")
 
+view(wetland.data)
 
 wetland.data$wetland_factor <- as.factor(wetland.data$Wetland)
 wetland.data$wetland_factor <- as.factor(wetland.data$Wetlandpt2)
@@ -25,8 +27,10 @@ wetland.data$wetland_watertemp <- as.numeric(wetland.data$wetland_watertemp)
 
 
 wetland.data$wetland_flux <- as.numeric(wetland.data$wetland_flux)
-wetland.data$AverageWL <- as.numeric(wetland.data$AverageWL)
 
+wetland.data$AverageWL <- as.numeric(wetland.data$AverageWL)
+wetland.data$AverageWL <- as.numeric(wetland.data$AverageWL)
+wetland.data$average_k <- as.numeric(wetland.data$average_k)
 
 view(wetland.data)
 
@@ -57,10 +61,6 @@ ggplot(data = wetland.data) +
 
 
 
-
-
-
-
 ggplot(data = wetland.data) +
   geom_point(aes(x = Wetland_wind, y = wetland_flux, group = Wetlandpt2, 
                  color = factor(Wetlandpt2)), size = 3.5 ) + labs(y= "Flux (μmol/s)", x = "Wind speed (m/s)") + scale_x_log10() + scale_y_log10()
@@ -83,11 +83,16 @@ ggplot(data = wetland.data, aes(x = Wetland_wind, y = wetland_flux)) + geom_poin
 lm(formula = wetland_flux ~ Wetland_wind, data = wetland.data)
 
 
-ggplot(log(wetland.data$Wetland_wind), log(wetland.data$wetland_flux), labs(y= "Flux (μmol/m^2/s)", x = " Wind speed (m/s)")
+ggplot(data = wetland.data, aes(x = log(Wetland_wind), y = log(wetland_flux))) + geom_point() + labs(y = "Flux (μmol/m^2/s)", x = "Wind speed (m/s)")
+       
+       
+ggplot(data = wetland.data, aes(x = log(Wetland_wind), y = log(wetland_flux))) +
+  geom_point(col = 'red', size = 3) +
+  geom_smooth(method = lm, se = FALSE, col = 'black', linetype = 'dashed') +
+  theme_bw() +
+  labs(y = "Flux (μmol/m^2/s)", x = "Wind speed (m/s)") +
+  scale_x_log10()
 
-       
-ggplot(data = wetland.data, aes(x = log(Wetland_wind), y = log(wetland_flux)) + geom_point(col= 'red', size = 3) + geom_smooth(method=lm, se=FALSE, col = 'black', linetype = 'dashed') + theme_bw() + labs(y= "Flux (μmol/m^2/s)", x = " Wind speed (m/s)") +  scale_x_log10()
-       
 #CORRECT
 #fit the model
 model <- lm(log(wetland_flux) ~ Wetland_wind, data = wetland.data)
@@ -150,7 +155,7 @@ lines(wetland.data$wetland_flux, wetland_wind.exponential2,lwd=2, col = "red", x
 
 
 
-#LOOK HERE 
+#LOOK HERE #Foreal look here
 ggplot(data = wetland.data, aes(x = Wetland_wind, y = wetland_flux)) + geom_point(col= 'red', size = 3) + geom_smooth(method=lm, se=FALSE, col = 'black', linetype = 'dashed') + theme_bw() + labs(y= "Flux (μmol/m^2/s)", x = "Wind speed (m/s)") + scale_y_log10() + scale_x_log10()
 
 lm(formula = wetland_flux ~ Wetland_wind, data = wetland.data)
@@ -159,6 +164,11 @@ lm(formula = wetland_flux ~ Wetland_wind, data = wetland.data)
 #Wetland flux=-1.0599+(0.3856 *average wind)
 
 
+fluxandwind <- read.csv("wetlands_df.csv") #Upload the data
+ lmwetland_flux = lm(wetland_flux ~ Wetland_wind, data = wetland.data) #Create the linear regression
+summary(lmwetland_flux) #Review the results
+
+#Adjusted R-squared:  0.4883 &   p-value: 0.00688
 
 
 
@@ -215,9 +225,11 @@ lm(formula = wetland_flux ~ wetland_watertemp, data = wetland.data)
 #FORMULA for line of best fit 
 #Wetland flux=-1.46+(0.2479 *average water temperature)
 
-
-
-
+fluxandwind <- read.csv("wetlands_df.csv") #Upload the data
+lmwetland_flux = lm(wetland_flux ~ wetland_watertemp, data = wetland.data) #Create the linear regression
+summary(lmwetland_flux) #Review the results
+#Adjusted R-squared:  0.1667
+#p-value: 0.1039
 
 
 plot((wetland.data$wetland_watertemp), log(wetland.data$wetland_flux)) 
@@ -270,12 +282,32 @@ ggplot(data = wetland.data) + geom_point(aes(x = wetland.data$wetland_watertemp,
 ggplot(data = wetland.data) + geom_point(aes(x = average_Co2, y = wetland_flux, group = Wetlandpt2, color = factor(Wetlandpt2)), size = 3.5 ) + labs(y= "Flux (μmol/m^2/s)", x = "Average CO2 (ppm)")
 ggplot(data = wetland.data) + geom_point(aes(x = average_Co2, y = wetland_flux, group = Wetlandpt2, color = factor(Wetlandpt2)), size = 3.5 ) + labs(y= "Flux (μmol/m^2/s)", x = "Average CO2 (ppm)") + scale_y_log10() 
 ggplot(data = wetland.data) + geom_point(aes(x = average_Co2, y = wetland_flux, group = Wetlandpt2, color = factor(Wetlandpt2)), size = 3.5 ) + labs(y= "Flux (μmol/m^2/s)", x = "Average CO2 (ppm)") +  scale_x_log10()
+
+
 ggplot(data = wetland.data) + geom_point(aes(x = average_Co2, y = wetland_flux, group = Wetlandpt2, color = factor(Wetlandpt2)), size = 3.5 ) + labs(y= "Flux (μmol/m^2/s)", x = "Average CO2 (ppm)") + scale_y_log10() + scale_x_log10()
 
 
-ggplot(data = wetland.data, aes(x = average_Co2, y = wetland_flux) + geom_point((col= factor(Wetlandpt2)), size = 3) + geom_smooth(method=lm, se=FALSE, col = 'black', linetype = 'dashed') + theme_bw() + labs(y= "Flux (μmol/m^2/s)", x = "Average CO2 (ppm)") + scale_y_log10() + scale_x_log10()
+ggplot(data = subset(wetland.data, Wetlandpt2 != 13), aes(x = average_Co2, y = wetland_flux)) +
+  geom_point(aes(col = factor(Wetlandpt2)), size = 3) +
+  geom_smooth(method = lm, se = FALSE, col = 'black', linetype = 'dashed') +
+  theme_bw() +
+  labs(y = "CO2_Flux (μmol/m^2/s)", x = "Average CO2 (ppm)") +
+  scale_y_log10() +
+  scale_x_log10()
 
-              
+lm(formula = wetland_flux ~ average_Co2, data = wetland.data)
+
+
+ggplot(data = subset(wetland.data, Wetlandpt2 != 13), aes(x = average_Co2, y = wetland_flux)) +
+  geom_point(aes(col = factor(Wetlandpt2)), size = 3) +
+  geom_smooth(method = lm, se = FALSE, col = 'black', linetype = 'dashed') +
+  theme_bw() +
+  labs(y = expression(paste("CO"[2], " Flux (μmol/m"^2*"/s)")), x = expression(paste("Average CO"[2], " (ppm)"))) +
+  scale_y_log10() +
+  scale_x_log10()
+
+
+
 
 
 #LOOK HERE 
@@ -286,7 +318,11 @@ lm(formula = wetland_flux ~ average_Co2, data = wetland.data)
 #FORMULA for line of best fit 
 #Wetland flux=-0.0383787+(.0001172*average CO2)
 
-
+fluxandwind <- read.csv("wetlands_df.csv") #Upload the data
+lmwetland_flux = lm(wetland_flux ~ average_Co2, data = wetland.data) #Create the linear regression
+summary(lmwetland_flux) #Review the results
+#Adjusted R-squared:  0.9659 
+#p-value: 7.157e-09
 
 
 
@@ -451,6 +487,19 @@ hist(log(wetland.data$wetland_watertemp))
 
 
 
+
+ggplot(data = wetland.data, aes(x = Wetlandairtemp, y = wetland_flux)) + geom_point(col= 'red', size = 3) + geom_smooth(method=lm, se=FALSE, col = 'black', linetype = 'dashed') + theme_bw() + labs(y= "Flux (μmol/m^2/s)", x = "Air Temperature(C)") + scale_y_log10() + scale_x_log10()
+
+lm(formula = wetland_flux ~ Wetlandairtemp, data = wetland.data)
+
+#FORMULA for line of best fit 
+#Wetland flux=-1.46+(0.2479 *average water temperature)
+hist(log(wetland.data$Wetlandairtemp))
+hist(log(wetland.data$AirTemp_C))
+
+
+
+
 ggplot(data = wetland.data, aes(x = average_Co2, y = wetland_flux)) + geom_point(col= 'purple', size = 3) + geom_smooth(method=lm, se=FALSE, col = 'black', linetype = 'dashed') + theme_bw() + labs(y= "Flux (μmol/m^2/s)", x = "Average CO2 (ppm)") + scale_y_log10() + scale_x_log10()
 
 lm(formula = wetland_flux ~ average_Co2, data = wetland.data)
@@ -490,3 +539,112 @@ summary(model)
 wetland.data %>%
   ggplot(aes(x = wetland_watertemp, y = wetland_flux))+geom_point()+stat_smooth(method="lm", se=FALSE)
 
+
+install.packages("lmerTest")
+library(lmerTest)
+library(lme4)
+
+M2B <- lmer(log(Flux_mean + 1) ~ log(CO2_ppm) + (1|Wetland),data=wetland.data)
+summary(M2B)
+
+M2B <- lmer(log(Flux_mean + 1) ~ log(Watertemp_c) + (1|Wetland),data=wetland.data)
+summary(M2B)
+
+M4 <- lmer(k_m.d ~ AirTemp_C + (1|Wetland),data=wetland.data)
+summary(M4)
+
+M3 <- lmer(k_m.d ~ Average_wind + (1|Wetland),data=wetland.data)
+summary(M3)
+
+
+
+#how and flux and what predicts gas transfer velocity.
+#and mixed moddel 
+
+
+
+#FLUX and CO2ppm
+M2B <- lmer(log(Flux_mean + 1) ~ log(CO2_ppm) + (1|Wetland),data=wetland.data)
+summary(M2B)
+
+
+new_data <- data.frame(CO2_ppm = wetland.data$CO2_ppm, Wetland = wetland.data$Wetland)
+pred <- predict(M2B, newdata = new_data)
+
+
+library(ggplot2)
+
+ggplot(wetland.data, aes(x = log(CO2_ppm), y = log(Flux_mean + 1))) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ exp(x), se = FALSE, color = "red")
+
+#log(Flux_mean + 1) = -0.0171 * log(CO2_ppm) + 5.9286
+
+
+
+
+M2B <- lmer(log(Flux_mean + 1) ~ log(Watertemp_c) + (1|Wetland),data=wetland.data)
+summary(M2B)
+
+ggplot(wetland.data, aes(x = log(Watertemp_c), y = log(Flux_mean + 1))) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ exp(x), se = FALSE, color = "red")
+
+
+
+
+M4 <- lmer(k_m.d ~ AirTemp_C + (1|Wetland),data=wetland.data)
+summary(M4)
+
+ggplot(wetland.data, aes(x = AirTemp_C, y = k_m.d)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(x = "Air Temperature(C)", y = "k_m.d")
+
+
+
+
+
+
+
+
+
+
+
+
+
+library(lmerTest)
+library(lme4)
+
+
+
+
+ggplot(wetland.data, aes(x = AirTemp_C, y = k_m.d)) +
+  geom_point(size=2.3) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(x = "Air Temperature (C)", y = "Gas transfer velocity (m/day)")+
+  theme_bw()
+
+
+
+
+M3 <- lmer(k_m.d ~ Average_wind + (1|Wetland),data=wetland.data)
+summary(M3)
+
+ggplot(wetland.data, aes(x = Average_wind, y = k_m.d)) +
+  geom_point(size = 2.3) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(x = "Average Wind Speed (m/s)", y = "Gas transfer velocity (m/day)") +
+  theme_bw()
+
+
+
+
+
+ggplot(data = subset(wetland.data, Wetlandpt2 != 13), aes(x = average_Co2, y = wetland_flux)) +
+  geom_point(aes(col = factor(Wetlandpt2)), size = 3) +
+  geom_smooth(method = lm, se = FALSE, col = 'black', linetype = 'dashed') +
+  theme_bw() +
+  labs(y = "CO2_Flux (μmol/m^2/s)", x = "Average CO2 (ppm)") +
+  scale_y_log10() +
+  scale_x_log10()
