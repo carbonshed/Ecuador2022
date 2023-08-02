@@ -235,7 +235,9 @@ M4 <- lmer(K600 ~ AirTemp_scale + (1|Wetland),data=df)
 M4 <- lmer(k_m.d ~ Watertemp_scale + (1|Wetland),data=df)
 M4 <- lmer(K600 ~ Watertemp_scale + (1|Wetland),data=df)
 M4 <- lmer(k_m.d ~ Watertemp_scale + AirTemp_scale  + airwaterTemp_diff_scale +(1|Wetland),data=df)
+M4 <- lmer(k_m.d ~ Watertemp_scale + AirTemp_scale  + airwaterTemp_diff_scale +(1|Wetland),data=df)
 
+ 
 summary(M4)
 stdCoef.merMod(M4)
 
