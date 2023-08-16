@@ -56,7 +56,7 @@ library(lubridate)
   #wetland size - GIS
 
 #read in data
-df <- read.csv(here::here("Wetlands/Wetland_df_2023-03-15.csv"))
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-08-01.csv"))
 df$X <- NULL
 
 df$Date <- as.Date(df$Date)
@@ -83,8 +83,8 @@ hist(df$winddirecion)
 plot(log(df$PrecipAccuDay_mm),df$Flux_umol_m2_s)
 
 df$winddirr_scale <- scale(df$winddirecion,center=TRUE,scale=TRUE)
-df$WindVelocity_scale <- scale(df$Wind_velocity_day,center=TRUE,scale=TRUE)
-df$airwaterTemp_diff_scale <- scale(df$airwaterTemp_diff,center=TRUE,scale=TRUE)
+df$WindVelocity_scale <- scale(df$winddirecion,center=TRUE,scale=TRUE)
+#df$airwaterTemp_diff_scale <- scale(df$airwaterTemp_diff,center=TRUE,scale=TRUE)
 df$AirTemp_scale <- scale(df$AirTemp_c,center=TRUE,scale=TRUE)
 df$Watertemp_scale <- scale(df$Watertemp_c,center=TRUE,scale=TRUE)
 

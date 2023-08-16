@@ -22,8 +22,7 @@ library(lubridate)
 df <- read.csv(here::here("Kriddie/wetlands_df.csv"))
 df <- df%>%select(Wetland,Location,Date,Watertemp_c,Waterlevel,
                       ppm_NOTcorrected,CO2_ppm,Flux_mean,Flux_stdev,
-                   AirPress_kpa,AirTemp_C,Average.Wind.veolcity.per.day,
-                  Solar.radiation..W.m.2.,  Time_Baro
+                   AirPress_kpa,AirTemp_C,  Time_Baro
                              )
 
 #convert baro to hpa
@@ -138,14 +137,13 @@ summary_df <- df %>%
   group_by(Wetland,Date,Time_Baro)%>% 
   summarize(
     Watertemp_c = mean(Watertemp_c, na.rm = TRUE),
+    Waterlevel_m = mean(Waterlevel,na.rm = TRUE), 
     Flux_umol_m2_s = mean(Flux_mean, na.rm = TRUE),
     AirTemp_c = mean(AirTemp_C, na.rm = TRUE),
     AirPress_kpa = mean(AirPress_kpa, na.rm = TRUE),
     CO2_ppm = mean(CO2_ppm, na.rm = TRUE),
     k_m.d = mean(k_m.d, na.rm = TRUE),
-    K600 = mean(K600.effective, na.rm = TRUE),
-    Wind_velocity_day = mean(Average.Wind.veolcity.per.day, na.rm = TRUE),
-    SolarRad_Wm2 = mean(Solar.radiation..W.m.2., na.rm = TRUE)
+    K600 = mean(K600.effective, na.rm = TRUE)
   )
 
 
@@ -153,5 +151,5 @@ summary_df$Wetland <- paste("wetland",summary_df$Wetland,sep="_")
 
 
 ##write out
-#write.csv(summary_df, here::here("Wetlands/Wetland_df_2023-03-14.csv"))
+write.csv(summary_df, here::here("Wetlands/Wetland_df_2023-08-01.csv"))
 

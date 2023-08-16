@@ -26,6 +26,9 @@ For each wetland sampled we will take an average of the Airpressure and airtempe
 
 For example: if samples were sampled wetland 1 on 7/14/2022 between 10am and 11am, we need an average of air temperature and air pressure from that time period
 
+*note*
+The barometric and air temperature data used here is pulled from a water level hobo sensor that was deployed in the air at each wetland sampled. (there is also a barometric sensor that is permanently installed at the Gavilan wetland, but that was not used here)
+
 #read in data for Baro
 
 ```{r Read in Data}

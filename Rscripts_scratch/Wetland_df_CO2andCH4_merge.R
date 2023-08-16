@@ -1,4 +1,5 @@
 #this script takes the methane data and summarizes it 
+#now this is included in Merge_WetlandDATA.R
 
 library(here)
 library(lubridate)
@@ -84,43 +85,3 @@ DOC_df <- DOC_df%>%
 #merge data
 df <- full_join(CO2_df,CH4_df, by=c("Wetland","Date"))
 df <- left_join(df,DOC_df [,c("Wetland","DOC_mg.L","TDN_mg.L")], by=c("Wetland"))
- 
-
-ggplot(df,aes(x=log(CH4_umol.L),y=log(CO2_umol.L))) +
-  geom_point(aes(color=Wetland),size=5) +
-  theme(text=element_text(size=20))
-
-ggplot(df ,aes(x=CO2_umol.L,y=DOC_mg.L)) +
-  geom_point(aes(color=Wetland),size=5)
-
-ggplot(df ,aes(x=DOC_mg.L,y=TDN_mg.L)) +
-  geom_point(aes(color=Wetland),size=5)
-
-ggplot(df ,aes(x=Watertemp_c,y=k_m.d)) +
-  geom_point(aes(color=Wetland),size=5)
-
-ggplot(df ,aes(x=AirTemp_c,y=k_m.d)) +
-  geom_point(aes(color=Wetland),size=5)
-
-ggplot(df ,aes(x=(Watertemp_c-AirTemp_c),y=k_m.d)) +
-  geom_point(aes(color=Wetland),size=5)
-
-ggplot(df ,aes(x=AirPress_kpa,y=K600)) +
-  geom_point(aes(color=Wetland),size=5)
-
-
-#plot data real quick
-
-ggplot(CH4_df, aes(x=Site, y=CH4_umol.L)) + 
-  geom_point(#fill="red",
-    aes(fill=Date_collected),
-    shape=21, size = 3)
-
-ggplot(CH4_df, aes(x=Date_collected, y=CH4_umol.L)) + 
-  geom_point(#fill="red",
-    aes(fill=Date_collected),
-    shape=21, size = 3)+
-  facet_wrap(~Site)
-
-
-

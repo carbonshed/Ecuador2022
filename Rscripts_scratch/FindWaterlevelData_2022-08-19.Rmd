@@ -306,7 +306,8 @@ p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WaterLevel_m)) + geom_poin
 p1 + facet_wrap(~Station)
 
 #export data (dani)
-write.csv(WL_Wetland, "../daniela/WL_data.csv")
+#write.csv(WL_Wetland, "../daniela/WL_data.csv")
+write.csv(WL_Wetland, here::here("Kriddie/WL_data.csv"))
 
 ```
 
