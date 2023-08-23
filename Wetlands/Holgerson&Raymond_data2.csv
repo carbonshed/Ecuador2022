@@ -1,0 +1,48 @@
+study,lake,size_ha,latitude,ch4_diffusive,ch4diff_units,ch4diff_annual,ch4_ebullition,ch4ebull_units,ch4ebul_annual
+Huttenan et al. 2002,Jankalaisenlampi Pond,1,67.164302,18.05,mg CH4 m-2 d-1,0.2521,0,mg CH4 m-2 d-1,0
+Huttenan et al. 2002,Kotsamolampi Pond,1,68.084346,3.466666667,mg CH4 m-2 d-1,0.0484,0,mg CH4 m-2 d-1,0
+Bastviken et al. 2004,Brown,32.9,46.21769,1161,mg C m2 yr,0.0967,1428,mg C m2 yr,0.1189
+Bastviken et al. 2004,Crampton,25.8,46.209652,508,mg C m2 yr,0.0423,841,mg C m2 yr,0.07
+Bastviken et al. 2004,East Long,2.3,46.2166,940,mg C m2 yr,0.0783,2649,mg C m2 yr,0.2206
+Bastviken et al. 2004,Hummingbird,0.8,46.2166,592,mg C m2 yr,0.0493,1152,mg C m2 yr,0.0959
+Bastviken et al. 2004,Morris,5.9,46.2166,1730,mg C m2 yr,0.144,16284,mg C m2 yr,1.3559
+Bastviken et al. 2004,North Gate,0.3,46.2166,618,mg C m2 yr,0.0515,896,mg C m2 yr,0.0746
+Bastviken et al. 2004,Paul,1.7,46.251541,2489,mg C m2 yr,0.2072,2680,mg C m2 yr,0.2231
+Bastviken et al. 2004,Peter,2.7,46.253025,1603,mg C m2 yr,0.1335,4452,mg C m2 yr,0.3707
+Bastviken et al. 2004,Roach,45,46.227719,395,mg C m2 yr,0.0329,93,mg C m2 yr,0.0077
+Bastviken et al. 2004,Tuesday,0.9,46.251296,2346,mg C m2 yr,0.1953,1171,mg C m2 yr,0.0975
+Bastviken et al. 2004,Ward,2.7,46.25493,1484,mg C m2 yr,0.1236,9983,mg C m2 yr,0.8312
+Strayer and Tiedje 1978,Wintergreen,15,42.397786,25.65,mmol m2 day,5.7456,23,mmol m2 day,8.395
+Casper et al. 2000,Priest Pot,1,54.372256,0.4,mmol m2 day CH4,0.0896,11.6,mmol m2 day CH4,4.234
+Repo et al. 2007,MT Lake,23,60.983,8.1,mg CH4 m2 day,0.1131,4.975,mg CH4 m2 day,1.815875
+Repo et al. 2007,FT Lake,7,65.867,6.1,mg CH4 m2 day,0.0852,2.61,mg CH4 m2 day,0.95265
+Anthony et al. 2010,Shuchi Lake,5.8051,68.116,1.494252874, g CH4 m2 y,0.0932,28.3908046, g CH4 m2 y,1.77
+Anthony et al. 2010,Tube Dispenser,11.0175,68.116,1.209302326, g CH4 m2 y,0.0754,29.3255814, g CH4 m2 y,1.8283
+Anthony et al. 2010,Grass Lake,0.5363,68.116,8.4, g CH4 m2 y,0.5237,4.933333333, g CH4 m2 y,0.3076
+Sepulveda et al. 2015,Big Sky,34.9,69.581,2,g m-2 yr (CH4),0.1249,0.2,g m-2 yr,0.0125
+Sepulveda et al. 2015,Dragons Pond,1,68.795,3.2,g m-2 yr,0.1999,3.6,g m-2 yr,0.2249
+Sepulveda et al. 2015,NE2,6.7,68.647,1.3,g m-2 yr,0.0812,3.3,g m-2 yr,0.2061
+Sepulveda et al. 2015,E6,2.7,68.643,1,g m-2 yr,0.0625,10.4,g m-2 yr,0.6496
+Sepulveda et al. 2015,E5,11.6,68.642,0.9,g m-2 yr,0.0562,0.5,g m-2 yr,0.0312
+Sepulveda et al. 2015,Toolik A28,144.9,68.632,0.9,g m-2 yr,0.0562,0.7,g m-2 yr,0.0437
+Sepulveda et al. 2015,E1,2.6,68.626,2.5,g m-2 yr,0.1562,5.1,g m-2 yr,0.3186
+Sepulveda et al. 2015,Autumn,5.7,68.462,1,g m-2 yr,0.0625,8.2,g m-2 yr,0.5122
+Sepulveda et al. 2015,Julieta,5.1,68.447,1.9,g m-2 yr,0.1187,8.8,g m-2 yr,0.5497
+Sepulveda et al. 2015,Augustine Zoli,6.9,67.138,4.5,g m-2 yr,0.2811,11,g m-2 yr,0.6871
+Sepulveda et al. 2015,Ping,10.2,67.136,1,g m-2 yr,0.0625,6.1,g m-2 yr,0.381
+Sepulveda et al. 2015,Grayling A24,40.1,66.954,2.1,g m-2 yr,0.1312,2.3,g m-2 yr,0.1437
+Sepulveda et al. 2015,Vault,0.3,65.029,4.8,g m-2 yr,0.2998,31.5,g m-2 yr,1.9675
+Sepulveda et al. 2015,Goldstream,1,64.916,6,g m-2 yr,0.3748,20.1,g m-2 yr,1.2555
+Sepulveda et al. 2015,Killarney,0.8,64.87,4.4,g m-2 yr,0.2748,24.8,g m-2 yr,1.549
+Sepulveda et al. 2015,Smith A13,9.4,64.865,3.2,g m-2 yr,0.1999,3,g m-2 yr,0.1874
+Sepulveda et al. 2015,Stevens Pond,0.2,64.863,3.1,g m-2 yr,0.1936,67.8,g m-2 yr,4.2349
+Sepulveda et al. 2015,Rosie Creek,0.4,64.77,160.3,g m-2 yr,10.0125,97.5,g m-2 yr,6.0899
+Sepulveda et al. 2015,91 Lake,6.6,63.848,2.3,g m-2 yr,0.1437,1.7,g m-2 yr,0.1062
+Sepulveda et al. 2015,Otto,51.5,63.842,4.9,g m-2 yr,0.3061,2.3,g m-2 yr,0.1437
+Sepulveda et al. 2015,Nutella A39,2,63.215,1.1,g m-2 yr,0.0687,0.1,g m-2 yr,0.0062
+Sepulveda et al. 2015,Swampbuggy,14.2,63.055,0.8,g m-2 yr,0.05,3.5,g m-2 yr,0.2186
+Sepulveda et al. 2015,Montana,30,62.143,3.5,g m-2 yr,0.2186,4.3,g m-2 yr,0.2686
+Sepulveda et al. 2015,Big Merganser,21,60.726,1.8,g m-2 yr,0.1124,0.5,g m-2 yr,0.0312
+Sepulveda et al. 2015,Dolly Varden,107.4,60.704,3.2,g m-2 yr,0.1999,2.5,g m-2 yr,0.1562
+Sepulveda et al. 2015,Engineer,90.9,60.478,4.9,g m-2 yr,0.3061,0,g m-2 yr,0
+Sepulveda et al. 2015,Lower Ohmer,47.1,60.456,3.6,g m-2 yr,0.2249,1.5,g m-2 yr,0.0937
