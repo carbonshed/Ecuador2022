@@ -295,6 +295,10 @@ rm(wl12_sub_1,wl12_sub_2)
 #temp
 WL_Wetland12$WLTemp_c[WL_Wetland12$DateTime ==  as.POSIXct("2022-10-12 14:15:00",tz = "UTC")] <- NA
 
+
+##join all
+
+WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11,WL_Wetland12)
 ```
 
 #check data
@@ -303,14 +307,10 @@ WL_Wetland12$WLTemp_c[WL_Wetland12$DateTime ==  as.POSIXct("2022-10-12 14:15:00"
 ggplot(data = WL_Wetland12, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
 ggplot(data = WL_Wetland02, aes(x = DateTime, y = WLTemp_c)) + geom_point()
 
-plot_ly(data = WL_Wetland12, x = ~DateTime, y = ~WLPres_kpa)
+plot_ly(data = WL_Wetland01, x = ~DateTime, y = ~WLPres_kpa)
 plot_ly(data = WL_Wetland12, x = ~DateTime, y = ~WLTemp_c)
-```
-##  Plot
-plot all water level data
 
-```{r merge and plot, echo=FALSE}
-WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11,WL_Wetland12)
+#plot all
 
 p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
 p1 + facet_wrap(~Station)+theme(text=element_text(size=21))
@@ -375,7 +375,7 @@ BaroSTATION <- Baro
 
 BaroSTATION <- BaroSTATION%>%filter(DateTime > as.POSIXct("2022-06-01 00:00:00",tz="UTC"))
 
-WL_Wetland <- left_join(BaroSTATION,WL_Wetland,by="DateTime")
+WL_Wetland <- right_join(BaroSTATION,WL_Wetland,by="DateTime")
 
 WL_Wetland$WaterLevel_m <- (WL_Wetland$WLPres_kpa - WL_Wetland$Baro_kpa) * 0.10197442889221
 
@@ -393,42 +393,113 @@ p1 + facet_wrap(~Station)
 
 ```
 
-##select data
-select the wetland you want to find water level and water temp from and the date and time
+##Plot
 
-plot the water level and water temp for the entire day
-
-#start here amy!!
 
 ```{r select time, echo=FALSE}
 #enter wetland dataframe
 wetland <- "WL_Wetland02" # example: WL_Wetland01, WL_Wetland02
-#enter date of collection
-date <- "2023-01-28"
 
 #code below extract desired wetland, do not change
 wetland_data <- WL_Wetland%>%filter(Station==wetland)
-#this is where you run it line by line
 #Water Level
-plot_ly(data=wetland_data %>%
-  filter(DateTime > as.POSIXct(paste(date,"00:00:01"), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  filter(DateTime < as.POSIXct(paste(date,"23:59:59"), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
-  x=~DateTime,y=~WaterLevel_m)
+plot_ly(data=wetland_data, x=~DateTime,y=~WaterLevel_m)
 #Water Temp
-plot_ly(data=wetland_data %>%
-  filter(DateTime > as.POSIXct(paste(date,"00:00:01"), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  filter(DateTime < as.POSIXct(paste(date,"23:59:59"), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
-  x=~DateTime,y=~WLTemp_c)
-#Most likely during the sample period there is data missing or the numbers look very different from before and after sampling. This is because we pulled up and downloaded the logger during the same time - changing both the pressure and temperature
-#select an hour time period just before logger was downloaded. 
-DateTime_BEFORE <- "2022-12-02 12:30:00"
-DateTime_AFTER <- "2022-12-02 13:00:00"
-#calculate average
-ave <- wetland_data %>%
-  filter(DateTime >= as.POSIXct(DateTime_BEFORE, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  filter(DateTime <= as.POSIXct(DateTime_AFTER, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  summarize(WaterlLevel_mean = mean(WaterLevel_m),
-            WaterTemp_mean = mean(WLTemp_c))
-print(ave)
+plot_ly(data=wetland_data, x=~DateTime,y=~WLTemp_c)
 
 ```
+
+#depth data
+add in depth data, best ya can
+
+```{r depth data, echo=FALSE}
+depth_DF <- read.csv(here::here("Wetlands/WetlandDepths.csv"))
+depth_DF$DateTime <- paste(depth_DF$Date,depth_DF$Start_Time)
+depth_DF$DateTime  <- as.POSIXct(depth_DF$DateTime,formula="%Y-%m-%d %H:%M",tz="UTC" )
+
+depth_DF_datetime <- depth_DF%>%select(Wetland,DateTime)
+depth_DF_datetime <- unique(depth_DF_datetime)
+depth_DF_depth <- depth_DF%>%select(Wetland,Depth_cm)
+
+depth_DF_depth<- depth_DF_depth%>%
+  group_by(Wetland) %>% 
+  summarize(depth_ave_cm = mean(Depth_cm),
+            depth_count = n())
+
+depth_DF <- full_join(depth_DF_datetime,depth_DF_depth,by="Wetland")
+
+depth_DF$Station <- sub("_", "",depth_DF$Wetland)
+depth_DF$Station <- sub("^", "WL_", depth_DF$Station )
+
+depth_DF$DateTime <- lubridate::floor_date(depth_DF$DateTime, "3 hour")
+depth_DF <- left_join(depth_DF,WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
+
+depth_DF$depth_ave_m <- depth_DF$depth_ave_cm/100
+
+depth_DF$depth_diff_m <- depth_DF$depth_ave_m - depth_DF$WaterLevel_m 
+
+WL_Wetland <- full_join(WL_Wetland,depth_DF%>%select(Station,depth_diff_m),by="Station")
+WL_Wetland$depth_ave_m <- WL_Wetland$WaterLevel_m + WL_Wetland$depth_diff_m
+
+#enter wetland dataframe
+wetland <- "WL_Wetland10" # example: WL_Wetland01, WL_Wetland02
+#code below extract desired wetland, do not change
+wetland_data <- WL_Wetland%>%filter(Station==wetland)
+#plot_ly(data = wetland_data, x = ~DateTime, y = ~WaterLevel_m)
+
+p3 <- ggplot(wetland_data, aes(x=DateTime,y=depth_ave_m)) +
+  geom_point() + 
+  labs(x=NULL, y="Depth_ave_m") +
+  theme(plot.title = element_text(size = 9)) + 
+  geom_hline(yintercept=depth_DF$depth_ave_m[depth_DF$Station==wetland], color="red") +
+#  geom_hline(yintercept=Q_low, color="red") +
+  theme(text=element_text(size=18))
+p3
+
+p4 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = depth_ave_m)) + geom_point()
+p4 + facet_wrap(~Station)
+
+```
+
+#add surface area data
+
+```{r surface area data, echo=FALSE}
+
+#wetland depth vs surface area relationships
+
+SurfaceArea_df <- read.csv(here::here("Wetlands/DroneFiles/Drone_flights_2023-08-25.csv"))[,1:7]
+SurfaceArea_df$WL <- as.numeric(SurfaceArea_df$WL)
+
+ggplot(data = SurfaceArea_df%>%filter(Wetland == "Wetland_3"), aes(x = WL, y = Area, color=Date)) + 
+   geom_point(size=3)
+
+#notes
+ #Wetland 1 and 3, revisit
+ #I feel certain that, at least one day, wetland 7 was completly dry, but I don't know what day that was
+ # wetland 10, revisit
+ # did I ever fly both wetland 7 and 11, and 11 was missed?
+ 
+ # also, draw those redlines on rating curves.
+ 
+p2 <- ggplot(data = SurfaceArea_df, aes(x = WL, y = Area)) + geom_point()
+p2 + facet_wrap(~Wetland)
+
+
+
+
+fig1 <- plot_ly(data=wetland_data ,
+        x=~DateTime,y=~WaterLevel_m)
+#Water Temp
+fig2 <- plot_ly(data=wetland_data,
+        x=~DateTime,y=~WLTemp_c)
+fig <- subplot(fig1, fig2,nrows = 2)
+
+```
+
+#write out data
+
+```{r write out data, echo=FALSE}
+
+```
+
+
