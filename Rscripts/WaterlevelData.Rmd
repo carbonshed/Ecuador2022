@@ -304,7 +304,7 @@ WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetla
 #check data
 
 ```{r plot individual wetlands, echo=FALSE}
-ggplot(data = WL_Wetland12, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
+ggplot(data = WL_Wetland10, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
 ggplot(data = WL_Wetland02, aes(x = DateTime, y = WLTemp_c)) + geom_point()
 
 plot_ly(data = WL_Wetland01, x = ~DateTime, y = ~WLPres_kpa)
@@ -442,7 +442,7 @@ WL_Wetland <- full_join(WL_Wetland,depth_DF%>%select(Station,depth_diff_m),by="S
 WL_Wetland$depth_ave_m <- WL_Wetland$WaterLevel_m + WL_Wetland$depth_diff_m
 
 #enter wetland dataframe
-wetland <- "WL_Wetland10" # example: WL_Wetland01, WL_Wetland02
+wetland <- "WL_Wetland04" # example: WL_Wetland01, WL_Wetland02
 #code below extract desired wetland, do not change
 wetland_data <- WL_Wetland%>%filter(Station==wetland)
 #plot_ly(data = wetland_data, x = ~DateTime, y = ~WaterLevel_m)
@@ -467,8 +467,33 @@ p4 + facet_wrap(~Station)
 
 #wetland depth vs surface area relationships
 
-SurfaceArea_df <- read.csv(here::here("Wetlands/DroneFiles/Drone_flights_2023-08-25.csv"))[,1:7]
-SurfaceArea_df$WL <- as.numeric(SurfaceArea_df$WL)
+SurfaceArea_df <- read.csv(here::here("Wetlands/DroneFiles/Drone_flights_2023-08-25.csv"))#[,1:7]
+#SurfaceArea_df$WL <- as.numeric(SurfaceArea_df$WL)
+
+SurfaceArea_df$Station <- sub("_", "",SurfaceArea_df$Wetland)
+SurfaceArea_df$Station <- sub("^", "WL_", SurfaceArea_df$Station )
+
+SurfaceArea_df$Date <- mdy(SurfaceArea_df$Date)
+SurfaceArea_df$DateTime <- paste(SurfaceArea_df$Date,SurfaceArea_df$Time_recoreded)
+SurfaceArea_df$DateTime  <- as.POSIXct(SurfaceArea_df$DateTime,formula="%Y/%m/%d %H:%M",tz="UTC" )
+SurfaceArea_df$DateTime <- lubridate::round_date(SurfaceArea_df$DateTime, "15 minutes")
+
+SurfaceArea_df <- left_join(SurfaceArea_df,WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
+
+Sdf1 <- SurfaceArea_df%>% filter(!is.na(WaterLevel_m))
+
+Sdf2 <- SurfaceArea_df%>% filter(is.na(WaterLevel_m))
+Sdf2$DateTime <- lubridate::ceiling_date(Sdf2$DateTime, "30 minutes")
+Sdf2 <- left_join(Sdf2%>%select(-WaterLevel_m,-WLTemp_c),WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
+
+Sdf3 <- Sdf2%>% filter(is.na(WaterLevel_m))
+Sdf3$DateTime <- lubridate::floor_date(Sdf3$DateTime, "30 minutes")
+Sdf3 <- left_join(Sdf3%>%select(-WaterLevel_m,-WLTemp_c),WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
+
+Sdf4 <- Sdf3%>% filter(is.na(WaterLevel_m))
+Sdf4$DateTime <- lubridate::floor_date(Sdf4$DateTime, "1 hour")
+Sdf4 <- left_join(Sdf4%>%select(-WaterLevel_m,-WLTemp_c),WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
+
 
 ggplot(data = SurfaceArea_df%>%filter(Wetland == "Wetland_3"), aes(x = WL, y = Area, color=Date)) + 
    geom_point(size=3)
