@@ -112,11 +112,17 @@ for (site in site_names){
     
   }
   WLData$DateTime <- round_date(WLData$DateTime, "15 mins")
+  WLData <- WLData[!with(WLData,is.na(WLPres_kpa)& is.na(WLTemp_c)),]
   WLData$Station <- site
   WLData=unique(WLData)
   assign((paste(site,sep="_")),WLData) #creates object with new appended data
   rm(WLData) #removes WLdata so that multiple sites aren't appended together
 }
+
+
+#WL_Wetland01 <- WL_Wetland01[!with(WL_Wetland01,is.na(WLPres_kpa)& is.na(WLTemp_c)),]
+
+#test <-  WL_Wetland01[duplicated(WL_Wetland01$DateTime)|duplicated(WL_Wetland01$DateTime, fromLast=TRUE),]
 
 ```
 
@@ -160,7 +166,8 @@ WL_Wetland03 <- WL_Wetland03%>%filter(DateTime != as.POSIXct("2022-07-14 12:30:0
 
 #wetland04
 WL_Wetland04 <- WL_Wetland04%>%filter(DateTime < as.POSIXct("2022-07-15 13:00:00",tz="UTC")|
-                                        DateTime > as.POSIXct("2022-07-15 13:30:00",tz = "UTC"))
+                                        DateTime > as.POSIXct("2022-07-15 13:30:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2023-02-18 14:00:00",tz = "UTC"))
 #logger shifted 6/29/2022 10:00
 #there are no notes in the notebook, but I believe the logger was switched for ? reason
 
@@ -192,7 +199,8 @@ WL_Wetland05$WLTemp_c[WL_Wetland05$DateTime ==  as.POSIXct("2022-11-01 11:00:00"
 #wetland06
 WL_Wetland06 <- WL_Wetland06%>%filter(DateTime != as.POSIXct("2022-06-16 14:15:00",tz = "UTC"))%>%
   filter(DateTime != as.POSIXct("2022-07-19 13:00:00",tz = "UTC"))%>%
-  filter(DateTime != as.POSIXct("2022-07-19 13:15:00",tz = "UTC"))
+  filter(DateTime != as.POSIXct("2022-07-19 13:15:00",tz = "UTC"))%>%
+  filter(DateTime != as.POSIXct("2023-02-18 14:15:00",tz = "UTC"))
 
 #wetland07
 WL_Wetland07 <- WL_Wetland07%>%filter(DateTime >= as.POSIXct("2022-06-16 15:30:00",tz = "UTC"))%>%
@@ -304,10 +312,10 @@ WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetla
 #check data
 
 ```{r plot individual wetlands, echo=FALSE}
-ggplot(data = WL_Wetland10, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
+ggplot(data = WL_Wetland06, aes(x = DateTime, y = WLPres_kpa)) + geom_point()
 ggplot(data = WL_Wetland02, aes(x = DateTime, y = WLTemp_c)) + geom_point()
 
-plot_ly(data = WL_Wetland01, x = ~DateTime, y = ~WLPres_kpa)
+plot_ly(data = WL_Wetland06, x = ~DateTime, y = ~WLPres_kpa)
 plot_ly(data = WL_Wetland12, x = ~DateTime, y = ~WLTemp_c)
 
 #plot all
@@ -319,6 +327,8 @@ p2 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WLTemp_c)) + geom_point()
 p2 + facet_wrap(~Station)
 
 ```
+
+#baRO LOOP
 
 ```{r baro, echo=FALSE}
 
@@ -362,11 +372,16 @@ for (site in site_names){
   BaroData$Time <- NULL
   BaroData <- BaroData[,c(3,1,2)]
   BaroData=unique(BaroData)
+   BaroData <- BaroData[!with(BaroData,is.na(Baro_kpa)& is.na(BaroTemp_c)),]
   assign((paste(site,sep="_")),BaroData) #creates object with new appended data
   rm(BaroData) #removes WLdata so that multiple sites aren't appended together
 }
 
-BaroSTATION <- Baro 
+BaroSTATION <- Baro
+
+#clean baro
+BaroSTATION <- BaroSTATION%>%filter(DateTime != as.POSIXct("2022-07-12 10:15:00",tz="UTC"))%>%
+  filter(DateTime != as.POSIXct("2023-02-18 12:30:00",tz="UTC"))
 
 ```
 
@@ -374,6 +389,10 @@ BaroSTATION <- Baro
 ```{r subtract baro, echo=FALSE}
 
 BaroSTATION <- BaroSTATION%>%filter(DateTime > as.POSIXct("2022-06-01 00:00:00",tz="UTC"))
+#test <-  BaroSTATION[duplicated(BaroSTATION$DateTime)|duplicated(BaroSTATION$DateTime, fromLast=TRUE),]
+
+
+WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11,WL_Wetland12)
 
 WL_Wetland <- right_join(BaroSTATION,WL_Wetland,by="DateTime")
 
@@ -382,10 +401,10 @@ WL_Wetland$WaterLevel_m <- (WL_Wetland$WLPres_kpa - WL_Wetland$Baro_kpa) * 0.101
 
 
 p_baro <- ggplot(data = BaroSTATION , aes(x = DateTime, y = Baro_kpa)) + geom_point()
-p_baro
+#p_baro
 
 p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WaterLevel_m)) + geom_point()
-p1 + facet_wrap(~Station)
+#p1 + facet_wrap(~Station)
 
 #export data (dani)
 #write.csv(WL_Wetland, "../daniela/WL_data.csv")
@@ -454,16 +473,18 @@ p3 <- ggplot(wetland_data, aes(x=DateTime,y=depth_ave_m)) +
   geom_hline(yintercept=depth_DF$depth_ave_m[depth_DF$Station==wetland], color="red") +
 #  geom_hline(yintercept=Q_low, color="red") +
   theme(text=element_text(size=18))
-p3
+#p3
 
 p4 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = depth_ave_m)) + geom_point()
-p4 + facet_wrap(~Station)
+#p4 + facet_wrap(~Station)
 
 ```
 
 #add surface area data
 
 ```{r surface area data, echo=FALSE}
+
+#test <-  wetland_data[duplicated(wetland_data$DateTime)|duplicated(wetland_data$DateTime, fromLast=TRUE),]
 
 #wetland depth vs surface area relationships
 
@@ -483,19 +504,38 @@ SurfaceArea_df <- left_join(SurfaceArea_df,WL_Wetland%>%select(Station,DateTime,
 Sdf1 <- SurfaceArea_df%>% filter(!is.na(WaterLevel_m))
 
 Sdf2 <- SurfaceArea_df%>% filter(is.na(WaterLevel_m))
-Sdf2$DateTime <- lubridate::ceiling_date(Sdf2$DateTime, "30 minutes")
+Sdf2$DateTime <- as.POSIXct(Sdf2$DateTime, format="%Y-%m-%d %H:%M:%S", tz="UTC") - as.difftime(15, units="mins")
 Sdf2 <- left_join(Sdf2%>%select(-WaterLevel_m,-WLTemp_c),WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
 
 Sdf3 <- Sdf2%>% filter(is.na(WaterLevel_m))
-Sdf3$DateTime <- lubridate::floor_date(Sdf3$DateTime, "30 minutes")
+Sdf3$DateTime <- as.POSIXct(Sdf3$DateTime, format="%Y-%m-%d %H:%M:%S", tz="UTC") + as.difftime(30, units="mins")
 Sdf3 <- left_join(Sdf3%>%select(-WaterLevel_m,-WLTemp_c),WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
 
 Sdf4 <- Sdf3%>% filter(is.na(WaterLevel_m))
-Sdf4$DateTime <- lubridate::floor_date(Sdf4$DateTime, "1 hour")
+Sdf4$DateTime <- as.POSIXct(Sdf4$DateTime, format="%Y-%m-%d %H:%M:%S", tz="UTC") + as.difftime(15, units="mins")
 Sdf4 <- left_join(Sdf4%>%select(-WaterLevel_m,-WLTemp_c),WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
 
+Sdf5 <- Sdf4%>% filter(is.na(WaterLevel_m))
+Sdf5$DateTime <- as.POSIXct(Sdf5$DateTime, format="%Y-%m-%d %H:%M:%S", tz="UTC") + as.difftime(30, units="mins")
+Sdf5 <- left_join(Sdf5%>%select(-WaterLevel_m,-WLTemp_c),WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
 
-ggplot(data = SurfaceArea_df%>%filter(Wetland == "Wetland_3"), aes(x = WL, y = Area, color=Date)) + 
+Sdf6 <- Sdf5%>% filter(is.na(WaterLevel_m))
+Sdf6$DateTime <- as.POSIXct(Sdf6$DateTime, format="%Y-%m-%d %H:%M:%S", tz="UTC") + as.difftime(15, units="mins")
+Sdf6 <- left_join(Sdf6%>%select(-WaterLevel_m,-WLTemp_c),WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
+
+Sdf7 <- Sdf6%>% filter(is.na(WaterLevel_m))
+Sdf7$DateTime <- as.POSIXct(Sdf7$DateTime, format="%Y-%m-%d %H:%M:%S", tz="UTC") + as.difftime(105, units="mins")
+Sdf7 <- left_join(Sdf7%>%select(-WaterLevel_m,-WLTemp_c),WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
+
+Sdf8 <- Sdf7%>% filter(is.na(WaterLevel_m))
+Sdf8$DateTime <- as.POSIXct(Sdf8$DateTime, format="%Y-%m-%d %H:%M:%S", tz="UTC") + as.difftime(15, units="mins")
+Sdf8 <- left_join(Sdf8%>%select(-WaterLevel_m,-WLTemp_c),WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
+
+SurfaceArea_df_2 <- rbind(Sdf1,Sdf2,Sdf3,Sdf4,Sdf5,Sdf6,Sdf7,Sdf8)
+
+SurfaceArea_df_2 <- SurfaceArea_df_2%>% filter(!is.na(WaterLevel_m))
+
+ggplot(data = SurfaceArea_df_2%>%filter(Wetland == "Wetland_3"), aes(x = WL, y = Area, color=Date)) + 
    geom_point(size=3)
 
 #notes
@@ -506,7 +546,7 @@ ggplot(data = SurfaceArea_df%>%filter(Wetland == "Wetland_3"), aes(x = WL, y = A
  
  # also, draw those redlines on rating curves.
  
-p2 <- ggplot(data = SurfaceArea_df, aes(x = WL, y = Area)) + geom_point()
+p2 <- ggplot(data = SurfaceArea_df_2, aes(x = WL, y = Area)) + geom_point()
 p2 + facet_wrap(~Wetland)
 
 
