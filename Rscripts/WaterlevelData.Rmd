@@ -408,7 +408,8 @@ p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WaterLevel_m)) + geom_poin
 
 #export data (dani)
 #write.csv(WL_Wetland, "../daniela/WL_data.csv")
-#write.csv(WL_Wetland, here::here("Kriddie/WL_data.csv"))
+#WL_Wetland12_corrected <- WL_Wetland%>%filter(Station=="WL_Wetland12")
+#write.csv(WL_Wetland12_corrected, here::here("Kriddie/WL_Wetland12_update.csv"))
 
 ```
 
@@ -558,6 +559,23 @@ fig1 <- plot_ly(data=wetland_data ,
 fig2 <- plot_ly(data=wetland_data,
         x=~DateTime,y=~WLTemp_c)
 fig <- subplot(fig1, fig2,nrows = 2)
+
+#
+#write.csv(SurfaceArea_df_2, here::here("Kriddie/SurfaceArea_df.csv"))
+
+ WL_low = 1.054550
+ WL_high = 0
+ 
+ p <- ggplot(wetland_data%>%filter(Station == "WL_Wetland02") , aes(x=DateTime,y=Q_Ls)) +
+   geom_point() + 
+   labs(x=NULL, y="WL_m") +
+   theme(plot.title = element_text(size = 9)) + 
+   geom_hline(yintercept=WL_low, color="red") +
+   geom_hline(yintercept=WL_high, color="red") +
+   theme(text=element_text(size=18))
+ p
+
+
 
 ```
 
