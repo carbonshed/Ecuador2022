@@ -45,17 +45,16 @@ ggplot(data = df, aes(x = WaterLevel_m, y = Area, color=Date)) +
 #fit the model
 
 #df_1$WaterLevel_m_adjust <- df_1$WaterLevel_m -  df_1[5,"WaterLevel_m"]
-lm_log <- lm(WaterLevel_m~log(Area)-1, data=df#,weight=weight_values
-             )
+#lm_log <- lm(Area~log(WaterLevel_m) - 1, data=df)
+lm_log <- lm(exp(Area)~WaterLevel_m, data=df)
 summary(lm_log)
 
 #plot
  
 x_exp <- seq(from = .3, to = 0.6, by = .01)
-#y_exp = lm_log1p$coefficients[1] +  lm_log1p$coefficients[2] * log1p(x_exp)
-y_exp = 
-  
-  * log(x_exp)
+#y_exp = lm_log$coefficients[1] + lm_log$coefficients[2] * log(x_exp)
+y_exp = lm_log$coefficients[1] * log(x_exp)
+
 
 plot_ly(x = df$WaterLevel_m, y=df$Area)%>%
   add_markers(size=4)%>%
