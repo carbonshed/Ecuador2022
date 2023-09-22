@@ -120,10 +120,6 @@ for (site in site_names){
 }
 
 
-#WL_Wetland01 <- WL_Wetland01[!with(WL_Wetland01,is.na(WLPres_kpa)& is.na(WLTemp_c)),]
-
-#test <-  WL_Wetland01[duplicated(WL_Wetland01$DateTime)|duplicated(WL_Wetland01$DateTime, fromLast=TRUE),]
-
 ```
 
 
@@ -154,9 +150,17 @@ WL_Wetland02 <- WL_Wetland02%>%filter(DateTime < as.POSIXct("2023-02-20 05:15:00
 WL_Wetland02 <- WL_Wetland02%>%filter(DateTime != as.POSIXct("2023-06-20 11:45:00",tz = "UTC")&
                                        DateTime != as.POSIXct("2023-06-20 12:00:00",tz = "UTC"))
 
-  #string broke, bad data for water level. but lets keep temp
-WL_Wetland02$WLPres_kpa[WL_Wetland02$DateTime >  as.POSIXct("2023-03-20 11:30:00",tz = "UTC")] <- NA
+ #string broke, bad data for water level. We do need water level for wetland 02 so that we can pair with ave depths measurments collected in July 2023. lets do the correction so that we at least have an thos estimates, and then we will delete the data. I had hoped we could save all the data, but it just looks so weird. I don't know whats going on. maybe some could be saved if I understood?
+wl02_sub_1 <- WL_Wetland02%>%filter(DateTime <  as.POSIXct("2023-03-20 14:30:00",tz = "UTC"))
+wl02_sub_2 <- WL_Wetland02%>%filter(DateTime >  as.POSIXct("2023-03-20 14:30:00",tz = "UTC"))
+wl02_sub_2$WLPres_kpa <- wl02_sub_2$WLPres_kpa + (68.612 - 66.423)
+WL_Wetland02_1 <- rbind(wl02_sub_1,wl02_sub_2)
 
+  #extract water level at time of depth data collection
+WL_atDepthMeasurment_kpa <- WL_Wetland02_1$WLPres_kpa[WL_Wetland02_1$DateTime ==  as.POSIXct("2023-06-20 09:00:00",tz = "UTC")] 
+
+  #lets keep temp, but delete the bad water level
+WL_Wetland02$WLPres_kpa[WL_Wetland02$DateTime >  as.POSIXct("2023-03-20 14:15:00",tz = "UTC")] <- NA
 
 
 #wetland03
@@ -303,9 +307,7 @@ rm(wl12_sub_1,wl12_sub_2)
 #temp
 WL_Wetland12$WLTemp_c[WL_Wetland12$DateTime ==  as.POSIXct("2022-10-12 14:15:00",tz = "UTC")] <- NA
 
-
 ##join all
-
 WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11,WL_Wetland12)
 ```
 
@@ -398,7 +400,10 @@ WL_Wetland <- right_join(BaroSTATION,WL_Wetland,by="DateTime")
 
 WL_Wetland$WaterLevel_m <- (WL_Wetland$WLPres_kpa - WL_Wetland$Baro_kpa) * 0.10197442889221
 
+#correct for baro at that one wetland 2 measurment
+Baro_atDepthMeasurment_kpa <- BaroSTATION$Baro_kpa[BaroSTATION$DateTime ==  as.POSIXct("2023-06-20 09:00:00",tz = "UTC")] 
 
+WL_atDepthMeasurment_m <- (WL_atDepthMeasurment_kpa - Baro_atDepthMeasurment_kpa) * 0.10197442889221
 
 p_baro <- ggplot(data = BaroSTATION , aes(x = DateTime, y = Baro_kpa)) + geom_point()
 #p_baro
@@ -406,9 +411,7 @@ p_baro <- ggplot(data = BaroSTATION , aes(x = DateTime, y = Baro_kpa)) + geom_po
 p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WaterLevel_m)) + geom_point()
 #p1 + facet_wrap(~Station)
 
-#export data (dani)
-#write.csv(WL_Wetland, "../daniela/WL_data.csv")
-#WL_Wetland12_corrected <- WL_Wetland%>%filter(Station=="WL_Wetland12")
+#export data 
 #write.csv(WL_Wetland12_corrected, here::here("Kriddie/WL_Wetland12_update.csv"))
 
 ```
@@ -453,6 +456,7 @@ depth_DF$Station <- sub("^", "WL_", depth_DF$Station )
 
 depth_DF$DateTime <- lubridate::floor_date(depth_DF$DateTime, "3 hour")
 depth_DF <- left_join(depth_DF,WL_Wetland%>%select(Station,DateTime,WaterLevel_m,WLTemp_c),by=c("DateTime","Station"))
+depth_DF$WaterLevel_m[2] <- WL_atDepthMeasurment_m
 
 depth_DF$depth_ave_m <- depth_DF$depth_ave_cm/100
 
@@ -461,23 +465,8 @@ depth_DF$depth_diff_m <- depth_DF$depth_ave_m - depth_DF$WaterLevel_m
 WL_Wetland <- full_join(WL_Wetland,depth_DF%>%select(Station,depth_diff_m),by="Station")
 WL_Wetland$depth_ave_m <- WL_Wetland$WaterLevel_m + WL_Wetland$depth_diff_m
 
-#enter wetland dataframe
-wetland <- "WL_Wetland04" # example: WL_Wetland01, WL_Wetland02
-#code below extract desired wetland, do not change
-wetland_data <- WL_Wetland%>%filter(Station==wetland)
-#plot_ly(data = wetland_data, x = ~DateTime, y = ~WaterLevel_m)
 
-p3 <- ggplot(wetland_data, aes(x=DateTime,y=depth_ave_m)) +
-  geom_point() + 
-  labs(x=NULL, y="Depth_ave_m") +
-  theme(plot.title = element_text(size = 9)) + 
-  geom_hline(yintercept=depth_DF$depth_ave_m[depth_DF$Station==wetland], color="red") +
-#  geom_hline(yintercept=Q_low, color="red") +
-  theme(text=element_text(size=18))
-#p3
-
-p4 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = depth_ave_m)) + geom_point()
-#p4 + facet_wrap(~Station)
+write.csv(WL_Wetland, here::here("Kriddie/WL_Wetland_ALL.csv"))
 
 ```
 
@@ -549,8 +538,6 @@ ggplot(data = SurfaceArea_df_2%>%filter(Wetland == "Wetland_3"), aes(x = WL, y =
  
 p2 <- ggplot(data = SurfaceArea_df_2, aes(x = WL, y = Area)) + geom_point()
 p2 + facet_wrap(~Wetland)
-
-
 
 
 fig1 <- plot_ly(data=wetland_data ,
