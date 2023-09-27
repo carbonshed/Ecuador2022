@@ -572,4 +572,3 @@ fig <- subplot(fig1, fig2,nrows = 2)
 
 ```
 
-

@@ -17,10 +17,19 @@ df$Date <- as.Date(df$Date)
 df$DateTime <- as.POSIXct(paste(df$Date,df$Time_used),format="%Y-%m-%d %H:%M",tz="UTC")
 df <- df%>%filter(Station == Station_name)
 
-ggplot(data = WL_df , aes(x=DateTime, y = WaterLevel_m)) + geom_line(color="blue") +
-  geom_hline(yintercept=max(df$WaterLevel_m), linetype="dashed", color = "red")+ 
-  geom_hline(yintercept=min(df$WaterLevel_m), linetype="dashed", color = "red")+
-  geom_vline(xintercept = df$DateTime, color = "black",linetype="dotted")
+df_DSM <- read.csv(here::here("Wetlands/HistogramofDSM_06162022.csv"))
+
+df_merge1 <- df%>%select(c(WaterLevel_m,Area))
+df_merge1$method <- "Manual"
+df_merge2 <- df_DSM%>%select(c(WaterLevel_m,Total_Surface_aream2))
+colnames(df_merge2) <- c("WaterLevel_m","Area")
+df_merge2$method <- "DSM"
+df_merge <- rbind(df_merge1,df_merge2)
+
+ggplot(data = WL_df , aes(x=DateTime, y = WaterLevel_m)) + geom_line(color="blue", size=1) +
+  geom_hline(yintercept=max(df$WaterLevel_m), linetype="dashed", color = "red",size=1)+ 
+  geom_hline(yintercept=min(df$WaterLevel_m), linetype="dashed", color = "red",size=1)+
+  geom_vline(xintercept = df$DateTime, color = "black",linetype="dotted",size=1)
 
 
 #percent change water level 
@@ -40,17 +49,33 @@ count(WL_df%>%
 ggplot(data = df, aes(x = WaterLevel_m, y = Area, color=Date)) + 
   geom_point(size=3)
 
-#####Rating curve
-ggplot(data = df, aes(x = WaterLevel_m, y = Area, color=Date)) + 
+ggplot(data = df_DSM, aes(x = WaterLevel_m, y = Total_Surface_aream2)) + 
   geom_point(size=3)
+
+ggplot(data = df_merge%>%filter(WaterLevel_m<2), aes(x = WaterLevel_m, y = Area, color=method)) + 
+  geom_point(size=3)
+
+#####Rating curve
  
-#notes
-#draw those redlines on rating curves.
- 
-# also, 
  
 #Wetland 02
- # y=a+b*ln(x) 
+#max: 5836.468147
+
+
+#on DSM created 6/16/2022, 4248.31 altitude = 0.1217370732 m in water level
+WL_06162022 <- df%>%filter(Date=="2022-06-16")%>%select(WaterLevel_m)
+WL_06162022 <- WL_06162022[1,1]
+Area_06162022 <- df%>%filter(Date=="2022-06-16")%>%select(Area)
+Area_06162022 <- Area_06162022[1,1]
+#Based on imagery from 6/16/2022, the lowest land area not covered by water is 4248.31m
+
+#so lets increase by increments of .1to see where it falls on the rating curve
+# 4248.31m + .1m = 4248.41m
+
+
+
+
+# y=a+b*ln(x) 
  #fit the model
  
 df_1 <- df%>%filter(Station=="WL_Wetland02")
