@@ -5,6 +5,12 @@ library(dplyr)
 library(ggplot2)
 library(plotly)
 
+#notes
+#we are going to call water_level < -0.06, depth = 0  
+#total change in water_level = 0.8265639+.06 = 0.8865639
+#max extent == 5836.5
+#Also, Depth == 0 between "2023-02-03 13:30:00" & "2023-02-21 00:00:00"
+
 Station_name <- "WL_Wetland02"
 
 WL_df <- read.csv(here::here("Kriddie/WL_Wetland_ALL.csv"))
@@ -13,11 +19,11 @@ WL_df$DateTime <- as.POSIXct(WL_df$DateTime, format="%Y-%m-%d %H:%M",tz="UTC")
 
 df <- read.csv(here::here("Wetlands/SurfaceArea_df.csv"))
 df <- df%>%select(Station,Date,Time_recoreded,Time_used,WaterLevel_m,Area,WLTemp_c)
-df$Date <- as.Date(df$Date)
-df$DateTime <- as.POSIXct(paste(df$Date,df$Time_used),format="%Y-%m-%d %H:%M",tz="UTC")
+df$DateTime <- as.POSIXct(paste(df$Date,df$Time_used),format="%m/%d/%Y %H:%M",tz="UTC")
 df <- df%>%filter(Station == Station_name)
 
 df_DSM <- read.csv(here::here("Wetlands/HistogramofDSM_06162022.csv"))
+#df_DSM <- read.csv(here::here("Wetlands/HistogramofDSM_20230128.csv"))
 
 df_merge1 <- df%>%select(c(WaterLevel_m,Area))
 df_merge1$method <- "Manual"
@@ -26,11 +32,17 @@ colnames(df_merge2) <- c("WaterLevel_m","Area")
 df_merge2$method <- "DSM"
 df_merge <- rbind(df_merge1,df_merge2)
 
-ggplot(data = WL_df , aes(x=DateTime, y = WaterLevel_m)) + geom_line(color="blue", size=1) +
+ggplot(data = df_merge%>%filter(WaterLevel_m<3)
+       , aes(x = WaterLevel_m, y = Area, color=method)) + 
+  geom_point(size=3)
+
+ggplot(data = WL_df , aes(x=DateTime, y = depth_ave_m)) + geom_line(color="blue", size=1) +
   geom_hline(yintercept=max(df$WaterLevel_m), linetype="dashed", color = "red",size=1)+ 
   geom_hline(yintercept=min(df$WaterLevel_m), linetype="dashed", color = "red",size=1)+
   geom_vline(xintercept = df$DateTime, color = "black",linetype="dotted",size=1)
 
+plot_ly(data = WL_df%>%filter(DateTime>as.POSIXct("2023-01-10 00:00:00")&
+                                DateTime<as.POSIXct("2023-03-03 00:00:00")), x = ~DateTime, y = ~WaterLevel_m)
 
 #percent change water level 
 (max(WL_df$WaterLevel_m,na.rm = TRUE)-min(WL_df$WaterLevel_m,na.rm = TRUE))/
@@ -52,8 +64,7 @@ ggplot(data = df, aes(x = WaterLevel_m, y = Area, color=Date)) +
 ggplot(data = df_DSM, aes(x = WaterLevel_m, y = Total_Surface_aream2)) + 
   geom_point(size=3)
 
-ggplot(data = df_merge%>%filter(WaterLevel_m<2), aes(x = WaterLevel_m, y = Area, color=method)) + 
-  geom_point(size=3)
+
 
 #####Rating curve
  
