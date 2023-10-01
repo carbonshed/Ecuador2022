@@ -16,6 +16,10 @@ Station_name <- "WL_Wetland02"
 WL_df <- read.csv(here::here("Kriddie/WL_Wetland_ALL.csv"))
 WL_df <- WL_df%>%filter(Station == Station_name)
 WL_df$DateTime <- as.POSIXct(WL_df$DateTime, format="%Y-%m-%d %H:%M",tz="UTC")
+#corrections for depth
+WL_df$depth_diff_m <- -.06
+WL_df$depth_ave_m <- WL_df$WaterLevel_m - WL_df$depth_diff_m
+
 
 df <- read.csv(here::here("Wetlands/SurfaceArea_df.csv"))
 df <- df%>%select(Station,Date,Time_recoreded,Time_used,WaterLevel_m,Area,WLTemp_c)
@@ -24,6 +28,7 @@ df <- df%>%filter(Station == Station_name)
 
 df_DSM <- read.csv(here::here("Wetlands/HistogramofDSM_06162022.csv"))
 #df_DSM <- read.csv(here::here("Wetlands/HistogramofDSM_20230128.csv"))
+#df_DSM <- read.csv(here::here("Wetlands/DSM_20230128_manual.csv"))
 
 df_merge1 <- df%>%select(c(WaterLevel_m,Area))
 df_merge1$method <- "Manual"
@@ -70,6 +75,7 @@ ggplot(data = df_DSM, aes(x = WaterLevel_m, y = Total_Surface_aream2)) +
  
  
 #Wetland 02
+# based on looking at the long term data, we will say depth = 0 , surface area = 0 at water level = 
 #max: 5836.468147
 
 
