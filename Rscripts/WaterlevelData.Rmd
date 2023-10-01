@@ -465,8 +465,17 @@ depth_DF$depth_diff_m <- depth_DF$depth_ave_m - depth_DF$WaterLevel_m
 WL_Wetland <- full_join(WL_Wetland,depth_DF%>%select(Station,depth_diff_m),by="Station")
 WL_Wetland$depth_ave_m <- WL_Wetland$WaterLevel_m + WL_Wetland$depth_diff_m
 
+#we have to do some special stuff for wetland 2 because of bad data
+#we are going to call water_level < -0.06, depth = 0  
+#Also, Depth == 0 between "2023-02-03 13:30:00" & "2023-02-21 00:00:00"
 
-write.csv(WL_Wetland, here::here("Kriddie/WL_Wetland_ALL.csv"))
+WL_Wetland[WL_Wetland$Station == 'WL_Wetland02', ]$depth_diff_m <- -.06
+WL_Wetland[WL_Wetland$Station == 'WL_Wetland02', ]$depth_ave_m <-   WL_Wetland[WL_Wetland$Station == 'WL_Wetland02', ]$WaterLevel_m - WL_Wetland[WL_Wetland$Station == 'WL_Wetland02', ]$depth_diff_m
+WL_Wetland[WL_Wetland$Station == 'WL_Wetland02' &
+             WL_Wetland$DateTime >= as.POSIXct("2023-02-03 13:15:00",tz="UTC")&
+             WL_Wetland$DateTime <= as.POSIXct("2023-02-21 00:00:00",tz="UTC"), ]$depth_ave_m <- 0
+
+#write.csv(WL_Wetland, here::here("Kriddie/WL_Wetland_ALL.csv"))
 
 ```
 

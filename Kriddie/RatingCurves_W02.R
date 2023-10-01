@@ -17,9 +17,8 @@ WL_df <- read.csv(here::here("Kriddie/WL_Wetland_ALL.csv"))
 WL_df <- WL_df%>%filter(Station == Station_name)
 WL_df$DateTime <- as.POSIXct(WL_df$DateTime, format="%Y-%m-%d %H:%M",tz="UTC")
 #corrections for depth
-WL_df$depth_diff_m <- -.06
-WL_df$depth_ave_m <- WL_df$WaterLevel_m - WL_df$depth_diff_m
-
+#WL_df$depth_diff_m <- -.06
+#WL_df$depth_ave_m <- WL_df$WaterLevel_m - WL_df$depth_diff_m
 
 df <- read.csv(here::here("Wetlands/SurfaceArea_df.csv"))
 df <- df%>%select(Station,Date,Time_recoreded,Time_used,WaterLevel_m,Area,WLTemp_c)
