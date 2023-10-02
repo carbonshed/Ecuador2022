@@ -469,7 +469,7 @@ WL_Wetland$depth_ave_m <- WL_Wetland$WaterLevel_m + WL_Wetland$depth_diff_m
 #we are going to call water_level < -0.06, depth = 0  
 #Also, Depth == 0 between "2023-02-03 13:30:00" & "2023-02-21 00:00:00"
 
-WL_Wetland[WL_Wetland$Station == 'WL_Wetland02', ]$depth_diff_m <- -.06
+WL_Wetland[WL_Wetland$Station == 'WL_Wetland02', ]$depth_diff_m <- -0.061409001
 WL_Wetland[WL_Wetland$Station == 'WL_Wetland02', ]$depth_ave_m <-   WL_Wetland[WL_Wetland$Station == 'WL_Wetland02', ]$WaterLevel_m - WL_Wetland[WL_Wetland$Station == 'WL_Wetland02', ]$depth_diff_m
 WL_Wetland[WL_Wetland$Station == 'WL_Wetland02' &
              WL_Wetland$DateTime >= as.POSIXct("2023-02-03 13:15:00",tz="UTC")&
