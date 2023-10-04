@@ -13,8 +13,8 @@ WL_df$DateTime <- as.POSIXct(WL_df$DateTime, format="%Y-%m-%d %H:%M",tz="UTC")
 
 df <- read.csv(here::here("Wetlands/SurfaceArea_df.csv"))
 df <- df%>%select(Station,Date,Time_recoreded,Time_used,WaterLevel_m,Area,WLTemp_c)
-df$Date <- as.Date(df$Date)
-df$DateTime <- as.POSIXct(paste(df$Date,df$Time_used),format="%Y-%m-%d %H:%M",tz="UTC")
+#df$Date <- as.Date(df$Date)
+df$DateTime <- as.POSIXct(paste(df$Date,df$Time_used),format="%m/%d/%Y %H:%M",tz="UTC")
 df <- df%>%filter(Station == Station_name)
 
 ggplot(data = WL_df , aes(x=DateTime, y = WaterLevel_m)) + geom_line(color="blue") +
@@ -44,3 +44,4 @@ ggplot(data = df, aes(x = WaterLevel_m, y = Area, color=Date)) +
 
 #look at highest wl area again, but for now, it looks like this should be a straight line :(
 surface_area <- mean(df$Area)
+s

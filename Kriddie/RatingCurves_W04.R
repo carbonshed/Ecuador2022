@@ -5,7 +5,7 @@ library(dplyr)
 library(ggplot2)
 library(plotly)
 
-Station_name <- "WL_Wetland05"
+Station_name <- "WL_Wetland04"
 
 WL_df <- read.csv(here::here("Kriddie/WL_Wetland_ALL.csv"))
 WL_df <- WL_df%>%filter(Station == Station_name)
@@ -13,11 +13,10 @@ WL_df$DateTime <- as.POSIXct(WL_df$DateTime, format="%Y-%m-%d %H:%M",tz="UTC")
 
 df <- read.csv(here::here("Wetlands/SurfaceArea_df.csv"))
 df <- df%>%select(Station,Date,Time_recoreded,Time_used,WaterLevel_m,Area,WLTemp_c)
-df$Date <- as.Date(df$Date)
-df$DateTime <- as.POSIXct(paste(df$Date,df$Time_used),format="%Y-%m-%d %H:%M",tz="UTC")
+df$DateTime <- as.POSIXct(paste(df$Date,df$Time_used),format="%m/%d/%Y %H:%M",tz="UTC")
 df <- df%>%filter(Station == Station_name)
 
-ggplot(data = WL_df , aes(x=DateTime, y = WaterLevel_m)) + geom_line(color="blue") +
+ggplot(data = WL_df , aes(x=DateTime, y = depth_ave_m)) + geom_line(color="blue") +
   geom_hline(yintercept=max(df$WaterLevel_m), linetype="dashed", color = "red")+ 
   geom_hline(yintercept=min(df$WaterLevel_m), linetype="dashed", color = "red")+
   geom_vline(xintercept = df$DateTime, color = "black",linetype="dotted")

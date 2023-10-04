@@ -39,6 +39,8 @@ df_merge <- rbind(df_merge1,df_merge2)
 
 df_merge[df_merge$WaterLevel_m < 0.4 & df_merge$method=="DSM",]$WaterLevel_m <- NA
 
+df_merge <- df_merge%>%filter(WaterLevel_m<1.5)
+
 ggplot(data = df_merge%>%filter(WaterLevel_m<1)%>%filter(WaterLevel_m>=-.01)
        , aes(x = WaterLevel_m, y = Area, color=method)) + 
   geom_point(size=3)
@@ -82,39 +84,63 @@ ggplot(data = df_merge%>%filter(depth_ave_m<1)%>%filter(depth_ave_m>=0)
        , aes(x = depth_ave_m, y = Area, color=method)) + 
   geom_point(size=3)
 
+#square root
+df_merge_low <- df_merge%>%filter(depth_ave_m<.9)
+modelsr_1<-lm(data=df_merge_low, Area~sqrt(depth_ave_m)+depth_ave_m-1)
+print(summary(modelsr_1))
 
-
-
-
-# y=a+b*ln(x) 
- #fit the model
- 
-df_1 <- df_merge
-#weight_values <- c(1,1,1,1,1,1)
-#df_1$WaterLevel_m_adjust <- df_1$WaterLevel_m -  df_1[5,"WaterLevel_m"]
-lm_log1p <- lm(Area~log1p(depth_ave_m)-1, data=df_1#,weight=weight_values
-               )
-summary(lm_log1p)
-
-#plot
-
-x_exp <- seq(from = -.3, to = 0.6, by = .01)
+x_sr_1 <- seq(from = -.01, to = .9, by = .01)
 #y_exp = lm_log1p$coefficients[1] +  lm_log1p$coefficients[2] * log1p(x_exp)
-y_exp = lm_log1p$coefficients[1] * log1p(x_exp)
+y_sr_1 = modelsr_1$coefficients[1]*sqrt(x_sr_1) + modelsr_1$coefficients[2]*x_sr_1
 
-plot_ly(x = df_1$depth_ave_m, y=df_1$Area)%>%
+plot_ly(x = df_merge_low$depth_ave_m, y=df_merge_low$Area)%>%
   add_markers(size=4)%>%
-  add_lines(x = x_exp, y=y_exp)
-#
+  add_lines(x = x_sr_1, y=y_sr_1)
 
-df_1$WaterLevel_m_adjust <- df_1$WaterLevel_m -  df_1[5,"WaterLevel_m"]
 
-lm_poly2 <- lm(data = df_1, formula = depth_ave_m ~ Area + I(Area^2)-1)
-summary(lm_poly2)
+## high values would be different... maybe linear??
+df_merge_high <- df_merge%>%filter(depth_ave_m>.4)
+modelsr_2<-lm(data=df_merge_high, Area~sqrt(depth_ave_m)+depth_ave_m)
+print(summary(modelsr))
 
-x_poly <- seq(from = -10, to = 5000, by = 1)
-y_poly =  lm_poly2$coefficients[1]*x_poly + lm_poly2$coefficients[2]*x_poly^2
+x_sr_2 <- seq(from = .3, to = 1.5, by = .01)
+#y_exp = lm_log1p$coefficients[1] +  lm_log1p$coefficients[2] * log1p(x_exp)
+y_sr_2 = modelsr_2$coefficients[1] + modelsr_2$coefficients[2]*sqrt(x_sr_2) + modelsr_2$coefficients[3]*x_sr_2
 
-plot_ly(x = df_1$Area, y=df_1$WaterLevel_m)%>%
+plot_ly(x = df_merge_high$depth_ave_m, y=df_merge_high$Area)%>%
   add_markers(size=4)%>%
-  add_lines(x = x_poly, y=y_poly)
+  add_lines(x = x_sr_2, y=y_sr_2)
+
+##together
+
+
+plot_ly(x = df_merge$depth_ave_m, y=df_merge$Area)%>%
+  add_lines(x=x_sr_1, y=y_sr_1)%>%
+  add_lines(x = x_sr_2, y=y_sr_2)%>%
+  add_markers(size=5)%>%
+  layout(
+    yaxis = list(title = "Surface Area (m^2)", titlefont = list(size = 20), tickfont = list(size = 20)),
+    xaxis = list(title = "Depth (m)", titlefont = list(size = 20), tickfont = list(size = 20))
+  )
+
+
+####THAT LOOKS GREAT
+intercept <- .3247
+WL_df_xero <- WL_df%>%filter(depth_ave_m==0)
+WL_df_xero$surface_area_m2 <- 0
+WL_df_low <- WL_df%>%filter(depth_ave_m<=intercept)
+WL_df_low$surface_area_m2 <- 
+  modelsr_1$coefficients[1] + 
+  modelsr_1$coefficients[2]*sqrt(WL_df_low$depth_ave_m) +
+  modelsr_1$coefficients[3]*WL_df_low$depth_ave_m
+WL_df_high <- WL_df%>%filter(depth_ave_m > intercept)
+WL_df_high$surface_area_m2 <- modelsr_2$coefficients[1] + 
+  modelsr_2$coefficients[2]*sqrt(WL_df_high$depth_ave_m) +
+  modelsr_2$coefficients[3]*WL_df_high$depth_ave_m
+
+WL_df_2 <- rbind(WL_df_xero,WL_df_low,WL_df_high)
+
+
+ggplot(data = WL_df_2#%>%filter(WaterLevel_m<1)%>%filter(WaterLevel_m>=-.01)
+       , aes(x = DateTime, y = surface_area_m2)) + 
+  geom_point(size=3)
