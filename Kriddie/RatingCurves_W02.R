@@ -101,7 +101,7 @@ plot_ly(x = df_merge_low$depth_ave_m, y=df_merge_low$Area)%>%
 ## high values would be different... maybe linear??
 df_merge_high <- df_merge%>%filter(depth_ave_m>.4)
 modelsr_2<-lm(data=df_merge_high, Area~sqrt(depth_ave_m)+depth_ave_m)
-print(summary(modelsr))
+print(summary(modelsr_2))
 
 x_sr_2 <- seq(from = .3, to = 1.5, by = .01)
 #y_exp = lm_log1p$coefficients[1] +  lm_log1p$coefficients[2] * log1p(x_exp)
@@ -126,21 +126,26 @@ plot_ly(x = df_merge$depth_ave_m, y=df_merge$Area)%>%
 
 ####THAT LOOKS GREAT
 intercept <- .3247
-WL_df_xero <- WL_df%>%filter(depth_ave_m==0)
-WL_df_xero$surface_area_m2 <- 0
 WL_df_low <- WL_df%>%filter(depth_ave_m<=intercept)
 WL_df_low$surface_area_m2 <- 
-  modelsr_1$coefficients[1] + 
-  modelsr_1$coefficients[2]*sqrt(WL_df_low$depth_ave_m) +
-  modelsr_1$coefficients[3]*WL_df_low$depth_ave_m
+  modelsr_1$coefficients[1]*sqrt(WL_df_low$depth_ave_m) +
+  modelsr_1$coefficients[2]*WL_df_low$depth_ave_m
 WL_df_high <- WL_df%>%filter(depth_ave_m > intercept)
-WL_df_high$surface_area_m2 <- modelsr_2$coefficients[1] + 
+WL_df_high$surface_area_m2 <- 
+  modelsr_2$coefficients[1] + 
   modelsr_2$coefficients[2]*sqrt(WL_df_high$depth_ave_m) +
   modelsr_2$coefficients[3]*WL_df_high$depth_ave_m
+  
 
-WL_df_2 <- rbind(WL_df_xero,WL_df_low,WL_df_high)
+WL_df_2 <- rbind(WL_df_low,WL_df_high)
 
 
 ggplot(data = WL_df_2#%>%filter(WaterLevel_m<1)%>%filter(WaterLevel_m>=-.01)
        , aes(x = DateTime, y = surface_area_m2)) + 
   geom_point(size=3)
+
+plot_ly(data=WL_df_2, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1)
+
+
+#write out final data frame
+#write.csv(WL_df_2, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland02_FINAL.csv"))
