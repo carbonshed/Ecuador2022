@@ -20,7 +20,7 @@ df$depth_ave_m <- df$WaterLevel_m + depth_diff
 
 
 #Add in DSM
-#df_DSM <- read.csv(here::here("Wetlands/W06_DSM_20221120.csv"))
+df_DSM <- read.csv(here::here("Wetlands/W07_DSM_20221120.csv"))
 
 df_merge1 <- df%>%select(c(depth_ave_m,Area))
 df_merge1$method <- "Manual"
@@ -34,22 +34,16 @@ ggplot(data = df_merge
        , aes(x = depth_ave_m, y = Area, color=method)) + 
   geom_point(size=3)
 
-#wow that looks amazing
-#we do need to adjust depth, we can set it to depth = 0 at the manual reading of surface area = 0
-#(this is only a cm off from our field depth measurements wich is pretty cool)
+#looks pretty good
+#But we do need to change the depth for the DSM to line up with the Manual. make a linear regression between the two points that fall on either side of our lowest manual measurment of area, then use that to offset
+#We will use 0 based on our field measurments of depth
+# Range 0 to 0.2841456
+#remember to set depth < than 0 to 0
 
-depth_diff_2 <- df_merge[df_merge$Area==0,]$depth_ave_m
-df_merge$depth_diff <- depth_diff_2
-df_merge$depth_ave_m <- df_merge$depth_ave_m - df_merge$depth_diff
-
-# dif between max and min depth: 0.4061234
-depth_diff_Final <- df[df$Area==0,]$WaterLevel_m
-WL_df$depth_diff_m <- depth_diff_Final
-WL_df$depth_ave_m <- WL_df$WaterLevel_m - WL_df$depth_diff_m
 
 ggplot(data = WL_df , aes(x=DateTime, y = depth_ave_m)) + geom_line(color="blue") +
-  geom_hline(yintercept=max(df$WaterLevel_m), linetype="dashed", color = "red")+ 
-  geom_hline(yintercept=min(df$WaterLevel_m), linetype="dashed", color = "red")+
+  geom_hline(yintercept=max(df$depth_ave_m), linetype="dashed", color = "red")+ 
+  geom_hline(yintercept=min(df$depth_ave_m), linetype="dashed", color = "red")+
   geom_vline(xintercept = df$DateTime, color = "black",linetype="dotted")
 
 ####################
