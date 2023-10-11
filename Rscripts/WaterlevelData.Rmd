@@ -481,7 +481,7 @@ WL_Wetland[WL_Wetland$Station == 'WL_Wetland02' &
 #wetland 04
 #Need to set depth to 0 when unde ___ water level
 
-#write.csv(WL_Wetland, here::here("Kriddie/WL_Wetland_ALL.csv"))
+write.csv(WL_Wetland, here::here("Kriddie/WL_Wetland_ALL.csv"))
 
 ```
 
