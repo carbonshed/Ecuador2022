@@ -5,6 +5,10 @@ library(dplyr)
 library(ggplot2)
 library(plotly)
 
+#notes
+#remove 10/19/22 from W08 rating curve because part of the image was cut off
+
+
 Station_name <- "WL_Wetland08"
 
 WL_df <- read.csv(here::here("Kriddie/WL_Wetland_ALL.csv"))
@@ -20,8 +24,12 @@ df$depth_ave_m <- df$WaterLevel_m + depth_diff
 
 
 #Add in DSM
-#df_DSM <- read.csv(here::here("Wetlands/W06_DSM_20221120.csv"))
 
+#W08_20221202
+#0.100970000000022*0.1009700000001
+
+
+#df_DSM <- read.csv(here::here("Wetlands/W06_DSM_20221120.csv"))
 df_merge1 <- df%>%select(c(depth_ave_m,Area))
 df_merge1$method <- "Manual"
 df_merge2 <- df_DSM%>%select(c(WaterLevel_m,Total_Surface_aream2))

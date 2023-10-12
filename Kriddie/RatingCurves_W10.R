@@ -5,6 +5,9 @@ library(dplyr)
 library(ggplot2)
 library(plotly)
 
+#I didn't take home some of the polygons that Dani made of w10. 
+#so maybe I'll need to go back and do this before rating curve is complete
+
 Station_name <- "WL_Wetland10"
 
 WL_df <- read.csv(here::here("Kriddie/WL_Wetland_ALL.csv"))
@@ -20,6 +23,10 @@ df$depth_ave_m <- df$WaterLevel_m + depth_diff
 
 
 #Add in DSM
+
+#raster pixel size:
+#0.0368699999999658*0.0368700000022459
+
 #df_DSM <- read.csv(here::here("Wetlands/W06_DSM_20221120.csv"))
 
 df_merge1 <- df%>%select(c(depth_ave_m,Area))

@@ -20,6 +20,11 @@ df$depth_ave_m <- df$WaterLevel_m + depth_diff
 
 
 #Add in DSM
+
+#raster size:
+
+# 0.0435699999998178*0.0435699999993928
+
 #df_DSM <- read.csv(here::here("Wetlands/W06_DSM_20221120.csv"))
 
 df_merge1 <- df%>%select(c(depth_ave_m,Area))
