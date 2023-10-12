@@ -29,7 +29,7 @@ df$depth_ave_m <- df$WaterLevel_m + depth_diff
 #0.100970000000022*0.1009700000001
 
 
-#df_DSM <- read.csv(here::here("Wetlands/W06_DSM_20221120.csv"))
+#df_DSM <- read.csv(here::here("Wetlands/DSM_W08_20221202.csv"))
 df_merge1 <- df%>%select(c(depth_ave_m,Area))
 df_merge1$method <- "Manual"
 df_merge2 <- df_DSM%>%select(c(WaterLevel_m,Total_Surface_aream2))
@@ -93,4 +93,4 @@ plot_ly(data=WL_df_2, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1
 
 
 #write out final data frame
-#write.csv(WL_df_3, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland06_FINAL.csv"))
+#write.csv(WL_df_3, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland08_FINAL.csv"))

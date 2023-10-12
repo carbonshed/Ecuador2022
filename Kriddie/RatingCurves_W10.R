@@ -27,7 +27,7 @@ df$depth_ave_m <- df$WaterLevel_m + depth_diff
 #raster pixel size:
 #0.0368699999999658*0.0368700000022459
 
-#df_DSM <- read.csv(here::here("Wetlands/W06_DSM_20221120.csv"))
+#df_DSM <- read.csv(here::here("Wetlands/DSM_W10_20220927.csv"))
 
 df_merge1 <- df%>%select(c(depth_ave_m,Area))
 df_merge1$method <- "Manual"
@@ -92,4 +92,4 @@ plot_ly(data=WL_df_2, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1
 
 
 #write out final data frame
-write.csv(WL_df_3, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland06_FINAL.csv"))
+#write.csv(WL_df_3, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland10_FINAL.csv"))
