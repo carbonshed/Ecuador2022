@@ -35,11 +35,21 @@ ggplot(data = df_merge
   geom_point(size=3)
 
 #looks pretty good
-#But we do need to change the depth for the DSM to line up with the Manual. make a linear regression between the two points that fall on either side of our lowest manual measurment of area, then use that to offset
+#But we do need to change the depth for the DSM to line up with the Manual.
+# 1. make a linear regression between the two points that fall on either side of our lowest manual measurment of area, then use that to offset
 #We will use 0 based on our field measurments of depth
 # Range 0 to 0.2841456
 #remember to set depth < than 0 to 0
 
+# 1. y=mx+b
+slope <- (646.61771600-589.41352950)/(0.488845242-0.438845242)
+b <- 646.61771600 - slope * 0.488845242
+# 2. where would the lowest manually collected point fall on line?
+sample_y <- 604.13267100
+sample_x <- (sample_y-b)/slope
+diff <- sample_x - 0.004083008
+
+df_merge[df_merge$method=="DSM",]$depth_ave_m <- df_merge[df_merge$method=="DSM",]$depth_ave_m - diff
 
 ggplot(data = WL_df , aes(x=DateTime, y = depth_ave_m)) + geom_line(color="blue") +
   geom_hline(yintercept=max(df$depth_ave_m), linetype="dashed", color = "red")+ 
@@ -51,15 +61,26 @@ ggplot(data = WL_df , aes(x=DateTime, y = depth_ave_m)) + geom_line(color="blue"
 ####################
 ggplot(data = df , aes(x = depth_ave_m, y = Area, color=Date)) + 
   geom_point(size=3)
-ggplot(data = df_merge , aes(x = depth_ave_m, y = Area, color=method)) + 
+ggplot(data = df_merge, aes(x = depth_ave_m, y = Area, color=method)) + 
   geom_point(size=3)
 
-df_merge_1 <- df_merge%>%filter(depth_ave_m<.5)
+##
+#now we take all the dsm points that are higher than the highest manual point
+df_merge_1 <- df_merge%>%filter(Area > 625|depth_ave_m < -1|method=="Manual")%>%
+  filter(depth_ave_m<=0.2841456
+)
+
+ggplot(data = df_merge_1 , aes(x = depth_ave_m, y = Area, color=method)) + 
+  geom_point(size=3)
+
+
+
+##model
 
 modelsr_1<-lm(data=df_merge_1, Area~sqrt(depth_ave_m)+depth_ave_m-1)
 print(summary(modelsr_1))
 
-x_sr_1 <- seq(from = 0, to = .5, by = .01)
+x_sr_1 <- seq(from = 0, to = .25, by = .01)
 #y_exp = lm_log1p$coefficients[1] +  lm_log1p$coefficients[2] * log1p(x_exp)
 y_sr_1 = modelsr_1$coefficients[1]*sqrt(x_sr_1) + modelsr_1$coefficients[2]*x_sr_1
 
@@ -71,6 +92,7 @@ plot_ly(x = df_merge_1$depth_ave_m, y=df_merge_1$Area)%>%
 ##Formula!
 WL_df_low <- WL_df%>%filter(depth_ave_m<=0)
 WL_df_low$surface_area_m2 <- 0
+WL_df_low$depth_ave_m <- 0
 WL_df_high <- WL_df%>%filter(depth_ave_m>0)
 WL_df_high$surface_area_m2 <- 
   modelsr_1$coefficients[1]*sqrt(WL_df_high$depth_ave_m) +
@@ -78,17 +100,12 @@ WL_df_high$surface_area_m2 <-
 
 WL_df_2 <- rbind(WL_df_low,WL_df_high)
 
-WL_df_low <- WL_df%>%filter(depth_ave_m<=0)
-WL_df_low$depth_ave_m <- 0
-WL_df_high <- WL_df%>%filter(depth_ave_m>0)
 
-WL_df_3 <- rbind(WL_df_low,WL_df_high)
-
-ggplot(data = WL_df_3, aes(x = DateTime, y = depth_ave_m)) + 
+ggplot(data = WL_df_2, aes(x = DateTime, y = depth_ave_m)) + 
   geom_point(size=1)
 
 plot_ly(data=WL_df_2, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1)
 
 
 #write out final data frame
-#write.csv(WL_df_3, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland06_FINAL.csv"))
+write.csv(WL_df_2, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland07_FINAL.csv"))
