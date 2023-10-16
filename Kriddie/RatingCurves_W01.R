@@ -13,7 +13,7 @@ WL_df$DateTime <- as.POSIXct(WL_df$DateTime, format="%Y-%m-%d %H:%M",tz="UTC")
 
 df <- read.csv(here::here("Wetlands/SurfaceArea_df.csv"))
 df <- df%>%select(Station,Date,Time_recoreded,Time_used,WaterLevel_m,Area,WLTemp_c)
-df$Date <- as.Date(df$Date)
+#df$Date <- as.Date(df$Date)
 df$DateTime <- as.POSIXct(paste(df$Date,df$Time_used),format="%Y-%m-%d %H:%M",tz="UTC")
 df <- df%>%filter(Station == Station_name)
 

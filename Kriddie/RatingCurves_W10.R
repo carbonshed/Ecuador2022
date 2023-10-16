@@ -27,7 +27,7 @@ df$depth_ave_m <- df$WaterLevel_m + depth_diff
 #raster pixel size:
 #0.0368699999999658*0.0368700000022459
 
-#df_DSM <- read.csv(here::here("Wetlands/DSM_W10_20220927.csv"))
+df_DSM <- read.csv(here::here("Wetlands/DSM_W10_20220927.csv"))
 
 df_merge1 <- df%>%select(c(depth_ave_m,Area))
 df_merge1$method <- "Manual"
@@ -54,6 +54,31 @@ ggplot(data = df , aes(x = depth_ave_m, y = Area, color=Date)) +
   geom_point(size=3)
 ggplot(data = df_merge , aes(x = depth_ave_m, y = Area, color=method)) + 
   geom_point(size=3)
+
+##
+#wetland never dry, so use depth measured in field
+#adjust DSM to depth
+#lets use the middle measurment and fit it to the line between the higher and lower dsm measurments
+# 1. y=mx+b
+slope <- (61.35909788-45.83478528)/(0.3700000-0.3300000)
+b <- 61.35909788 - slope * 0.3700000
+# 2. only one DSM vaile falls in middle of manually collected values
+sample_y <- 55.00000000
+sample_x <- (sample_y-b)/slope
+diff <- sample_x - 0.2687941
+
+df_merge_1 <- df_merge
+
+df_merge_1[df_merge_1$method=="DSM",]$depth_ave_m <- df_merge_1[df_merge_1$method=="DSM",]$depth_ave_m - diff
+
+ggplot(data = df_merge_1 , aes(x = depth_ave_m, y = Area, color=method)) + 
+  geom_point(size=3)
+
+#difference in highest and lowest measurments
+# 0.3703696-0.2917575
+df_merge_1 <- df_merge_1%>%filter(depth_ave_m>.25&depth_ave_m<0.4)
+
+
 
 df_merge_1 <- df_merge%>%filter(depth_ave_m<.5)
 
