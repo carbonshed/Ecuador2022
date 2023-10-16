@@ -5,6 +5,8 @@ library(dplyr)
 library(ggplot2)
 library(plotly)
 
+#you can use peggy's data to make another polygon
+
 Station_name <- "WL_Wetland11"
 
 WL_df <- read.csv(here::here("Kriddie/WL_Wetland_ALL.csv"))
