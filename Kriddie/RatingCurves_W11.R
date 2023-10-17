@@ -21,20 +21,7 @@ depth_diff <- WL_df[1,]$depth_diff_m
 df$depth_ave_m <- df$WaterLevel_m + depth_diff
 
 
-#Add in DSM
-#df_DSM <- read.csv(here::here("Wetlands/W06_DSM_20221120.csv"))
-
-df_merge1 <- df%>%select(c(depth_ave_m,Area))
-df_merge1$method <- "Manual"
-df_merge2 <- df_DSM%>%select(c(WaterLevel_m,Total_Surface_aream2))
-colnames(df_merge2) <- c("depth_ave_m","Area")
-df_merge2$method <- "DSM"
-df_merge <- rbind(df_merge1,df_merge2)
-df_merge <- df_merge%>%filter(depth_ave_m<1)
-
-ggplot(data = df_merge
-       , aes(x = depth_ave_m, y = Area, color=method)) + 
-  geom_point(size=3)
+#i think, lets not worry about DSM. Too hard for this one
 
 
 ggplot(data = WL_df , aes(x=DateTime, y = depth_ave_m)) + geom_line(color="blue") +
@@ -50,37 +37,20 @@ ggplot(data = df , aes(x = depth_ave_m, y = Area, color=Date)) +
 #ggplot(data = df_merge , aes(x = depth_ave_m, y = Area, color=method)) + 
 #  geom_point(size=3)
 
-#i think, lets not worry about DSM. Too hard for this one
 
-##maybe linear is best
 #maybe log is best???
-
 df_merge_1 <- df
 
-modelsr_1<-lm(data=df_merge_1, Area~sqrt(depth_ave_m)+depth_ave_m)
-print(summary(modelsr_1))
-
-x_sr_1 <- seq(from = .1, to = .3, by = .01)
-y_exp = lm_log1p$coefficients[1] +  lm_log1p$coefficients[2] * log1p(x_exp)
-#y_sr_1 = modelsr_1$coefficients[1] + modelsr_1$coefficients[2]*sqrt(x_sr_1) + modelsr_1$coefficients[3]*x_sr_1
-
-plot_ly(x = df_merge_1$depth_ave_m, y=df_merge_1$Area)%>%
-  add_markers(size=4)%>%
-  add_lines(x = x_sr_1, y=y_sr_1)
-
-###linear
-df_merge_1 <- df
-
-
-modelln_1<-lm(data=df_merge_1, Area~depth_ave_m)
+modelln_1<-lm(data=df_merge_1, Area~log(depth_ave_m))
 print(summary(modelln_1))
 
-x_ln_1 <- seq(from = .1, to = .3, by = .01)
-y_ln_1 = modelln_1$coefficients[1] + modelln_1$coefficients[2]*x_ln_1
+x_exp <- seq(from = .1, to = .5, by = .01)
+y_exp = modelln_1$coefficients[1] +  modelln_1$coefficients[2] * log(x_exp)
 
 plot_ly(x = df_merge_1$depth_ave_m, y=df_merge_1$Area)%>%
   add_markers(size=4)%>%
-  add_lines(x = x_ln_1, y=y_ln_1)
+  add_lines(x = x_exp, y=y_exp)
+
 
 
 ##Formula!
@@ -88,13 +58,13 @@ plot_ly(x = df_merge_1$depth_ave_m, y=df_merge_1$Area)%>%
 WL_df_2 <- WL_df
 WL_df_2$surface_area_m2 <- 
   modelln_1$coefficients[1] +
-  modelln_1$coefficients[2]*WL_df_2$depth_ave_m
+  modelln_1$coefficients[2]*log(WL_df_2$depth_ave_m)
 
-ggplot(data = WL_df_3, aes(x = DateTime, y = depth_ave_m)) + 
+ggplot(data = WL_df_2, aes(x = DateTime, y = depth_ave_m)) + 
   geom_point(size=1)
 
 plot_ly(data=WL_df_2, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1)
 
 
 #write out final data frame
-#write.csv(WL_df_3, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland11_FINAL.csv"))
+#write.csv(WL_df_2, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland11_FINAL.csv"))
