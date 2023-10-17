@@ -26,7 +26,7 @@ ggplot(data = WL_df , aes(x=DateTime, y = WaterLevel_m)) + geom_line(color="blue
 #we have to assume this is the case at the lowest and highest water levels
 
 #####Rating curve
-# straight line :(
+# straight line
 surface_area <- mean(df$Area)
 
 
@@ -50,6 +50,17 @@ count(WL_df%>%filter(WaterLevel_m > max(df$WaterLevel_m,na.rm = TRUE) |
   WaterLevel_m < min(df$WaterLevel_m,na.rm = TRUE))) / count(WL_df%>%na.omit(WaterLevel_m)) * 100
 
 
- 
+#formula 
+WL_df$surface_area_m2 <- surface_area
+
+#surface are to volumn ratio
+WL_df$Volumn_m3 <- WL_df$surface_area_m2*WL_df$depth_ave_m
+WL_df$SA_to_Vol_ratio <- WL_df$surface_area_m2/WL_df$Volumn_m3
+
+
+
+#write out final data frame
+write.csv(WL_df, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland01_FINAL.csv"))
+
  
  

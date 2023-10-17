@@ -59,5 +59,31 @@ ggplot(data = df, aes(x = WaterLevel_m, y = Area, color=Date)) +
   geom_point(size=3)
 
 #look at highest wl area again, but for now, it looks like this should be a straight line :(
-surface_area <- mean(df$Area)
-s
+
+
+#formula 
+WL_df$surface_area_m2 <- surface_area
+
+#surface are to volumn ratio
+WL_df$Volumn_m3 <- WL_df$surface_area_m2*WL_df$depth_ave_m
+WL_df$SA_to_Vol_ratio <- WL_df$surface_area_m2/WL_df$Volumn_m3
+
+
+
+
+#surface are to volumn ratio
+WL_df_2$Volumn_m3 <- WL_df_2$surface_area_m2*WL_df_2$depth_ave_m
+WL_df_2$SA_to_Vol_ratio <- WL_df_2$surface_area_m2/WL_df_2$Volumn_m3
+
+ggplot(data = WL_df_2, aes(x = DateTime, y = depth_ave_m)) + 
+  geom_point(size=1)
+
+ggplot(data = WL_df_2, aes(x = DateTime, y = surface_area_m2)) + 
+  geom_point(size=1)
+
+ggplot(data = WL_df_2, aes(x = DateTime, y = Volumn_m3)) + 
+  geom_point(size=1)
+
+plot_ly(data=WL_df_2, x = ~DateTime, y = ~SA_to_Vol_ratio)#%>%add_markers(size=1)
+
+
