@@ -33,6 +33,23 @@ ggplot(data = WL_df , aes(x=DateTime, y = WaterLevel_m)) + geom_line(color="blue
 count(WL_df%>%filter(WaterLevel_m > max(df$WaterLevel_m,na.rm = TRUE) |
                        WaterLevel_m < min(df$WaterLevel_m,na.rm = TRUE))) / count(WL_df%>%na.omit(WaterLevel_m)) * 100
 
+
+
+#Add in DSM
+#pixel size 0.0390099999999868*0.039009999999101
+df_DSM <- read.csv(here::here("Wetlands/W03_DSM_20221101.csv"))
+
+df_merge1 <- df%>%select(c(depth_ave_m,Area))
+df_merge1$method <- "Manual"
+df_merge2 <- df_DSM%>%select(c(WaterLevel_m,Total_Surface_aream2))
+colnames(df_merge2) <- c("depth_ave_m","Area")
+df_merge2$method <- "DSM"
+df_merge <- rbind(df_merge1,df_merge2)
+df_merge <- df_merge%>%filter(depth_ave_m<1)
+
+ggplot(data = df_merge
+       , aes(x = depth_ave_m, y = Area, color=method)) + 
+  geom_point(size=3)
 ##
 ggplot(data = df, aes(x = WaterLevel_m, y = Area, color=Date)) + 
    geom_point(size=3)

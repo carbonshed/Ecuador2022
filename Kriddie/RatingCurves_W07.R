@@ -81,7 +81,6 @@ modelsr_1<-lm(data=df_merge_1, Area~sqrt(depth_ave_m)+depth_ave_m-1)
 print(summary(modelsr_1))
 
 x_sr_1 <- seq(from = 0, to = .25, by = .01)
-#y_exp = lm_log1p$coefficients[1] +  lm_log1p$coefficients[2] * log1p(x_exp)
 y_sr_1 = modelsr_1$coefficients[1]*sqrt(x_sr_1) + modelsr_1$coefficients[2]*x_sr_1
 
 plot_ly(x = df_merge_1$depth_ave_m, y=df_merge_1$Area)%>%
@@ -100,12 +99,22 @@ WL_df_high$surface_area_m2 <-
 
 WL_df_2 <- rbind(WL_df_low,WL_df_high)
 
+#surface are to volumn ratio
+WL_df_2$Volumn_m3 <- WL_df_2$surface_area_m2*WL_df_2$depth_ave_m
+WL_df_2$SA_to_Vol_ratio <- WL_df_2$surface_area_m2/WL_df_2$Volumn_m3
 
 ggplot(data = WL_df_2, aes(x = DateTime, y = depth_ave_m)) + 
-  geom_point(size=1)
+  geom_point(size=3)
 
-plot_ly(data=WL_df_2, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1)
+ggplot(data = WL_df_2, aes(x = DateTime, y = Volumn_m3)) + 
+  geom_point(size=3)
+
+ggplot(data = WL_df_2, aes(x = DateTime, y = surface_area_m2)) + 
+  geom_point(size=3)
+
+
+plot_ly(data=WL_df_2, x = ~DateTime, y = ~SA_to_Vol_ratio)#%>%add_markers(size=1)
 
 
 #write out final data frame
-#write.csv(WL_df_2, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland07_FINAL.csv"))
+write.csv(WL_df_2, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland07_FINAL.csv"))

@@ -139,10 +139,19 @@ WL_df_high$surface_area_m2 <-
 
 WL_df_2 <- rbind(WL_df_low,WL_df_high)
 
+#surface are to volumn ratio
+WL_df_2$Volumn_m3 <- WL_df_2$surface_area_m2*WL_df_2$depth_ave_m
+WL_df_2$SA_to_Vol_ratio <- WL_df_2$surface_area_m2/WL_df_2$Volumn_m3
 
-ggplot(data = WL_df_2#%>%filter(WaterLevel_m<1)%>%filter(WaterLevel_m>=-.01)
-       , aes(x = DateTime, y = surface_area_m2)) + 
+ggplot(data = WL_df_2, aes(x = DateTime, y = depth_ave_m)) + 
   geom_point(size=3)
+
+ggplot(data = WL_df_2, aes(x = DateTime, y = Volumn_m3)) + 
+  geom_point(size=3)
+
+ggplot(data = WL_df_2, aes(x = DateTime, y = SA_to_Vol_ratio)) + 
+  geom_point(size=3)
+
 
 plot_ly(data=WL_df_2, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1)
 

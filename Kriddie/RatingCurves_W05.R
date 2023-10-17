@@ -93,11 +93,22 @@ WL_df_high$surface_area_m2 <- lm_ln$coefficients[1] + lm_ln$coefficients[2]*log(
 
 WL_df_2 <- rbind(WL_df_low,WL_df_high)
 
-ggplot(data = WL_df_2, aes(x = DateTime, y = surface_area_m2)) + 
-  geom_point(size=1)
+#surface are to volumn ratio
+WL_df_2$Volumn_m3 <- WL_df_2$surface_area_m2*WL_df_2$depth_ave_m
+WL_df_2$SA_to_Vol_ratio <- WL_df_2$surface_area_m2/WL_df_2$Volumn_m3
+
+ggplot(data = WL_df_2, aes(x = DateTime, y = depth_ave_m)) + 
+  geom_point(size=2)
+
+ggplot(data = WL_df_2, aes(x = DateTime, y = Volumn_m3)) + 
+  geom_point(size=2)
+
+ggplot(data = WL_df_2, aes(x = DateTime, y = SA_to_Vol_ratio)) + 
+  geom_point(size=2)
+
 
 plot_ly(data=WL_df_2, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1)
 
 
 #write out final data frame
-write.csv(WL_df_2, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland05_FINAL.csv"))
+#write.csv(WL_df_2, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland05_FINAL.csv"))

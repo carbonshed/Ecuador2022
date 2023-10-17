@@ -87,13 +87,23 @@ WL_df_depthover0 <- WL_df_2%>%filter(depth_ave_m>0)
 
 WL_df_3 <- rbind(WL_df_depth0,WL_df_depthover0)
 
-ggplot(data = WL_df_3#%>%filter(WaterLevel_m<1)%>%filter(WaterLevel_m>=-.01)
-       , aes(x = DateTime, y = depth_ave_m)) + 
+
+#surface are to volumn ratio
+WL_df_3$Volumn_m3 <- WL_df_3$surface_area_m2*WL_df_3$depth_ave_m
+WL_df_3$SA_to_Vol_ratio <- WL_df_3$surface_area_m2/WL_df_3$Volumn_m3
+
+ggplot(data = WL_df_3, aes(x = DateTime, y = depth_ave_m)) + 
   geom_point(size=3)
 
-plot_ly(data=WL_df_2, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1)
+ggplot(data = WL_df_3, aes(x = DateTime, y = Volumn_m3)) + 
+  geom_point(size=3)
 
+ggplot(data = WL_df_3, aes(x = DateTime, y = SA_to_Vol_ratio)) + 
+  geom_point(size=3)
+
+
+plot_ly(data=WL_df_3, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1)
 
 #write out final data frame
-write.csv(WL_df_3, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland04_FINAL.csv"))
+#write.csv(WL_df_3, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland04_FINAL.csv"))
 

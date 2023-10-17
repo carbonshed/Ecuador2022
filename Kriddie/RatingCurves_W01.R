@@ -22,6 +22,21 @@ ggplot(data = WL_df , aes(x=DateTime, y = WaterLevel_m)) + geom_line(color="blue
   geom_hline(yintercept=min(df$WaterLevel_m), linetype="dashed", color = "red")+
   geom_vline(xintercept = df$DateTime, color = "black",linetype="dotted")
 
+#don't use DSM for this one. seems like AREA doesn't change much when depth changes
+#we have to assume this is the case at the lowest and highest water levels
+
+#####Rating curve
+# straight line :(
+surface_area <- mean(df$Area)
+
+
+ggplot(data = df_merge
+       , aes(x = depth_ave_m, y = Area, color=method)) + 
+  geom_point(size=3)
+##
+ggplot(data = df, aes(x = WaterLevel_m, y = Area, color=Date)) + 
+  geom_point(size=3)
+
 #percent change water level 
 (max(WL_df$WaterLevel_m,na.rm = TRUE)-min(WL_df$WaterLevel_m,na.rm = TRUE))/
   (max(WL_df$WaterLevel_m,na.rm = TRUE)+min(WL_df$WaterLevel_m,na.rm = TRUE))/2 * 100
@@ -35,13 +50,6 @@ count(WL_df%>%filter(WaterLevel_m > max(df$WaterLevel_m,na.rm = TRUE) |
   WaterLevel_m < min(df$WaterLevel_m,na.rm = TRUE))) / count(WL_df%>%na.omit(WaterLevel_m)) * 100
 
 
-
-#####Rating curve
- ggplot(data = df, aes(x = WaterLevel_m, y = Area, color=Date)) + 
-   geom_point(size=3)
-
- #look at highest wl area again, but for now, it looks like this should be a straight line :(
- surface_area <- mean(df$Area)
  
  
  
