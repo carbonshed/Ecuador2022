@@ -402,9 +402,9 @@ plot the water level and water temp for the entire day
 
 ```{r select time, echo=FALSE}
 #enter wetland dataframe
-wetland <- "WL_Wetland02" # example: WL_Wetland01, WL_Wetland02
+wetland <- "WL_Wetland06" # example: WL_Wetland01, WL_Wetland02
 #enter date of collection
-date <- "2023-01-28"
+date <- "2022-10-15"
 
 #code below extract desired wetland, do not change
 wetland_data <- WL_Wetland%>%filter(Station==wetland)
@@ -421,14 +421,14 @@ plot_ly(data=wetland_data %>%
   x=~DateTime,y=~WLTemp_c)
 #Most likely during the sample period there is data missing or the numbers look very different from before and after sampling. This is because we pulled up and downloaded the logger during the same time - changing both the pressure and temperature
 #select an hour time period just before logger was downloaded. 
-DateTime_BEFORE <- "2022-12-02 12:30:00"
-DateTime_AFTER <- "2022-12-02 13:00:00"
+DateTime_BEFORE <- "2022-10-15 11:00:00"
+DateTime_AFTER <- "2022-10-15 12:30:00"
 #calculate average
 ave <- wetland_data %>%
   filter(DateTime >= as.POSIXct(DateTime_BEFORE, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
   filter(DateTime <= as.POSIXct(DateTime_AFTER, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  summarize(WaterlLevel_mean = mean(WaterLevel_m),
-            WaterTemp_mean = mean(WLTemp_c))
+  summarize(WaterlLevel_mean = mean(WaterLevel_m, na.rm=TRUE),
+            WaterTemp_mean = mean(WLTemp_c, na.rm=TRUE))
 print(ave)
 
 ```

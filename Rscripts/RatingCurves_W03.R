@@ -15,10 +15,12 @@ df <- read.csv(here::here("Wetlands/SurfaceArea_df.csv"))
 df <- df%>%select(Station,Date,Time_recoreded,Time_used,WaterLevel_m,Area,WLTemp_c)
 df$DateTime <- as.POSIXct(paste(df$Date,df$Time_used),format="%m/%d/%Y %H:%M",tz="UTC")
 df <- df%>%filter(Station == Station_name)
+depth_diff <- WL_df[1,]$depth_diff_m
+df$depth_ave_m <- df$WaterLevel_m + depth_diff
 
-ggplot(data = WL_df , aes(x=DateTime, y = WaterLevel_m)) + geom_line(color="blue") +
-  geom_hline(yintercept=max(df$WaterLevel_m), linetype="dashed", color = "red")+ 
-  geom_hline(yintercept=min(df$WaterLevel_m), linetype="dashed", color = "red")+
+ggplot(data = WL_df , aes(x=DateTime, y = depth_ave_m)) + geom_line(color="blue") +
+  geom_hline(yintercept=max(df$depth_ave_m), linetype="dashed", color = "red")+ 
+  geom_hline(yintercept=min(df$depth_ave_m), linetype="dashed", color = "red")+
   geom_vline(xintercept = df$DateTime, color = "black",linetype="dotted")
 
 #percent change water level 
@@ -62,28 +64,26 @@ ggplot(data = df, aes(x = WaterLevel_m, y = Area, color=Date)) +
 
 
 #formula 
-WL_df$surface_area_m2 <- surface_area
+WL_df$surface_area_m2 <- mean(df$Area, na.rm=TRUE)
 
 #surface are to volumn ratio
 WL_df$Volumn_m3 <- WL_df$surface_area_m2*WL_df$depth_ave_m
 WL_df$SA_to_Vol_ratio <- WL_df$surface_area_m2/WL_df$Volumn_m3
 
 
-
-
-#surface are to volumn ratio
-WL_df_2$Volumn_m3 <- WL_df_2$surface_area_m2*WL_df_2$depth_ave_m
-WL_df_2$SA_to_Vol_ratio <- WL_df_2$surface_area_m2/WL_df_2$Volumn_m3
-
-ggplot(data = WL_df_2, aes(x = DateTime, y = depth_ave_m)) + 
+ggplot(data = WL_df, aes(x = DateTime, y = depth_ave_m)) + 
   geom_point(size=1)
 
-ggplot(data = WL_df_2, aes(x = DateTime, y = surface_area_m2)) + 
+ggplot(data = WL_df, aes(x = DateTime, y = surface_area_m2)) + 
   geom_point(size=1)
 
-ggplot(data = WL_df_2, aes(x = DateTime, y = Volumn_m3)) + 
+ggplot(data = WL_df, aes(x = DateTime, y = Volumn_m3)) + 
   geom_point(size=1)
 
-plot_ly(data=WL_df_2, x = ~DateTime, y = ~SA_to_Vol_ratio)#%>%add_markers(size=1)
+plot_ly(data=WL_df, x = ~DateTime, y = ~SA_to_Vol_ratio)#%>%add_markers(size=1)
+
+
+#write out final data frame
+#write.csv(WL_df, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland03_FINAL.csv"))
 
 

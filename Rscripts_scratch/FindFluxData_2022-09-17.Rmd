@@ -49,7 +49,7 @@ ggplot(FluxData, aes(x=DateTime, y=Flux)) +
 #select day of sample
 ```{r Check sample day, echo=FALSE}
 #enter date of collection
-date <- "2022-07-27"
+date <- "2022-10-15"
 test <- FluxData%>%filter(Date==date)
 ggplot(FluxData%>%filter(Date==date),
        aes(x=DateTime, y=Flux)) +
@@ -59,18 +59,20 @@ ggplot(FluxData%>%filter(Date==date),
 
 #remember about daylight savings time
 The EOS was in EST and Ecuador was an hour behind
+This is already dealt with in the Wetland_flux.csv file
 
 ```{r select time, echo=FALSE}
 #enter date of collection
-date <- "2022-07-27"
+date_1 <- "2022-07-15"
+date_2 <- "2022-10-16"
 #enter start and end time that wetland was sampled
-time_START <- "08:55:00"
-time_END <- "09:20:00"
+time_START <- "08:00:00"
+time_END <- "18:00:00"
 
 
-plot_ly(data=FluxData%>%filter(Date==date)%>%
-  filter(DateTime > as.POSIXct(paste(date, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  filter(DateTime < as.POSIXct(paste(date, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
+plot_ly(data=FluxData%>%#filter(Date==date)%>%
+  filter(DateTime > as.POSIXct(paste(date_1, time_START), format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
+  filter(DateTime < as.POSIXct(paste(date_2, time_END), format="%Y-%m-%d %H:%M:%S", tz = "UTC")),
   x=~DateTime,y=~Flux)
  
 

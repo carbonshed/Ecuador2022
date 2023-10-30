@@ -41,12 +41,18 @@ df_merge[df_merge$WaterLevel_m < 0.4 & df_merge$method=="DSM",]$WaterLevel_m <- 
 
 df_merge <- df_merge%>%filter(WaterLevel_m<1.5)
 
+ggplot(data = df
+       , aes(x = WaterLevel_m, y = Area, color=Date)) + 
+  geom_point(size=3)+                                     
+  theme_bw(base_size = 16) 
+
 ggplot(data = df_merge%>%filter(WaterLevel_m<1)%>%filter(WaterLevel_m>=-.01)
        , aes(x = WaterLevel_m, y = Area, color=method)) + 
-  geom_point(size=3)
+  geom_point(size=3)+                                     
+  theme_bw(base_size = 16) 
 
 
-ggplot(data = WL_df , aes(x=DateTime, y = depth_ave_m)) + geom_line(color="blue", size=1) +
+ggplot(data = WL_df , aes(x=DateTime, y = WaterLevel_m)) + geom_line(color="blue", size=1) +
   geom_hline(yintercept=max(df$WaterLevel_m), linetype="dashed", color = "red",size=1)+ 
   geom_hline(yintercept=min(df$WaterLevel_m), linetype="dashed", color = "red",size=1)+
   geom_vline(xintercept = df$DateTime, color = "black",linetype="dotted",size=1)
@@ -155,6 +161,8 @@ ggplot(data = WL_df_2, aes(x = DateTime, y = SA_to_Vol_ratio)) +
 
 plot_ly(data=WL_df_2, x = ~DateTime, y = ~surface_area_m2)#%>%add_markers(size=1)
 
+#set temperature to na when depth == 0
+WL_df_2[WL_df_2$depth_ave_m==0,]$WLTemp_c <- NA
 
 #write out final data frame
-#write.csv(WL_df_2, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland02_FINAL.csv"))
+write.csv(WL_df_2, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland02_FINAL.csv"))

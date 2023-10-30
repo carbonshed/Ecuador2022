@@ -92,6 +92,8 @@ WL_df_3 <- rbind(WL_df_low,WL_df_high)
 #surface are to volumn ratio
 WL_df_3$Volumn_m3 <- WL_df_3$surface_area_m2*WL_df_3$depth_ave_m
 WL_df_3$SA_to_Vol_ratio <- WL_df_3$surface_area_m2/WL_df_3$Volumn_m3
+#set temperature to na when depth == 0
+WL_df_3[WL_df_3$depth_ave_m==0,]$WLTemp_c <- NA
 
 ggplot(data = WL_df_3, aes(x = DateTime, y = depth_ave_m)) + 
   geom_point(size=3)
@@ -99,12 +101,14 @@ ggplot(data = WL_df_3, aes(x = DateTime, y = depth_ave_m)) +
 ggplot(data = WL_df_3, aes(x = DateTime, y = Volumn_m3)) + 
   geom_point(size=3)
 
-ggplot(data = WL_df_3, aes(x = DateTime, y = surface_area_m2)) + 
+ggplot(data = WL_df_3, aes(x = DateTime, y = surface_area_m2))+ 
   geom_point(size=3)
 
+ggplot(data = WL_df_3, aes(x = DateTime, y = WLTemp_c)) + 
+  geom_point(size=3)
 
 plot_ly(data=WL_df_3, x = ~DateTime, y = ~SA_to_Vol_ratio)#%>%add_markers(size=1)
 
 
 #write out final data frame
-write.csv(WL_df_3, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland06_FINAL.csv"))
+#write.csv(WL_df_3, here::here("Wetlands/WaterLevel_FINAL/WL_Wetland06_FINAL.csv"))

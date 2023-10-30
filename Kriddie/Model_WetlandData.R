@@ -56,7 +56,7 @@ library(lubridate)
   #wetland size - GIS
 
 #read in data
-df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-08-01.csv"))
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-10-28.csv"))
 df$X <- NULL
 
 df$Date <- as.Date(df$Date)
@@ -69,31 +69,11 @@ df$Time <- as.POSIXct(df$Time_Baro, format = "%H:%M", tz = "UTC")
 #the assumption isn't on normality - the assumption is on the residculas
   #assumption is the *error* is  normaly distributed
 
-hist(df$CO2_ppm)
-hist(log(df$CO2_ppm))
+# Should we scale everything? I need to talk to stats people about this. Confused.
 
-df$CO2_ppm_scale <- scale(log(df$CO2_ppm),center=TRUE,scale=TRUE)
 
-df$precpt_scale <- scale(log(df$PrecipAccuDay_mm+1),center=TRUE,scale=TRUE)
-
-hist(df$PrecipAccuDay_mm)
-hist(log(df$PrecipAccuDay_mm))
-hist(df$winddirecion)
-
-plot(log(df$PrecipAccuDay_mm),df$Flux_umol_m2_s)
-
-df$winddirr_scale <- scale(df$winddirecion,center=TRUE,scale=TRUE)
-df$WindVelocity_scale <- scale(df$winddirecion,center=TRUE,scale=TRUE)
-#df$airwaterTemp_diff_scale <- scale(df$airwaterTemp_diff,center=TRUE,scale=TRUE)
-df$AirTemp_scale <- scale(df$AirTemp_c,center=TRUE,scale=TRUE)
-df$Watertemp_scale <- scale(df$Watertemp_c,center=TRUE,scale=TRUE)
-
-hist(df$CO2_ppm_scale)
-hist(df$AirTemp_scale)
-hist(df$airwaterTemp_diff_scale)
-hist(df$WindVelocity_scale)
-hist(df$winddirr_scale)
-hist(df$precpt_scale)
+#example:
+#df$CO2_ppm_scale <- scale(log(df$CO2_ppm),center=TRUE,scale=TRUE)
 
 #develop theory first, then make the model
 
@@ -109,34 +89,107 @@ hist(df$precpt_scale)
 #should I be testing for cross effects, or does that not apply in this case?
 #how do I interpret the model summary (both parts)?
 
-#predictions: precipitation effects CO2 concentration
+#drivers of flux - I predict will be CO2 and temperature (anything else?)
+  #water, air, and water-air temp differance is not significant. But of the three air/temp diff is the most signifcant, water temp is very not significant
+M1_1 <- lmer(Flux_umol_m2_s ~ scale(CO2_ppm) + (1 |Wetland),data=df%>%filter(Date<"2022-09-01") )
+summary(M1_1)
+M1_2 <- lmer(Flux_umol_m2_s ~ scale(CO2_ppm) + scale(airwaterTemp_diff) + (1 |Wetland),data=df%>%filter(Date<"2022-09-01") )
+summary(M1_2)
+
+
+#drivers of k
+M1_3 <- lmer(K600 ~ scale(AirTemp_c-Watertemp_c) +  (1 |Wetland),data=df%>%filter(Date<"2022-09-01") )
+summary(M1_3)
+M1_4 <- lmer(K600 ~ Watertemp_c +  (1 |Wetland),data=df%>%filter(Date<"2022-09-01" ))
+summary(M1_4)
+M1_4 <- lmer(log(K600) ~ log(AirTemp_c) +  (1 |Wetland),data=df%>%filter(Date<"2022-09-01" ))
+summary(M1_4)
+M1_4 <- lmer(log(K600) ~ log(AirPress_kpa) +  (1 |Wetland),data=df%>%filter(Date<"2022-09-01" ))
+summary(M1_4)
+
+M1_5 <- lmer(log(K600) ~ log(surface_area_m2) +  (1 |Wetland),data=df%>%filter(Date<"2022-09-01" ))
+summary(M1_5)
+stdCoef.merMod(M1_5)
+M1_6 <- lmer(k_m.d ~ windspeed_m_s +  (1 |Wetland),data=df%>%filter(Date<"2022-09-01" ) )
+summary(M1_6)
+M1_7 <- lmer(k_m.d ~ PrecipAccuDay_mm +  (1 |Wetland),data=df%>%filter(Date<"2022-09-01" ) )
+summary(M1_7)
+
+
+M1_8 <- lmer(k_m.d ~ scale(airwaterTemp_diff) + scale(PrecipAccuDay_mm) + scale(windspeed_m_s)+scale(surface_area_m2)+  (1 |Wetland),data=df )
+summary(M1_8)
+stdCoef.merMod(M1_8)
+M1_10 <- lmer(k_m.d ~ scale(airwaterTemp_diff) + scale(AirTemp_c) + scale(Watertemp_c) + (1 |Wetland),data=df )
+summary(M1_10)
+M1_9 <- lmer(K600 ~ scale(airwaterTemp_diff) + scale(surface_area_m2) +(1 |Wetland),data=df )
+summary(M1_9)
+
+
+####Controls on CO2
+#predictions: 
+#CO2 increases with temperature 
+#precipitation effects CO2 concentration because it dilutes the water (check previous day and week ave)
+#CO2 increases with depth vol ratio (check that and depth and surface area)
+
 ggplot(df,aes(x=PrecipAccuDay_mm,y=log(CO2_ppm), color = Wetland)) + geom_point(size=3) #+
+df$Precip_mm_ave7
+M1_11 <- lmer(log(CO2_ppm) ~ log(Precip_mm_ave7) + (1 |Wetland), data =df )
+summary(M1_11)
+M1_12 <- lmer(log(CO2_ppm) ~ log(waterTemp_c_yearly) + (1 |Wetland), data =df)
+M1_12 <- lmer(log(CO2_ppm) ~ log(waterTemp_c_summer) + (1 |Wetland), data =df%>%filter(Date<"2022-09-01"))
+M1_12 <- lm(log(CO2_ppm) ~ log(waterTemp_c_fall), data =df%>%filter(Date>"2022-09-01"))
+summary(M1_12)
 
-  
-M1A <- lm(CO2_ppm ~ PrecipAccuDay_mm, data =df)
-summary(M1A)
-M1B <- lmer(CO2_ppm ~ precpt_scale + (1 |Wetland),data=df)
-summary(M1B)
-summ(M1B)
-ranova(M1B)
+M1_13 <- lmer(log(CO2_ppm) ~ log(surface_area_yearly)+ (1 |Wetland), data =df )
+M1_13 <- lmer(log(CO2_ppm) ~log(surface_area_summer)+ (1 |Wetland), data =df%>%filter(Date<"2022-09-01") )
+M1_13 <- lm(log(CO2_ppm) ~ log(surface_area_fall), data =df%>%filter(Date>"2022-09-01"))
+summary(M1_13)
 
-#CO2 concentrations effect flux
+M1_13.1 <- lmer(log(CO2_ppm) ~ log(SA_to_Vol_ratio)+ (1 |Wetland), data =df )
+M1_13.1 <- lmer(log(CO2_ppm) ~ log(SA_to_Vol_ratio_yearly)+ (1 |Wetland), data =df )
+M1_13.1 <- lmer(log(CO2_ppm) ~log(SA_to_Vol_ratio_summer)+ (1 |Wetland), data =df%>%filter(Date<"2022-09-01") )
+M1_13.1 <- lm(log(CO2_ppm) ~ log(SA_to_Vol_ratio_fall), data =df%>%filter(Date>"2022-09-01"))
+summary(M1_13.1)
 
-ggplot(df,aes(x=CO2_ppm_scale,y=Flux_umol_m2_s, color = Wetland)) + geom_point(size=3) +
-  scale_colour_manual(values = rainbow(12))
-ggplot(df,aes(x=CO2_ppm_scale,y=log(Flux_umol_m2_s), color = Wetland)) + geom_point(size=3) +
-  scale_colour_manual(values = rainbow(12))
+M1_13.2 <- lmer(log(CO2_ppm) ~ log(Volumn_m3)+ (1 |Wetland), data =df )
+M1_13.2 <- lmer(log(CO2_ppm) ~ log(Volumn_m3_yearly)+ (1 |Wetland), data =df )
+M1_13.2 <- lmer(log(CO2_ppm) ~log(Volumn_m3_summer)+ (1 |Wetland), data =df%>%filter(Date<"2022-09-01") )
+M1_13.2 <- lm(log(CO2_ppm) ~ log(Volumn_m3_fall), data =df%>%filter(Date>"2022-09-01"))
+summary(M1_13.2)
 
-#M2A <- lmer(Flux_umol_m2_s ~ CO2_ppm_scale + (1|Wetland),data=df)
-M2B <- lmer(log(Flux_umol_m2_s + 1) ~ CO2_ppm_scale + (1|Wetland),data=df)
 
-M2B <- lmer(log(Flux_umol_m2_s + 1) ~ log(CO2_ppm) + (1|Wetland),data=df)
-summary(M2B)
-  #WHY THIS ERROR?? Am I supposed to get rid of of the random effect here?
-        #because loging negatives
-#summary(M2A)
-summary(M2B)
-stdCoef.merMod(M2B)
+
+M1_14 <- lmer(log(CO2_ppm) ~ log(waterTemp_c_summer)+ (1 |Wetland), data =df )
+summary(M1_14)
+
+M1_15 <- lmer(log(Flux_umol_m2_s) ~ log(AirPress_kpa) + (1 |Wetland),data=df#%>%filter(Date<"2022-09-01") 
+              )
+summary(M1_15)
+
+M1_15 <- lmer(log(CO2_ppm) ~ log(waterTemp_c_summer) +log(AirPress_kpa)+ (1 |Wetland),data=df%>%filter(Date<"2022-09-01") )
+summary(M1_15)
+
+
+##same but for CH4
+ggplot(df,aes(x=PrecipAccuDay_mm,y=log(CH4_umol.L), color = Wetland)) + geom_point(size=3) #+
+df$Precip_mm_ave7
+M1_11 <- lmer(CH4_umol.L ~ PrecipAccuDay_mm + (1 |Wetland), data =df )
+summary(M1_11)
+
+M1_12 <- lmer(CH4_umol.L ~ waterTemp_c_yearly + (1 |Wetland), data =df)
+M1_12 <- lmer(CH4_umol.L ~ waterTemp_c_summer + (1 |Wetland), data =df%>%filter(Date<"2022-09-01"))
+summary(M1_12)
+
+M1_13 <- lmer(CH4_umol.L ~ SA_to_Vol_ratio_summer+ (1 |Wetland), data =df )
+M1_13 <- lmer(CH4_umol.L ~ scale(SA_to_Vol_ratio_yearly)+ (1 |Wetland), data =df%>%filter(Date<"2022-09-01") )
+summary(M1_13)
+
+M1_14 <- lmer(log(CH4_umol.L) ~ log(surface_area_m2)+ (1 |Wetland), data =df )
+summary(M1_14)
+
+#relationship between water and air temp -- averages perhapes
+M1_15 <- lm(AirTemp_c ~ Watertemp_c, data =df )
+summary(M1_15)
 
 # interpret model
     #for random effects - if you have more than one random variable, you could for example say how much each grouping exmplain variance
@@ -159,95 +212,6 @@ stdCoef.merMod(M2B)
   #take square of predictor --> get to approximate value of how much that predictor explains variance in outcome variable
 
 
-##wind direction and velocity effect k
-# how to interpret these multiple regressors?
-#how do I decide how complicated my model should be?
-#does it matter what order these re in?
-
-#bar plots
-ggplot(data=df, aes(x=Wetland, y=k_m.d, fill=Date)) +
-  geom_bar(stat="identity", position=position_dodge())+ 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
-ggplot(data=df, aes(x=Date, y=k_m.d, fill=Wetland)) +
-  geom_bar(stat="identity", position=position_dodge())+ 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
-#scatter plot
-
-ggplot(df,aes(x=AirTemp_c,y=k_m.d, color = Wetland)) + geom_point(size=3) +
-  scale_colour_manual(values = rainbow(12)) #+ geom_smooth(method="lm)")
-ggplot(df,aes(x=airwaterTemp_diff,y=k_m.d, color = Wetland)) + geom_point(size=3) +
-  scale_colour_manual(values = rainbow(12))
-ggplot(df,aes(x=Watertemp_c,y=k_m.d, color = Wetland)) + geom_point(size=3) +
-  scale_colour_manual(values = rainbow(12))
-
-ggplot(df,
-       aes(x=winddirecion,y=k_m.d, color = Wetland)) + geom_point(size=3) +
-  scale_colour_manual(values = rainbow(12))
-
-ggplot(df%>%filter(Wetland!="wetland_1"|Wetland!="wetland_2"|Wetland!="wetland_3"),
-       aes(x=winddirecion,y=k_m.d, color = Wetland)) + geom_point(size=3) +
-  scale_colour_manual(values = rainbow(12))
-
-ggplot(df%>%filter(Wetland!="wetland_1"|Wetland!="wetland_2"|Wetland!="wetland_3"),
-       aes(x=winddirecion,y=k_m.d, color = Wetland)) + geom_point(size=3) +
-  scale_colour_manual(values = rainbow(12))
-
-ggplot(df%>%filter(Wetland=="wetland_1"|Wetland=="wetland_2"|Wetland=="wetland_3"),
-       aes(x=windspeed_m_s,y=k_m.d, color = Wetland)) + geom_point(size=3) +
-  scale_colour_manual(values = rainbow(12))
-
-ggplot(df%>%filter(Wetland=="wetland_11"),
-       aes(x=winddirecion,y=k_m.d, color = Wetland)) + geom_point(size=3) +
-  scale_colour_manual(values = rainbow(12))+
-  geom_smooth(method = "lm")
-
-#wind speed
-#positive: 01, 04, 05, 08, 10, 11, 12
-#negative: 02, 03, 06, 07, 09
-
-M3A <- lmer(k_m.d ~  winddirecion + (1|Wetland),data=df%>%
-              filter(Wetland=="wetland_10"|Wetland=="wetland_9"|Wetland=="wetland_08"))
-
-M3A <- lmer(k_m.d ~  windspeed_m_s + (1|Wetland),data=df%>%
-              filter(Wetland=="wetland_1"|Wetland=="wetland_4"|Wetland=="wetland_5"|
-                       Wetland=="wetland_8"|Wetland=="wetland_10"|Wetland=="wetland_11"|
-                       Wetland=="wetland_12"))
-
-M3A <- lmer(k_m.d ~ AirTemp_scale  +(1|Wetland), data=df)
-M3A <- lmer(k_m.d ~ windspeed_m_s  + (1|Wetland), data=df)
-L3 <- lm(k_m.d ~ winddirr_scale,data=df)
-M3A <- lmer(k_m.d ~ airwaterTemp_diff_scale  +(1|Wetland),data=df)
-M3A <- lmer(k_m.d ~ Watertemp_c  +(1|Wetland),data=df)
-M3A <- lmer(k_m.d ~ Watertemp_c + AirTemp_scale +(1|Wetland),data=df)
-
-summary(L3)
-summary(M3A)
-stdCoef.merMod(M3A)
-
-#air-wind effects k
-
-M4 <- lmer(k_m.d ~ airwaterTemp_diff_scale + (1|Wetland),data=df)
-M4 <- lmer(K600 ~ airwaterTemp_diff_scale + (1|Wetland),data=df)
-M4 <- lmer(k_m.d ~ AirTemp_scale + (1|Wetland),data=df)
-M4 <- lmer(K600 ~ AirTemp_scale + (1|Wetland),data=df)
-M4 <- lmer(k_m.d ~ Watertemp_scale + (1|Wetland),data=df)
-M4 <- lmer(K600 ~ Watertemp_scale + (1|Wetland),data=df)
-M4 <- lmer(k_m.d ~ Watertemp_scale + AirTemp_scale  + airwaterTemp_diff_scale +(1|Wetland),data=df)
-M4 <- lmer(k_m.d ~ Watertemp_scale + AirTemp_scale  + airwaterTemp_diff_scale +(1|Wetland),data=df)
-
- 
-summary(M4)
-stdCoef.merMod(M4)
-
-### 
-
-M5 <- lmer(Flux_umol_m2_s ~  CO2_ppm_scale + airwaterTemp_diff_scale + (1|Wetland),data=df)
-
-summary(M5)
-stdCoef.merMod(M5) 
-
 ###Visualize
 ## good way to visualize mixed methods model?
   #not really: maybe 2+ plots, one for each predictor; 3-d plots
@@ -261,13 +225,6 @@ summary(wetland.av)
 tukey.test <- TukeyHSD(wetland.av)
 tukey.test
 
-###
-
-basic.lm <- lm(log(Flux_umol_m2_s) ~ log(CO2_ppm), data = df)
-basic.lm <- lm(k_m.d ~ winddirecion, data = df)
-basic.lm <- lm(Flux_umol_m2_s ~ airwaterTemp_diff, data = df )
-
-summary(basic.lm)
 
 ### Assumptions?
 
@@ -304,3 +261,8 @@ qqline(resid(mixed.lmer))  # points fall nicely onto the line - good!
 mixed.lmer <- lm(k_m.d ~ winddirecion + (1|Wetland) , data = df )
 summary(mixed.lmer)
 
+### is k600 differnt by wetland?
+
+res.aov2 <- aov(K600 ~ Wetland, data = df)
+summary(res.aov2)
+mean(df$K600)
