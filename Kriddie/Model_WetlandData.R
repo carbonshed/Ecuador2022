@@ -30,6 +30,26 @@ library(jtools)
 library(lmerTest)
 library(lubridate)
 
+#notes from stats consultant:
+
+#need a thery befor applying transformations
+#test for homodesticity
+    #https://www.r-bloggers.com/2016/01/how-to-detect-heteroscedasticity-and-rectify-it/
+#normality of residuals: use shapiro wilk test
+  #https://cran.r-project.org/web/packages/olsrr/vignettes/residual_diagnostics.html
+
+#builing a model
+  #put everything in one model 
+  #step-wise is old-fashioned but people still do it
+  #first think theoretically - and report all the effects, whether or not they are significant
+    # don't add more than 20 predictors
+
+#model interpretation!
+  #Estimate is my co-efficient, if it is positive or negative is direction of relationship
+    #In raw metric is can be easy to interpret – ie for each degree temperature  x ppm increase
+    #	If you scale both, then beta cooefficient is comparable to one another
+        #	(rules of thumb,, something below point .3 is small, 
+   
 #####################
 #### study design####
 #####################
@@ -54,6 +74,8 @@ library(lubridate)
   #temperature of air, water
   #wind speed and direction (depending on position on landscape, aspect) - GIS
   #wetland size - GIS
+
+##use log variables when you expect diminishing returns
 
 #read in data
 df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-10-28.csv"))
@@ -91,7 +113,7 @@ df$Time <- as.POSIXct(df$Time_Baro, format = "%H:%M", tz = "UTC")
 
 #drivers of flux - I predict will be CO2 and temperature (anything else?)
   #water, air, and water-air temp differance is not significant. But of the three air/temp diff is the most signifcant, water temp is very not significant
-M1_1 <- lmer(Flux_umol_m2_s ~ scale(CO2_ppm) + (1 |Wetland),data=df%>%filter(Date<"2022-09-01") )
+M1_1 <- lmer(Flux_umol_m2_s ~ scale(CO2_ppm) +log(surface_area_m2) + (1 |Wetland),data=df%>%filter(Date<"2022-09-01") )
 summary(M1_1)
 M1_2 <- lmer(Flux_umol_m2_s ~ scale(CO2_ppm) + scale(airwaterTemp_diff) + (1 |Wetland),data=df%>%filter(Date<"2022-09-01") )
 summary(M1_2)
