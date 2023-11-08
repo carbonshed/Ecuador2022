@@ -18,7 +18,7 @@ df$Date <- as.Date(df$Date,format = "%m/%d/%y")
 df$X <- NULL
 
 #calc diff in temp water/air
-df$airwaterTemp_diff <-  df$AirTemp_c - df$Watertemp_c
+df$Water_minus_air_Temp <-  df$Watertemp_c - df$AirTemp_c
 
 ############
 #water samples
@@ -55,13 +55,43 @@ df <- left_join(df,ws_area, by=c("Wetland"))
 #####################
 #add surface areas and depth to vol ratio
 WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv"))
-WL_df <- WL_df[c("DateTime","Station","WLTemp_c","depth_ave_m","surface_area_m2","Volumn_m3","SA_to_Vol_ratio")]
+WL_df <- WL_df[c("DateTime","Station","Baro_kpa","BaroTemp_c","WLTemp_c","depth_ave_m","surface_area_m2","Volumn_m3","SA_to_Vol_ratio")]
 WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 
 WL_df$Wetland <- gsub(".*_","",WL_df$Station)
 WL_df$Station <- NULL
+WL_df$Date <- as.Date(WL_df$DateTime)
 
 #summarize
+WL_summary_day <- WL_df %>%
+  group_by(Wetland,Date)%>%
+  summarize(
+    waterTemp_c_day = mean(WLTemp_c, na.rm = TRUE),
+    depth_m_day = mean(depth_ave_m, na.rm = TRUE),
+    depth_m_day = mean(depth_ave_m, na.rm = TRUE),
+    surface_area_day = mean(surface_area_m2,na.rm = TRUE), 
+    Volumn_m3_day = mean(Volumn_m3, na.rm = TRUE),
+    SA_to_Vol_ratio_day = mean(SA_to_Vol_ratio,na.rm = TRUE)
+  )
+
+WL_Air_yearly <- WL_df %>%
+  filter(DateTime > as.POSIXct("2022-06-28 00:00:00")&
+           DateTime < as.POSIXct("2023-07-01 00:00:00"))%>%
+  filter(Wetland=="Wetland01")%>% #select one wetland because I otherwise we have same data for each wetland
+  summarize(
+    Baro_kpa_yearly = mean(Baro_kpa, na.rm = TRUE),
+    BaroTemp_c_yearly = mean(BaroTemp_c, na.rm = TRUE)
+  )
+WL_Air_day <- WL_df %>%
+  filter(DateTime > as.POSIXct("2022-06-28 00:00:00")&
+           DateTime < as.POSIXct("2023-07-01 00:00:00"))%>%
+  filter(Wetland=="Wetland01")%>%
+  group_by(Date)%>%#select one wetland because I otherwise we have same data for each wetland
+  summarize(
+    Baro_kpa_day = mean(Baro_kpa, na.rm = TRUE),
+    BaroTemp_c_day = mean(BaroTemp_c, na.rm = TRUE)
+  )
+
 WL_summary_yearly <- WL_df %>%
   filter(DateTime > as.POSIXct("2022-06-28 00:00:00")&
            DateTime < as.POSIXct("2023-07-01 00:00:00"))%>%
@@ -74,6 +104,8 @@ WL_summary_yearly <- WL_df %>%
     Volumn_m3_yearly = mean(Volumn_m3, na.rm = TRUE),
     SA_to_Vol_ratio_yearly = mean(SA_to_Vol_ratio,na.rm = TRUE)
   )
+
+
 
 WL_summary_summer <- WL_df%>%
   filter(DateTime > as.POSIXct("2022-06-28 00:00:00") &
@@ -98,6 +130,7 @@ WL_summary_fall <- WL_df%>%
     Volumn_m3_fall = mean(Volumn_m3, na.rm = TRUE),
     SA_to_Vol_ratio_fall = mean(SA_to_Vol_ratio,na.rm = TRUE)
   )
+
 
 
 ##merge with data frame
@@ -155,13 +188,38 @@ df_2$DateTime_used <- NULL
 
 rm(df_1,df_1_select,df_1_select_2,df_1_select_3,df_1_select_4,df_1_select_5,df_1_select_6)
 
-df_2 <- left_join(df_2,WL_summary_summer, by=c("Wetland"))
-df_2 <- left_join(df_2,WL_summary_fall, by=c("Wetland"))
+df_2 <- left_join(df_2,WL_summary_day, by=c("Date","Wetland"))
+#df_2 <- left_join(df_2,WL_summary_summer, by=c("Wetland"))
+#df_2 <- left_join(df_2,WL_summary_fall, by=c("Wetland"))
 df_2 <- left_join(df_2,WL_summary_yearly, by=c("Wetland"))
 
-rm(WL_summary_summer,WL_summary_yearly)
+
+#add air press and air temp data and then correct both for elevation
+df_2$Baro_kpa_yearly <- WL_Air_yearly$Baro_kpa_yearly
+df_2$BaroTemp_c_yearly <- WL_Air_yearly$BaroTemp_c_yearly
+df_2 <- left_join(df_2,WL_Air_day, by=c("Date"))
+
+#correct baro and temp for elevation below
+#air temperature to decrease by 6.5° C for every 1000 meters you gain. 
+#baro station is at elevation = 4158.6912 (found on google earth pro)
+BaroStation <- 4158.6912
+slope_temp <- -6.5/1000
+df_2$BaroTemp_c_yearly <- slope_temp*(df_2$Elevation_m - BaroStation) + df_2$BaroTemp_c_yearly 
+df_2$BaroTemp_c_day <- slope_temp*(df_2$Elevation_m - BaroStation) + df_2$BaroTemp_c_day 
+#pressure decreases by about 1.2 kPa (12 hPa) for every 100 m 
+slope_pressure <- -1.2/100
+df_2$Baro_kpa_yearly <- slope_pressure*(df_2$Elevation_m - BaroStation) + df_2$Baro_kpa_yearly 
 
 
+
+rm( WL_summary_fall, WL_summary_summer,WL_summary_yearly, WL_Air_day,WL_Air_yearly)
+
+#calculate ratio of watershed to surface area and ws-surfacearea difference - point and yearly
+
+df_2$WS_to_SA_ratio <- df_2$Watershed_m2 / df_2$surface_area_m2
+df_2$WS_to_SA_ratio_yearly <- df_2$Watershed_m2 / df_2$surface_area_yearly
+df_2$WS_size_minusSA <- df_2$Watershed_m2 - df_2$surface_area_m2
+df_2$WS_size_minusSA_yearly  <- df_2$Watershed_m2 - df_2$surface_area_yearly
 #########################
 ### add envirofactors ####
 ########################
@@ -188,12 +246,13 @@ Solar_df <- read.csv(here::here("Wetlands/WeatherStation_LaVirgen/M5025_Radiacio
 colnames(Solar_df) <- c("DateTime","solarrad_W_m2","Solarrad_max","solarrad_min")
 Solar_df$DateTime <- as.POSIXct(Solar_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 Solar_df$DateTime <- round_date(Solar_df$DateTime,unit = "15 minutes")
+Solar_df$Date <- as.Date(Solar_df$DateTime)
 Solar_df <- na.omit(Solar_df)
-Solar_df <- Solar_df%>%group_by(DateTime)%>% 
+Solar_df <- Solar_df%>%group_by(Date)%>% 
   summarize(
-    solarrad_W_m2 = mean(solarrad_W_m2, na.rm = TRUE),
-    Solarrad_max = max(Solarrad_max,na.rm = TRUE), 
-    solarrad_min = min(solarrad_min, na.rm = TRUE)
+    solarrad_W_m2_daymean = mean(solarrad_W_m2, na.rm = TRUE),
+    Solarrad_daymax = max(Solarrad_max,na.rm = TRUE)#, 
+#    solarrad_min = min(solarrad_min, na.rm = TRUE) # don't include min because it will always be 0 (night)
   )
 
 humidad_df <- read.csv(here::here("Wetlands/WeatherStation_LaVirgen/M5025_Humedad.csv"))
@@ -227,15 +286,23 @@ precip_df_2 <- full_join(precip_summary,precip_summar_previous, by="Date")
 precip_weekAve <- transform(precip_df_2, avg7 = rollmeanr(PrecipAccuDay_mm, 7, fill = NA,na.rm=TRUE))
 colnames(precip_weekAve) <- c("Date","PrecipAccuDay_mm","PrecipAccu_mm_PreviousDay","Precip_mm_ave7")
 
+solar_weekAve <- transform(Solar_df, avg3 = rollmeanr(solarrad_W_m2_daymean, 3, fill = NA,na.rm=TRUE))
+colnames(solar_weekAve) <- c("Date","solarrad_Wm2_daymean","Solarrad_daymax","Solar_Wm2_ave3")
 
-enviro_df <- full_join(viento_df,Solar_df,by="DateTime")
-enviro_df <- full_join(enviro_df,humidad_df,by="DateTime")
-#enviro_df <- full_join(enviro_df,precip_df,by="DateTime")
+watertemp_weekAve <- transform(WL_summary_day%>%select("Wetland","Date","waterTemp_c_day"), avg3 = rollmeanr(waterTemp_c_day, 3, fill = NA,na.rm=TRUE))
+colnames(watertemp_weekAve) <- c("Wetland","Date","WaterTemp_c_day","WaterTemp_c_ave3")
+watertemp_weekAve$WaterTemp_c_day <- NULL
+
+
+enviro_df <- full_join(viento_df,humidad_df,by="DateTime")
 
 #join enviro data
 df_3 <- left_join(df_2,enviro_df,by="DateTime")
+df_3 <- left_join(df_3,solar_weekAve,by="Date")
 df_3 <- left_join(df_3,precip_weekAve,by="Date")
+df_3 <- left_join(df_3,watertemp_weekAve,by=c("Wetland","Date"))
+
 
 #write
-write.csv(df_3, here::here("Wetlands/Wetland_df_MERGE_2023-10-28.csv"))
+write.csv(df_3, here::here("Wetlands/Wetland_df_MERGE_2023-11-04.csv"))
  
