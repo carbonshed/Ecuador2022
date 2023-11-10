@@ -7,6 +7,9 @@
 ##mulitvariate model building
 # https://cran.r-project.org/web/packages/multilevelTools/vignettes/lmer-vignette.html
 
+##article:https://peerj.com/articles/4794/
+# https://peerj.com/articles/4794/
+
 ###define function####
 
 #use this to standardize regression coefficients in mixed effects model post-hoc
@@ -38,6 +41,7 @@ library(jtools)
 library(extraoperators)
 library(JWileymisc)
 library(multilevelTools)
+library("Hmisc")
 
 
 #notes from stats consultant:
@@ -102,6 +106,35 @@ df$Time <- as.POSIXct(df$Time_Baro, format = "%H:%M", tz = "UTC")
   #Also, don’t just put all possible variables in (i.e. don’t overfit). 
   #Remember that as a rule of thumb, you need 10 times more data than parameters you are trying to estimate.
 
+#correlation matrix
+
+df_2 <- df[,c("AirTemp_c","BaroTemp_c_yearly","waterTemp_c_yearly"
+              ,"waterTemp_c_day","Water_minus_air_Temp","SA_to_Vol_ratio",
+              "surface_area_m2","Watershed_m2","precip_mm_ave2","Solar_Wm2_ave3"
+              )
+           ]
+cor(df_2, use = "complete.obs")
+res2 <- rcorr(as.matrix(df_2))
+res2
+correlation_pvalue <- res2$P
+correlation_coefficiant <- res2$r
+
+
+#dealing with colliniarity in fixed effects: (cutoff is > .7 (Dormann et al., 2013))
+
+#AirTemp_c and Water_minus_air_Temp: -0.97042739
+#Remove airtemp
+
+df_3 <- df[,c("BaroTemp_c_yearly","waterTemp_c_yearly"
+              ,"waterTemp_c_day","Water_minus_air_Temp","SA_to_Vol_ratio",
+              "surface_area_m2","Watershed_m2","precip_mm_ave2","Solar_Wm2_ave3")]
+cor(df_3, use = "complete.obs")
+res2 <- rcorr(as.matrix(df_2))
+res2
+correlation_pvalue <- res2$P
+correlation_coefficiant <- res2$r
+
+
 ####predictions for co2
 #precipitation
 #landscape position (watershed size) - GIS
@@ -126,39 +159,39 @@ df$Time <- as.POSIXct(df$Time_Baro, format = "%H:%M", tz = "UTC")
   #CO2 increases with watershed size 
   #precipitation effects CO2 concentration because it dilutes the water (ave of sum day and previous day)
   #Solar radiation because stimulates gpp (ave day)
-df$precip_mm_ave2 <- (df$PrecipAccu_mm_PreviousDay + df$PrecipAccuDay_mm)/2
-#Big model
+
+#Global model
+  #had to remove SA to vol ratio and watershed size because don't have it for all variables
 M1 <- lmer(log(CO2_umol.L) ~ #scale(AirTemp_c) +
                   scale(BaroTemp_c_yearly)+ 
                   scale(waterTemp_c_yearly) +
                   scale(Water_minus_air_Temp) +
                   scale(waterTemp_c_day) + 
-                  scale(SA_to_Vol_ratio) + 
+                #  scale(SA_to_Vol_ratio) + 
                   scale(surface_area_m2) +
-                  scale(Watershed_m2) +
+                #  scale(Watershed_m2) +
                   scale(precip_mm_ave2) + 
-                  scale(solarrad_Wm2_daymean) +
                   scale(Solar_Wm2_ave3) +
-                  (1 |Wetland), data =df )
+                  (1 |Wetland), data =df)
 summary(M1)
+
 
 md <- modelDiagnostics(M1, ev.perc = .001)
 plot(md, ask = FALSE, ncol = 2, nrow = 3)
 
 #paired down 1
 M2 <- lmer(log(CO2_umol.L) ~ #scale(AirPress_kpa) +
-             #scale(AirTemp_c) +
-            # scale(Watertemp_c) +
+            
+           #  scale(Watertemp_c) +
              scale(BaroTemp_c_yearly)+ 
-             scale(waterTemp_c_yearly) +
-             #   scale(Water_minus_air_Temp) +
-             #   scale(waterTemp_c_day) + 
-             #  scale(SA_to_Vol_ratio) + 
-              #  scale(surface_area_m2) +
-             #   scale(Watershed_m2) +
-             #   scale(precip_mm_ave2) + 
-             #   scale(solarrad_Wm2_daymean) +
-             #  scale(Solar_Wm2_ave3) +
+           #  scale(waterTemp_c_yearly) +
+            #    scale(Water_minus_air_Temp) +
+            #    scale(waterTemp_c_day) + 
+              # scale(SA_to_Vol_ratio) + 
+             #   scale(surface_area_m2) +
+              #  scale(Watershed_m2) +
+             #  scale(precip_mm_ave2) + 
+            #   scale(Solar_Wm2_ave3) +
              (1 |Wetland), data =df )
 summary(M2)
 md <- modelDiagnostics(M2, ev.perc = .001)
@@ -180,7 +213,7 @@ M3 <- lmer(log(CO2_umol.L) ~ #scale(AirPress_kpa) +
              #   scale(solarrad_Wm2_daymean) +
              #  scale(Solar_Wm2_ave3) +
              (1 |Wetland), data =df )
-summary(M2)
+summary(M3)
 md <- modelDiagnostics(M2, ev.perc = .001)
 plot(md, ask = FALSE, ncol = 2, nrow = 3)
 modelPerformance(M2)

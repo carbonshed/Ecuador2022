@@ -1,6 +1,6 @@
 #Figs
 #2022-11-06
-#this script is to make a fig to use for AGU poster and wetlandd paper 
+#this script is to make a fig to use for AGU poster and wetland paper 
 
 
 #I want to make a 12 panel figure with 2 axis depth and surface area
