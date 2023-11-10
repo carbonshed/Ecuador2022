@@ -111,7 +111,7 @@ for (site in site_names){
     }
     
   }
-  WLData$DateTime <- round_date(WLData$DateTime, "15 mins")
+ # WLData$DateTime <- round_date(WLData$DateTime, "15 mins")
   WLData <- WLData[!with(WLData,is.na(WLPres_kpa)& is.na(WLTemp_c)),]
   WLData$Station <- site
   WLData=unique(WLData)
@@ -127,9 +127,19 @@ for (site in site_names){
 #Clean Data
 
 ```{r clean data and plot, echo=FALSE}
-
+#wetland09
+#7/8/2022  11:55:56 AM and earlir, wetland 9 was on a 1 min interval. so let's fix that
+WL_Wetland09_1 <- WL_Wetland09%>%filter(DateTime<as.POSIXct("2022-07-08 12:00:00",tz="UTC"))
+WL_Wetland09_2 <- WL_Wetland09%>%filter(DateTime>as.POSIXct("2022-07-08 12:00:00",tz="UTC"))
+DateTime <- seq(ymd_hm('2022-07-05 09:45'),ymd_hm('2022-07-08 12:00'), by = '15 mins')
+seq_df <- data.frame(DateTime)
+WL_Wetland09_1 <- left_join(seq_df,WL_Wetland09_1,by="DateTime")
+WL_Wetland09_1 <- WL_Wetland09_1%>%drop_na(WLPres_kpa)
+WL_Wetland09 <- rbind(WL_Wetland09_1,WL_Wetland09_2)
+rm(WL_Wetland09_1,WL_Wetland09_2)
 
 #wetland01
+WL_Wetland01$DateTime <- round_date(WL_Wetland01$DateTime, "15 mins")
 WL_Wetland01 <- WL_Wetland01%>%filter(DateTime >= as.POSIXct("2022-06-16 11:00:00",tz = "UTC"))
 WL_Wetland01 <- WL_Wetland01%>%filter(DateTime < as.POSIXct("2022-07-14 10:00:00",tz="UTC")|
                                         DateTime > as.POSIXct("2022-07-14 11:00:00",tz = "UTC"))
@@ -141,6 +151,7 @@ WL_Wetland01$WLTemp_c[WL_Wetland01$DateTime ==  as.POSIXct("2023-02-18 13:30:00"
 
 
 #wetland02
+WL_Wetland02$DateTime <- round_date(WL_Wetland02$DateTime, "15 mins")
 WL_Wetland02 <- WL_Wetland02%>%filter(DateTime != as.POSIXct("2022-06-16 11:30:00",tz = "UTC"))
 WL_Wetland02 <- WL_Wetland02%>%filter(DateTime != as.POSIXct("2022-07-07 13:45:00",tz = "UTC"))
 WL_Wetland02 <- WL_Wetland02%>%filter(DateTime < as.POSIXct("2023-02-20 05:30:00",tz="UTC")|
@@ -164,11 +175,13 @@ WL_Wetland02$WLPres_kpa[WL_Wetland02$DateTime >  as.POSIXct("2023-03-20 14:15:00
 
 
 #wetland03
+WL_Wetland03$DateTime <- round_date(WL_Wetland03$DateTime, "15 mins")
 WL_Wetland03 <- WL_Wetland03%>%filter(DateTime != as.POSIXct("2022-07-14 12:30:00",tz = "UTC"))%>%
   filter(DateTime != as.POSIXct("2022-11-01 09:45:00",tz = "UTC"))
 
 
 #wetland04
+WL_Wetland04$DateTime <- round_date(WL_Wetland04$DateTime, "15 mins")
 WL_Wetland04 <- WL_Wetland04%>%filter(DateTime < as.POSIXct("2022-07-15 13:00:00",tz="UTC")|
                                         DateTime > as.POSIXct("2022-07-15 13:30:00",tz = "UTC"))%>%
   filter(DateTime != as.POSIXct("2023-02-18 14:00:00",tz = "UTC"))
@@ -188,6 +201,7 @@ WL_Wetland04 <- WL_Wetland04%>%
   filter(DateTime != as.POSIXct("2023-06-20 13:15:00",tz = "UTC"))
 
 #wetland05
+WL_Wetland05$DateTime <- round_date(WL_Wetland05$DateTime, "15 mins")
 WL_Wetland05 <- WL_Wetland05%>%filter(DateTime > as.POSIXct("2022-06-16 14:00:00",tz = "UTC"))%>%
   filter(DateTime != as.POSIXct("2022-07-27 11:15:00",tz = "UTC"))%>%
   filter(DateTime != as.POSIXct("2022-07-27 11:15:00",tz = "UTC"))%>%
@@ -201,18 +215,21 @@ WL_Wetland05$WLTemp_c[WL_Wetland05$DateTime ==  as.POSIXct("2022-11-01 11:00:00"
 
 
 #wetland06
+WL_Wetland06$DateTime <- round_date(WL_Wetland06$DateTime, "15 mins")
 WL_Wetland06 <- WL_Wetland06%>%filter(DateTime != as.POSIXct("2022-06-16 14:15:00",tz = "UTC"))%>%
   filter(DateTime != as.POSIXct("2022-07-19 13:00:00",tz = "UTC"))%>%
   filter(DateTime != as.POSIXct("2022-07-19 13:15:00",tz = "UTC"))%>%
   filter(DateTime != as.POSIXct("2023-02-18 14:15:00",tz = "UTC"))
 
 #wetland07
+WL_Wetland07$DateTime <- round_date(WL_Wetland07$DateTime, "15 mins")
 WL_Wetland07 <- WL_Wetland07%>%filter(DateTime >= as.POSIXct("2022-06-16 15:30:00",tz = "UTC"))%>%
   filter(DateTime != as.POSIXct("2022-07-11 12:45:00",tz = "UTC"))%>%
   filter(DateTime != as.POSIXct("2023-02-18 14:30:00",tz = "UTC"))
 
 
 #wetland08
+WL_Wetland08$DateTime <- round_date(WL_Wetland08$DateTime, "15 mins")
 WL_Wetland08 <- WL_Wetland08%>%filter(DateTime > as.POSIXct("2022-07-05 10:00:00",tz="UTC"))%>%
   filter(DateTime < as.POSIXct("2022-07-08 10:00:00",tz="UTC")|
                                         DateTime > as.POSIXct("2022-07-08 12:30:00",tz = "UTC"))%>%
@@ -233,6 +250,8 @@ WL_Wetland08$WLTemp_c[WL_Wetland08$DateTime <  as.POSIXct("2022-07-05 09:45:00",
 
 
 #wetland09
+WL_Wetland09$DateTime <- round_date(WL_Wetland09$DateTime, "15 mins")
+
 WL_Wetland09 <- WL_Wetland09%>%filter(DateTime > as.POSIXct("2022-07-05 11:30:00",tz="UTC"))%>%
   filter(DateTime < as.POSIXct("2022-07-08 10:00:00",tz="UTC")|
         DateTime > as.POSIXct("2022-07-08 12:30:00",tz = "UTC")) %>%
@@ -248,6 +267,7 @@ WL_Wetland09$WLTemp_c[WL_Wetland09$DateTime >=  as.POSIXct("2022-12-02 13:90:00"
                         WL_Wetland09$DateTime <=  as.POSIXct("2022-12-02 14:30:00",tz = "UTC")] <- NA
 
 #wetland10
+WL_Wetland10$DateTime <- round_date(WL_Wetland10$DateTime, "15 mins")
 WL_Wetland10 <- WL_Wetland10%>%filter(DateTime != as.POSIXct("2022-07-12 11:15:00",tz="UTC"))%>%
   filter(DateTime != as.POSIXct("2023-04-01 13:15:00",tz="UTC"))%>%
   filter(DateTime != as.POSIXct("2023-06-20 15:45:00",tz="UTC"))%>%
@@ -271,6 +291,7 @@ WL_Wetland10 <- rbind(WL_Wetland10_1,WL_Wetland10_2)
 rm(WL_Wetland10_1,WL_Wetland10_2)
 
 #wetland11
+WL_Wetland11$DateTime <- round_date(WL_Wetland11$DateTime, "15 mins")
 WL_Wetland11 <- WL_Wetland11%>%filter(DateTime > as.POSIXct("2022-07-11 12:30:00",tz="UTC"))%>%
   filter(DateTime != as.POSIXct("2022-07-28 12:15:00",tz="UTC"))%>%
   filter(DateTime != as.POSIXct("2022-10-15 13:15:00",tz="UTC"))%>%
@@ -285,6 +306,7 @@ WL_Wetland11$WLTemp_c[WL_Wetland11$DateTime >=  as.POSIXct("2022-12-02 10:15:00"
 
 
 #wetland12
+WL_Wetland12$DateTime <- round_date(WL_Wetland12$DateTime, "15 mins")
 WL_Wetland12 <- WL_Wetland12%>%filter(DateTime > as.POSIXct("2022-06-07 14:15:00",tz="UTC"))%>%
   filter(DateTime < as.POSIXct("2022-07-28 11:30:00",tz="UTC")|
         DateTime > as.POSIXct("2022-07-28 13:00:00",tz = "UTC"))%>%
@@ -446,7 +468,7 @@ depth_DF_depth <- depth_DF%>%select(Wetland,Depth_cm)
 
 depth_DF_depth<- depth_DF_depth%>%
   group_by(Wetland) %>% 
-  summarize(depth_ave_cm = mean(Depth_cm),
+  summarise(depth_ave_cm = mean(Depth_cm),
             depth_count = n())
 
 depth_DF <- full_join(depth_DF_datetime,depth_DF_depth,by="Wetland")
@@ -555,7 +577,7 @@ p2 <- ggplot(data = SurfaceArea_df_2, aes(x = WL, y = Area)) + geom_point()
 p2 + facet_wrap(~Wetland)
 
 
-fig1 <- plot_ly(data=wetland_data ,
+fig1 <- plot_ly(data=WL_Wetland ,
         x=~DateTime,y=~WaterLevel_m)
 #Water Temp
 fig2 <- plot_ly(data=wetland_data,
