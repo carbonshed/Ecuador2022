@@ -10,7 +10,9 @@ library(lubridate)
 library(zoo)
 
 #read in
-df <- read.csv(here::here("Wetlands/Wetland_df_2023-10-26.csv"))
+#df <- read.csv(here::here("Wetlands/Wetland_df_2023-10-26.csv"))
+    #outlier Airtemp edited from previous dataframe
+df <- read.csv(here::here("Wetlands/Wetland_df_2023-11-10.csv"))
 df$DateTime <- as.POSIXct(df$DateTime,format="%m/%d/%y %H:%M",tz="UTC")
 df$DateTime <- round_date(df$DateTime,unit = "15 minutes")
 df$Date <- as.Date(df$Date,format = "%m/%d/%y")
@@ -308,5 +310,5 @@ df_3 <- left_join(df_3,watertemp_weekAve,by=c("Wetland","Date"))
 
 df_3 <- unique(df_3)
 #write out
-#write.csv(df_3, here::here("Wetlands/Wetland_df_MERGE_2023-11-04.csv"))
+#write.csv(df_3, here::here("Wetlands/Wetland_df_MERGE_2023-11-10.csv"))
  

@@ -373,6 +373,8 @@ BaroSTATION <- Baro
 #correct for baro press
 ```{r subtract baro, echo=FALSE}
 
+WL_Wetland <- rbind(WL_Wetland01,WL_Wetland02,WL_Wetland03,WL_Wetland04,WL_Wetland05,WL_Wetland06,WL_Wetland07,WL_Wetland08,WL_Wetland09,WL_Wetland10,WL_Wetland11,WL_Wetland12)
+
 BaroSTATION <- BaroSTATION%>%filter(DateTime > as.POSIXct("2022-06-01 00:00:00",tz="UTC"))
 
 WL_Wetland <- left_join(BaroSTATION,WL_Wetland,by="DateTime")
@@ -402,9 +404,9 @@ plot the water level and water temp for the entire day
 
 ```{r select time, echo=FALSE}
 #enter wetland dataframe
-wetland <- "WL_Wetland06" # example: WL_Wetland01, WL_Wetland02
+wetland <- "WL_Wetland05" # example: WL_Wetland01, WL_Wetland02
 #enter date of collection
-date <- "2022-10-15"
+date <- "2022-07-07"
 
 #code below extract desired wetland, do not change
 wetland_data <- WL_Wetland%>%filter(Station==wetland)
@@ -421,13 +423,13 @@ plot_ly(data=wetland_data %>%
   x=~DateTime,y=~WLTemp_c)
 #Most likely during the sample period there is data missing or the numbers look very different from before and after sampling. This is because we pulled up and downloaded the logger during the same time - changing both the pressure and temperature
 #select an hour time period just before logger was downloaded. 
-DateTime_BEFORE <- "2022-10-15 11:00:00"
-DateTime_AFTER <- "2022-10-15 12:30:00"
+DateTime_BEFORE <- "2022-06-28 00:00:00"
+DateTime_AFTER <- "2023-06-28 24:00:00"
 #calculate average
 ave <- wetland_data %>%
   filter(DateTime >= as.POSIXct(DateTime_BEFORE, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
   filter(DateTime <= as.POSIXct(DateTime_AFTER, format="%Y-%m-%d %H:%M:%S", tz = "UTC"))%>%
-  summarize(WaterlLevel_mean = mean(WaterLevel_m, na.rm=TRUE),
+  summarise(WaterlLevel_mean = mean(WaterLevel_m, na.rm=TRUE),
             WaterTemp_mean = mean(WLTemp_c, na.rm=TRUE))
 print(ave)
 
