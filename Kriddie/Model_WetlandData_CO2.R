@@ -58,6 +58,14 @@ library("Hmisc")
   #first think theoretically - and report all the effects, whether or not they are significant
     # don't add more than 20 predictors
 
+#selecting a model:
+  #Focus on your question, don’t just plug in and drop variables from a model haphazardly until you make something “significant”.
+  #Always choose variables based on biology/ecology: I might use model selection to check a couple of non-focal parameters, but I keep the “core” of the model untouched in most cases. 
+  #Define your goals and questions and focus on that. 
+  #Also, don’t just put all possible variables in (i.e. don’t overfit). 
+  #Remember that as a rule of thumb, you need 10 times more data than parameters you are trying to estimate.
+
+
 #model interpretation!
   #Estimate is my co-efficient, if it is positive or negative is direction of relationship
     #In raw metric is can be easy to interpret – ie for each degree temperature  x ppm increase
@@ -91,20 +99,83 @@ library("Hmisc")
               #extract residuals - see that they are random
 
 #read in data
-df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-04.csv"))
-df$X <- NULL
+#df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-04.csv"))[c(17,2,6,14:16,18:45,52:59)]
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-10.csv"))[c(17,2,6,14:16,18:45,52:59)]
+df$num <- 1:44
+################################
+###Predicted drivers of CO2###
+################################
+#CO2 increases with Air temperature (increased respiration) - (ave day, ave year)
+      #AirTemp_c
+      #BaroTemp_c_yearly
+#CO2 increases with Water temperature (increased respiration) - (ave day, ave year)
+      #WaterTemp_c
+      #WaterTemp_c_day
+      #waterTemp_c_yearly
+#CO2 increases with depth vol ratio (more contact with sediments) 
+      #SA_to_Vol_ratio_day --- not all wetlands
+#CO2 decreases with surface area
+      #Surface_area_m2
+#CO2 increases with watershed size 
+    #WS_size_minusSA --- not all wetlands
+#precipitation effects CO2 concentration because it dilutes the water (ave of sum day and previous day)
+      #Precio_mm_ave2
+#Solar radiation because stimulates gpp (ave day)
+      #Solarrad_Wm2_daymean
 
-df$Date <- as.Date(df$Date)
-df$Time <- as.POSIXct(df$Time_Baro, format = "%H:%M", tz = "UTC")
 
+########################
+##CHecking Assumptions
+########################
+#Step 1: Are there outliers in Y and X?
 
+#boxplots galore
+boxplot(log(df$CO2_umol.L)) ##transformed
+hist(log(df$CO2_umol.L))
+ggplot(df, aes(log(CO2_umol.L), num)) + geom_point()
 
-#selecting a model:
-  #Focus on your question, don’t just plug in and drop variables from a model haphazardly until you make something “significant”.
-  #Always choose variables based on biology/ecology: I might use model selection to check a couple of non-focal parameters, but I keep the “core” of the model untouched in most cases. 
-  #Define your goals and questions and focus on that. 
-  #Also, don’t just put all possible variables in (i.e. don’t overfit). 
-  #Remember that as a rule of thumb, you need 10 times more data than parameters you are trying to estimate.
+boxplot(df$AirTemp_c)  # one?? - checked, it is as legit as the data collected can be
+hist(df$AirTemp_c)
+ggplot(df, aes(AirTemp_c, num)) + geom_point()
+
+boxplot(df$BaroTemp_c_yearly) 
+hist(df$BaroTemp_c_yearly)
+
+boxplot(df$Watertemp_c)
+hist(df$Watertemp_c)
+ggplot(df, aes(Watertemp_c, num)) + geom_point()
+
+boxplot(df$waterTemp_c_day) #one? - checked, it is legit
+hist(df$waterTemp_c_day)
+ggplot(df, aes(waterTemp_c_day, num)) + geom_point()
+
+boxplot(df$waterTemp_c_yearly) #one?,- wetland 5 yes, legit
+hist(df$waterTemp_c_yearly)
+ggplot(df, aes(waterTemp_c_yearly, num)) + geom_point() #also this looks good
+
+boxplot(df$SA_to_Vol_ratio) #transform? I don't know! The extreme outliers are legit
+#boxplot(log(df$SA_to_Vol_ratio)) #lots?
+hist(df$SA_to_Vol_ratio)
+ggplot(df, aes(SA_to_Vol_ratio, num)) + geom_point()
+
+boxplot(log(df$surface_area_m2)) #seems like log transform is the way to go here
+hist(log(df$surface_area_m2))
+ggplot(df, aes(log(surface_area_m2), num)) + geom_point()
+
+boxplot(df$WS_size_minusSA) # this is wetland 12, wich, yes is very large watershed
+hist(df$WS_size_minusSA)
+ggplot(df, aes(WS_size_minusSA, num)) + geom_point()
+
+boxplot(df$precip_mm_ave2) 
+hist(df$precip_mm_ave2)
+ggplot(df, aes(precip_mm_ave2, num)) + geom_point()
+
+boxplot(df$solarrad_Wm2_daymean) 
+hist(df$solarrad_Wm2_daymean)
+ggplot(df, aes(solarrad_Wm2_daymean, num)) + geom_point()
+
+###findings:
+
 
 #correlation matrix
 
@@ -150,15 +221,7 @@ correlation_coefficiant <- res2$r
   #precipitation
   #DOC/TDN
   
-##drivers of CO2
-  #CO2 increases with Air temperature (increased respiration) - (ave day, ave year)
-  #CO2 increases with Water temperature (increased respiration) - (ave day, ave year)
-    #make sure that air-water is not significant
-  #CO2 increases with depth vol ratio (more contact with sediments)
-  #CO2 decreases with surface area
-  #CO2 increases with watershed size 
-  #precipitation effects CO2 concentration because it dilutes the water (ave of sum day and previous day)
-  #Solar radiation because stimulates gpp (ave day)
+
 
 #Global model
   #had to remove SA to vol ratio and watershed size because don't have it for all variables

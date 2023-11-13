@@ -105,6 +105,9 @@ WL_df_2$SA_to_Vol_ratio <- WL_df_2$surface_area_m2/WL_df_2$Volumn_m3
 #set temperature to na when depth == 0
 WL_df_2[WL_df_2$depth_ave_m==0,]$WLTemp_c <- NA
 
+ggplot(data = WL_df_2, aes(x = DateTime, y = WLTemp_c)) + 
+  geom_point(size=1)
+
 ggplot(data = WL_df_2, aes(x = DateTime, y = depth_ave_m)) + 
   geom_point(size=1)
 
@@ -112,6 +115,9 @@ ggplot(data = WL_df_2, aes(x = DateTime, y = Volumn_m3)) +
   geom_point(size=1)
 
 ggplot(data = WL_df_2, aes(x = DateTime, y = surface_area_m2)) + 
+  geom_point(size=1)
+
+ggplot(data = WL_df_2, aes(x = DateTime, y = SA_to_Vol_ratio)) + 
   geom_point(size=1)
 
 ggplot(data = WL_df_2, aes(x = DateTime, y = WLTemp_c)) + 
