@@ -102,20 +102,7 @@ df$Time <- as.POSIXct(df$Time_Baro, format = "%H:%M", tz = "UTC")
   #Also, don’t just put all possible variables in (i.e. don’t overfit). 
   #Remember that as a rule of thumb, you need 10 times more data than parameters you are trying to estimate.
 
-####predictions for co2
-#precipitation
-#landscape position (watershed size) - GIS
-#Volumn:perimeter ratio
-#Predictors of CO2
-  #water temp (ave day, ave year)
-  #AirTemp (ave day, ave year)
-  #AirPressure and Elevation (why?)
-  #Watershed (total & watershed-sa) -- don't use this 
-  #Surface area (instant, year ave)
-  #SA:Volumne
-  #Solar radiation
-  #precipitation
-  #DOC/TDN
+####predictions 
   
 ##drivers of gas transfer velocity
   #K increases with Air temperature (lower solubility) - (point, ave day, ave year)

@@ -1,0 +1,323 @@
+---
+title: "Model yearly flux"
+author: "Kriddie"
+date: "2023-11-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(dplyr)
+library(here)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r read in data}
+
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-10.csv"))
+df$Date <- as.Date(df$Date)
+
+WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv"))
+WL_df <- WL_df[c("DateTime","Station","Baro_kpa","BaroTemp_c","WLTemp_c","depth_ave_m","surface_area_m2","Volumn_m3","SA_to_Vol_ratio")]
+WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
+WL_df$Wetland <- gsub(".*_","",WL_df$Station)
+WL_df$Station <- NULL
+WL_df$Date <- as.Date(WL_df$DateTime)
+WL_df$WaterTemp_c <- WL_df$WLTemp_c
+WL_df$WLTemp_c <- NULL
+
+WL_df_saved <- WL_df
+
+```
+
+#Buid time series data frame
+
+```{r build dataframe}
+#here are the factors that are important for CO2 FLUX
+#BaroTemp_c_yearly
+#waterTemp_c_yearly
+#Water_minus_air_Temp
+#waterTemp_c_day
+#precip_mm_ave2
+#solarrad_Wm2
+
+#add in yearly, elevation, watershed
+#AirTemp yearly aka BaroTemp_c_yearly
+    #see Merge_wetlandDATA.R for more details
+WL_df_new <- left_join(WL_df,df[c("Wetland","BaroTemp_c_yearly","waterTemp_c_yearly","Elevation_m",
+                                  "Watershed_m2")],by="Wetland")
+BaroStation <- 4158.6912
+slope_temp <- -6.5/1000
+WL_df_new$Baro_Water_minus_air_Temp <- WL_df_new$BaroTemp_c - WL_df_new$WaterTemp_c
+
+WL_df_new$SA_log <- WL_df_new$surface_area_m2
+
+```
+
+```{r  add enviro factor, echo=FALSE}
+
+WL_summary_day <- WL_df %>%
+  group_by(Wetland,Date)%>%
+  summarise(waterTemp_c_day = mean(WaterTemp_c, na.rm = TRUE))
+
+WL_df_new <- left_join(WL_df_new,WL_summary_day,by=c("Date","Wetland"))
+
+Solar_df <- read.csv(here::here("Wetlands/WeatherStation_LaVirgen/M5025_Radiacion_Solar_Dato_validado.csv"))
+colnames(Solar_df) <- c("DateTime","solarrad_W_m2","Solarrad_max","solarrad_min")
+Solar_df$DateTime <- as.POSIXct(Solar_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
+Solar_df$DateTime <- round_date(Solar_df$DateTime,unit = "15 minutes")
+Solar_df$Date <- as.Date(Solar_df$DateTime)
+Solar_df <- na.omit(Solar_df)
+
+#want solar at the instant
+Solar_df_DateTime <- Solar_df%>%group_by(DateTime)%>% 
+  summarise(
+    solarrad_W_m2 = mean(solarrad_W_m2, na.rm = TRUE))
+#I also want solar ave day
+Solar_df <- Solar_df%>%group_by(Date)%>% 
+  summarise(
+    solarrad_W_m2_daymean = mean(solarrad_W_m2, na.rm = TRUE),
+#    solarrad_min = min(solarrad_min, na.rm = TRUE) # don't include min because it will always be 0 (night)
+  )
+
+WL_df_new <- left_join(WL_df_new,Solar_df_DateTime,by=c("DateTime"))
+WL_df_new <- left_join(WL_df_new,Solar_df,by=c("Date"))
+
+#need precip at time interval and also ave of two days precipt 
+
+precip_df <- read.csv(here::here("Wetlands/WeatherStation_LaVirgen/M5025_Precipitacion_Dato_validado.csv"))
+colnames(precip_df) <- c("DateTime","precipt_mm")
+precip_df$DateTime <- as.POSIXct(precip_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
+precip_df$Date <- as.Date(precip_df$DateTime,format="%Y-%m-%d")
+precip_summary <- precip_df%>%group_by(Date)%>%summarise(PrecipAccuDay_mm = sum(precipt_mm))
+#now add previous amount of precipitation from day previous
+precip_summary$Date_used <- precip_summary$Date
+precip_summary$Date <- precip_summary$Date - 1
+precip_summar_previous <- precip_summary[,c("Date","PrecipAccuDay_mm")]
+colnames(precip_summar_previous) <- c("Date","PrecipAccuPreviousDay_mm")
+precip_summary <- precip_summary[,c("Date_used","PrecipAccuDay_mm")]
+colnames(precip_summary) <- c("Date","PrecipAccuDay_mm")
+
+precip_df_2 <- full_join(precip_summary,precip_summar_previous, by="Date")
+
+#add average precip of day and previous
+precip_df_2$precip_mm_ave2 <- (precip_df_2$PrecipAccuDay_mm + precip_df_2$PrecipAccuPreviousDay_mm)/2
+
+WL_df_new <- left_join(WL_df_new,precip_df[c("DateTime","precipt_mm")],by=c("DateTime"))
+WL_df_new <- left_join(WL_df_new,precip_df_2,by=c("Date"))
+
+```
+
+## Write flux models AIc and BIC, with and without wetland 12
+
+#time to extrapolate
+1. calculate flux for each time segment
+
+
+```{r flux models, echo=FALSE}
+
+WL_df_extrapolate <- WL_df_new
+
+#WITHOUT Wetland 12
+#AIC: (Intercept), scale(BaroTemp_c_yearly), scale(waterTemp_c_yearly), scale(Water_minus_air_Temp), scale(waterTemp_c_day), scale(log(surface_area_m2)), scale(precip_mm_ave2), scale(solarrad_Wm2_daymean), scale(SA_to_Vol_ratio)
+
+
+df_1 <- df%>%filter(Wetland!="Wetland12")
+
+M_FLUX_AIC_noW12 <- lmer(log(Flux_umol_m2_s) ~ 
+                  BaroTemp_c_yearly+ 
+                  waterTemp_c_yearly +
+                  Water_minus_air_Temp +
+                  waterTemp_c_day + 
+                  log(surface_area_m2) +
+                  precip_mm_ave2 + 
+                  solarrad_Wm2_daymean +
+                  SA_to_Vol_ratio + 
+                  (1 |Wetland), data =df_1,REML = FALSE)
+
+sum_FLUX_AIC_noW12 <- summary(M_FLUX_AIC_noW12)
+coeff_FLUX_AIC_noW12 <- as.data.frame(sum_FLUX_AIC_noW12$coefficients)
+coeff_FLUX_AIC_noW12$effects <- rownames(coeff_FLUX_AIC_noW12)
+
+#
+
+WL_df_extrapolate$FLUX_AIC_noW12 <- coeff_FLUX_AIC_noW12[1,"Estimate"] +
+  WL_df_extrapolate$BaroTemp_c_yearly * coeff_FLUX_AIC_noW12[2,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_yearly * coeff_FLUX_AIC_noW12[3,"Estimate"] +
+   WL_df_extrapolate$Baro_Water_minus_air_Temp * coeff_FLUX_AIC_noW12[4,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_day * coeff_FLUX_AIC_noW12[5,"Estimate"] +
+    WL_df_extrapolate$SA_log * coeff_FLUX_AIC_noW12[6,"Estimate"] +
+  WL_df_extrapolate$precip_mm_ave2 * coeff_FLUX_AIC_noW12[7,"Estimate"] +
+ WL_df_extrapolate$solarrad_W_m2_daymean * coeff_FLUX_AIC_noW12[8,"Estimate"] +
+  WL_df_extrapolate$SA_to_Vol_ratio * coeff_FLUX_AIC_noW12[9,"Estimate"] 
+
+#BIC:(Intercept), scale(BaroTemp_c_yearly), scale(waterTemp_c_yearly), scale(Water_minus_air_Temp), scale(waterTemp_c_day), scale(log(surface_area_m2)), scale(solarrad_Wm2_daymean), scale(SA_to_Vol_ratio)
+
+M_FLUX_BIC_noW12 <- lmer(log(Flux_umol_m2_s) ~ 
+                  BaroTemp_c_yearly+ 
+                  waterTemp_c_yearly +
+                  Water_minus_air_Temp +
+                  waterTemp_c_day + 
+                  log(surface_area_m2) +
+                  solarrad_Wm2_daymean +
+                    SA_to_Vol_ratio + 
+                  (1 |Wetland), data =df_1,REML = FALSE)
+
+
+sum_FLUX_BIC_noW12 <- summary(M_FLUX_BIC_noW12)
+coeff_FLUX_BIC_noW12 <- as.data.frame(sum_FLUX_BIC_noW12$coefficients)
+coeff_FLUX_BIC_noW12$effects <- rownames(coeff_FLUX_BIC_noW12)
+
+
+WL_df_extrapolate$FLUX_BIC_noW12 <- coeff_FLUX_BIC_noW12[1,"Estimate"] +
+  WL_df_extrapolate$BaroTemp_c_yearly * coeff_FLUX_BIC_noW12[2,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_yearly * coeff_FLUX_BIC_noW12[3,"Estimate"] +
+  WL_df_extrapolate$Baro_Water_minus_air_Temp * coeff_FLUX_BIC_noW12[4,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_day * coeff_FLUX_BIC_noW12[5,"Estimate"] +
+  WL_df_extrapolate$SA_log * coeff_FLUX_BIC_noW12[6,"Estimate"] +
+  WL_df_extrapolate$solarrad_W_m2_daymean * coeff_FLUX_BIC_noW12[7,"Estimate"] +
+  WL_df_extrapolate$SA_to_Vol_ratio * coeff_FLUX_BIC_noW12[8,"Estimate"]
+
+##WITH Wetland 12
+#AIC: (Intercept), scale(BaroTemp_c_yearly), scale(Water_minus_air_Temp), scale(waterTemp_c_day), scale(log(surface_area_m2)), scale(precip_mm_ave2), scale(solarrad_Wm2_daymean)
+
+df_1 <- df_saved#%>%filter(Wetland!="Wetland12")
+
+M_FLUX_AIC_W12 <- lmer(log(Flux_umol_m2_s) ~ 
+                  BaroTemp_c_yearly+ 
+                  Water_minus_air_Temp +
+                  waterTemp_c_day + 
+                  log(surface_area_m2) +
+                  precip_mm_ave2 +
+                  solarrad_Wm2_daymean +
+                  (1 |Wetland), data =df_1,REML = FALSE)
+
+
+sum_FLUX_AIC_W12 <- summary(M_FLUX_AIC_W12)
+coeff_FLUX_AIC_W12 <- as.data.frame(sum_FLUX_AIC_W12$coefficients)
+coeff_FLUX_AIC_W12$effects <- rownames(coeff_FLUX_AIC_W12)
+
+WL_df_extrapolate$FLUX_AIC_W12 <- coeff_FLUX_AIC_W12[1,"Estimate"] +
+   WL_df_extrapolate$BaroTemp_c_yearly * coeff_FLUX_AIC_W12[2,"Estimate"] +
+  WL_df_extrapolate$Baro_Water_minus_air_Temp * coeff_FLUX_AIC_W12[3,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_day * coeff_FLUX_AIC_W12[4,"Estimate"] +
+  WL_df_extrapolate$SA_log * coeff_FLUX_AIC_W12[5,"Estimate"] +
+  WL_df_extrapolate$precip_mm_ave2 * coeff_FLUX_AIC_W12[6,"Estimate"] +
+  WL_df_extrapolate$solarrad_W_m2_daymean * coeff_FLUX_AIC_W12[7,"Estimate"]
+
+#BIC: 	
+#(Intercept), scale(BaroTemp_c_yearly), scale(Water_minus_air_Temp), scale(log(surface_area_m2))
+
+
+M_FLUX_BIC_W12 <- lmer(log(Flux_umol_m2_s) ~ 
+                  BaroTemp_c_yearly+ 
+                  Water_minus_air_Temp +
+                  log(surface_area_m2) +
+                  (1 |Wetland), data =df_1,REML = FALSE)
+
+sum_FLUX_BIC_W12 <- summary(M_FLUX_BIC_W12)
+coeff_FLUX_BIC_W12 <- as.data.frame(sum_FLUX_BIC_W12$coefficients)
+coeff_FLUX_BIC_W12$effects <- rownames(coeff_FLUX_BIC_W12)
+
+WL_df_extrapolate$FLUX_BIC_W12 <- coeff_FLUX_BIC_W12[1,"Estimate"] +
+   WL_df_extrapolate$BaroTemp_c_yearly * coeff_FLUX_BIC_W12[2,"Estimate"] +
+  WL_df_extrapolate$Baro_Water_minus_air_Temp * coeff_FLUX_BIC_W12[3,"Estimate"] +
+  WL_df_extrapolate$SA_log * coeff_FLUX_BIC_W12[4,"Estimate"]
+
+```
+
+#co2 models
+
+```{r co2 models, echo=FALSE}
+
+
+#CO2 WITHOUT Wetland 12
+#AIC: (Intercept), scale(BaroTemp_c_yearly), scale(waterTemp_c_yearly), scale(log(surface_area_m2))
+df_1 <- df_saved%>%filter(Wetland!="Wetland12")
+
+
+M_CO2_AIC_noW12 <- lmer(log(CO2_umol.L) ~ 
+                  scale(BaroTemp_c_yearly)+ 
+                  scale(waterTemp_c_yearly) +
+                  scale(log(surface_area_m2)) +
+                  (1 |Wetland), data =df_1,REML = FALSE)
+sum_CO2_AIC_noW12 <- summary(M_CO2_AIC_noW12)
+coeff_CO2_AIC_noW12 <- as.data.frame(sum_CO2_AIC_noW12$coefficients)
+coeff_CO2_AIC_noW12$effects <- rownames(coeff_CO2_AIC_noW12)
+
+WL_df_extrapolate$CO2_AIC_noW12 <- coeff_CO2_AIC_noW12[1,"Estimate"] +
+   WL_df_extrapolate$BaroTemp_c_yearly * coeff_CO2_AIC_noW12[2,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_yearly * coeff_CO2_AIC_noW12[3,"Estimate"]  +
+  WL_df_extrapolate$SA_log * coeff_CO2_AIC_noW12[4,"Estimate"] 
+
+#no W12 BIC
+#BIC (Intercept), scale(BaroTemp_c_yearly)
+M_CO2_BIC_noW12 <- lmer(log(CO2_umol.L) ~ 
+                  scale(BaroTemp_c_yearly)+ 
+                  (1 |Wetland), data =df_1,REML = FALSE)
+sum_CO2_BIC_noW12 <- summary(M_CO2_BIC_noW12)
+coeff_CO2_BIC_noW12 <- as.data.frame(sum_CO2_BIC_noW12$coefficients)
+coeff_CO2_BIC_noW12$effects <- rownames(coeff_CO2_BIC_noW12)
+
+WL_df_extrapolate$CO2_BIC_noW12 <- coeff_CO2_BIC_noW12[1,"Estimate"] +
+   WL_df_extrapolate$BaroTemp_c_yearly * coeff_CO2_BIC_noW12[2,"Estimate"] 
+
+
+##
+#co2 WITH wetland 12
+#AIC : (Intercept), scale(BaroTemp_c_yearly), scale(waterTemp_c_yearly), scale(log(surface_area_m2))
+
+df_1 <- df_saved#%>%filter(Wetland!="Wetland12")
+
+
+M_CO2_AIC_W12 <- lmer(log(CO2_umol.L) ~ 
+                  scale(BaroTemp_c_yearly)+ 
+                  scale(waterTemp_c_yearly) +
+                  scale(log(SurfaceArea)) +
+                  (1 |Wetland), data =df_1,REML = FALSE)
+sum_CO2_AIC_W12 <- summary(M_CO2_AIC_W12)
+coeff_CO2_AIC_W12 <- as.data.frame(sum_CO2_AIC_W12$coefficients)
+coeff_CO2_AIC_W12$effects <- rownames(coeff_CO2_AIC_W12)
+
+WL_df_extrapolate$CO2_AIC_W12 <- coeff_CO2_AIC_W12[1,"Estimate"] +
+   WL_df_extrapolate$BaroTemp_c_yearly * coeff_CO2_AIC_W12[2,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_yearly * coeff_CO2_AIC_W12[3,"Estimate"]  +
+  WL_df_extrapolate$SA_log * coeff_CO2_AIC_W12[4,"Estimate"] 
+
+##
+#BIC: (Intercept), scale(BaroTemp_c_yearly), scale(waterTemp_c_yearly)
+
+
+M_CO2_BIC_W12 <- lmer(log(CO2_umol.L) ~ 
+                  scale(BaroTemp_c_yearly)+ 
+                  scale(waterTemp_c_yearly) +
+                  (1 |Wetland), data =df_1,REML = FALSE)
+sum_CO2_BIC_W12 <- summary(M_CO2_BIC_W12)
+coeff_CO2_BIC_W12 <- as.data.frame(sum_CO2_BIC_W12$coefficients)
+coeff_CO2_BIC_W12$effects <- rownames(coeff_CO2_BIC_W12)
+
+WL_df_extrapolate$CO2_BIC_W12 <- coeff_CO2_BIC_W12[1,"Estimate"] +
+   WL_df_extrapolate$BaroTemp_c_yearly * coeff_CO2_BIC_W12[2,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_yearly * coeff_CO2_BIC_W12[3,"Estimate"]
+
+```
+
+#model k
+
+```{r k models, echo=FALSE}
+
+
+
+```
+
+
+2. sum per month or week?
+3. sum per year
+4. compare for all models
+

@@ -1,11 +1,11 @@
 ---
-title: "CO2 wetland model"
+title: "gas transfer velocity wetland model"
 author: "Kriddie"
-date: "2023-11-10"
+date: "2023-12-10"
 output: html_document
 ---
 
-#mixed model for wetland data CO2
+#mixed model for wetland data FLUX
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -34,7 +34,6 @@ library("Hmisc")
 library(car)
 library(GGally)
 library(MCMCglmm)
-library(effects)
 
 ```
 
@@ -57,10 +56,6 @@ library(effects)
  
  > Faq about mixed models 
  http://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
- 
-> about model selection including AIC and BIC
- https://machinelearningmastery.com/probabilistic-model-selection-measures/
-
 #notes from stats consultant:
 
 #need a thery befor applying transformations
@@ -115,40 +110,42 @@ with this notation we assume an intercept that’s different for each subject”
 ```{r load data}
 #read in data
 #df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-04.csv"))[c(17,2,6,14:16,18:45,52:59)]
-df_saved <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-10.csv"))
-df_saved$num <- 1:44
-
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-10.csv"))
+df$num <- 1:44
 ```
 
 
-###Predicted drivers of CO2
+###Predicted drivers of k
 
-CO2 increases with Air temperature (increased respiration) - (ave day, ave year)
+##drivers of gas transfer velocity
+  #K increases with Air temperature (lower solubility) - (point, ave day, ave year)
+  #K increases with Water temperature (lower solubility) - (ave day, ave year)
+  #K is influenced by air-water diff (evaporative cooling or something)
+  #K increases with surface area size (more fetch)
+  #K increased with wind (more turbulance)
+  #K increases with precipitation (more turbulance)
+  #Solar radiation?
+  
+## All factors that were used in explaining CO2 and k
+
+k increases with Air temperature - (ave day)
     > AirTemp_c
-    > BaroTemp_c_yearly
 
-CO2 increases with Water temperature (increased respiration) - (ave day, ave year)
+k increases with Water temperature - (ave day)
     > WaterTemp_c
     > WaterTemp_c_day
-    > waterTemp_c_yearly
-
-CO2 increases with depth vol ratio (more contact with sediments) 
-    > SA_to_Vol_ratio_day --- not all wetlands
-
-CO2 decreases with surface area
+    
+k has a relationship with the difference in water and air temp
+  > Water_minus_air_Temp
+  
+k increases with surface area (more fetch)
     > Surface_area_m2
 
-CO2 increases with watershed size 
-    > WS_size_minusSA --- not all wetlands
-    > WS_ratio --- 
-
-precipitation effects CO2 concentration because it dilutes the water (ave of sum day and previous day)
+K increased with wind (more turbulance)
     > Precio_mm_ave2
 
-Solar radiation because stimulates gpp (ave day)
-    > Solarrad_Wm2_daymean
-
-
+K increased with wind (more turbulance)
+  > windspeed_m_s
 
 ##CHecking Assumptions
 #Step 1: Are there outliers in Y and X?
@@ -160,25 +157,19 @@ Solar radiation because stimulates gpp (ave day)
 
 ```{r  assumptions step 1, echo=FALSE}
 #Step 1: Are there outliers in Y and X?
-
-#remove Wetland 12?
-df <- df_saved%>%filter(Wetland!="Wetland12")
-
+ 
 #boxplots galore
-boxplot(log(df$CO2_umol.L)) ##transformed
-hist(log(df$CO2_umol.L))
-ggplot(df, aes(log(CO2_umol.L), num)) + geom_point()
+boxplot(df$k_m.d) ##NOT transformed
+hist(df$k_m.d)
+ggplot(df, aes(k_m.d, num)) + geom_point()
 
 boxplot(df$AirTemp_c)  # one?? - checked, it is as legit as the data collected can be. 
 hist(df$AirTemp_c)
 ggplot(df, aes(AirTemp_c, num)) + geom_point() #this looks pretty good
 
-boxplot(df$BaroTemp_c_day) #maybe use this data because no big outliers?
+boxplot(df$Baro_kpa_day) #maybe use this data because no big outliers?
 hist(df$BaroTemp_c_day)
 ggplot(df, aes(BaroTemp_c_day, num)) + geom_point()
-
-boxplot(df$BaroTemp_c_yearly) 
-hist(df$BaroTemp_c_yearly)
 
 boxplot(df$Watertemp_c)
 hist(df$Watertemp_c)
@@ -188,46 +179,38 @@ boxplot(df$waterTemp_c_day) #one? - checked, it is legit
 hist(df$waterTemp_c_day)
 ggplot(df, aes(waterTemp_c_day, num)) + geom_point()
 
-boxplot(df$waterTemp_c_yearly) #one?,- wetland 5 yes, legit
-hist(df$waterTemp_c_yearly)
-ggplot(df, aes(waterTemp_c_yearly, num)) + geom_point() # this looks good
-
 boxplot(df$Water_minus_air_Temp) #one outlier
 hist(df$Water_minus_air_Temp) 
 ggplot(df, aes(Water_minus_air_Temp, num)) + geom_point()# this looks good
 
-boxplot(df$SA_to_Vol_ratio) #transform? I don't know! The extreme outliers are legit
-#boxplot(log(df$SA_to_Vol_ratio)) #lots?
-hist(df$SA_to_Vol_ratio)
-ggplot(df, aes(SA_to_Vol_ratio, num)) + geom_point()
+boxplot(df$Baro_Water_minus_air_Temp) #some outliers
+hist(df$Baro_Water_minus_air_Temp)#this looks good
+ggplot(df, aes(Baro_Water_minus_air_Temp, num)) + geom_point()
 
 boxplot(log(df$surface_area_m2)) #seems like log transform is the way to go here. looks good after log transform
 hist(log(df$surface_area_m2))
 ggplot(df, aes(log(surface_area_m2), num)) + geom_point()
 
-boxplot(df$WS_size_minusSA) # this is wetland 12, wich, yes is very large watershed
-hist(df$WS_size_minusSA)
-ggplot(df, aes(WS_size_minusSA, num)) + geom_point()
+boxplot(df$PrecipAccuDay_mm) 
+hist(df$PrecipAccuDay_mm)
+ggplot(df, aes(PrecipAccuDay_mm, num)) + geom_point()
 
-boxplot(df$precip_mm_ave2) 
-hist(df$precip_mm_ave2)
-ggplot(df, aes(precip_mm_ave2, num)) + geom_point()
+boxplot(df$solarrad_W_m2) 
+hist(df$solarrad_W_m2)
+ggplot(df, aes(solarrad_W_m2, num)) + geom_point()
 
-boxplot(df$solarrad_Wm2_daymean) 
-hist(df$solarrad_Wm2_daymean)
-ggplot(df, aes(solarrad_Wm2_daymean, num)) + geom_point()
+boxplot(df$windspeed_m_s) 
+hist(df$windspeed_m_s)
+ggplot(df, aes(windspeed_m_s, num)) + geom_point()
 ```
 
 #Finding from step 1.
   > there are outliers but I checked, and these measurments are legit (I did change a few AirTemp_c measurments)
-  > I transformed a few things - the response variable, CO2 and surface area.
   > I think I will just leave the rest as-is. I denfinatly don't want to delete data since it is so precious. But perhapes I should just keep this in mind for analysis...
   >waterTemp_c_day - one outlier
   > waterTemp_c_yearly- wetland 5 is outlier
   > Water_minus_air_Temp - one outlier (wetland05), but dotplot looks ok
-  > SA_to_Vol_ratio transform maybe? idk it is messy (i think drop this explainer value)
   > surface_area_m2 - transform
-  > WS_size_minusSA - wetland14 WS is very big
 
   
 ##checking Assumptions
@@ -260,19 +243,17 @@ ggplot(df, aes(solarrad_Wm2_daymean, num)) + geom_point()
 ```{r  assumptions step 5.1, echo=FALSE}
 #make correlation matrix
 
-
-df_2 <- df[,c(#"Watertemp_c",
-        #      "AirTemp_c",
-         #     "BaroTemp_c_day",
-              "BaroTemp_c_yearly",
-              "waterTemp_c_yearly",
+df_2 <- df[,c("Watertemp_c",
+            #"AirTemp_c",
+             # "BaroTemp_c_day",
+            "Baro_Water_minus_air_Temp",
               "waterTemp_c_day",
               "Water_minus_air_Temp",
-              "SA_to_Vol_ratio",
               "surface_area_m2",
               "Watershed_m2",
-              "precip_mm_ave2",
-              "solarrad_Wm2_daymean"
+              "PrecipAccuDay_mm",
+              "solarrad_W_m2",
+              "windspeed_m_s"
               )]
 
 cor(df_2, use = "complete.obs")
@@ -288,9 +269,9 @@ correlation_coefficiant <- res2$r
 
 ##findings:
   > remove AirTemp_c (I don't really trust this data.. just that the sensor might have been heated up by the sun.. or accidently stored next to our bodies. We have this data because we wanted barometric pressure, so we wern't careful about potential airtemp data) Also it coovariates strongly with other variable
-  > remove Watertemp_c because it is correlates strongly with WaterTemp_day and I like using water temp day more
-  > BaroTemp_c_yearly and BaroTemp_c_day are correlated. Which to use? 
-          > I'm going to BaroTemp_c_day because it correlated more strongly with WaterTemp_c_day, and I am trying to test the idea that higher elevation had lower respiration rates, in the long term
+  > remove Watertemp_day because it is correlates strongly with WaterTemp_c and I like using water temp at that instant of measurment more
+  > remove barotemp dat because ir coorelates with water_minus_air_temp too much
+ 
     *now that we've removed factors, all correlation matrices between raw explanatory variables have values < 0.7*
 
 ```{r  assumptions step 5.2, echo=FALSE}
@@ -302,25 +283,24 @@ correlation_coefficiant <- res2$r
         #A value greater than 5 indicates potentially severe correlation between a given predictor variable and other predictor variables in the model. In this case, the coefficient estimates and p-values in the regression output are likely unreliable.
 
 
-M1 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
-                  scale(waterTemp_c_yearly) +
-                
-                  scale(waterTemp_c_day) + 
-                  scale(SA_to_Vol_ratio) + 
+M1 <- lmer(k_m.d ~ scale(Watertemp_c) +
+                  scale(Water_minus_air_Temp) +
+                   scale(Baro_Water_minus_air_Temp) +
                   scale(log(surface_area_m2)) +
-                #  scale(Watershed_m2) +
-                  scale(precip_mm_ave2) + 
-                  scale(solarrad_Wm2_daymean) +
+                  scale(PrecipAccuDay_mm) + 
+                  scale(solarrad_W_m2) +
+                  scale(windspeed_m_s) +
                   (1 |Wetland), data =df)
 
 vif(M1)
+
   
 ```
 
 #findings from step 5.2
   > BaroTemp_c_yearly had the highest VIF values, but once I got rid of Watershed_m2 the VIF droped for all variables. I need to get rid of this varliable because I don't have it for all wetlands.
   > this is also the case for SA_to_Vol_ratio, but I am only missing wetland 12 in this case, so I'm tempted to keep it and do 2 analysis
+
 
 
 #checking Assumptions
@@ -351,6 +331,7 @@ qqnorm(res1)
 #add a straight diagonal line to the plot
 qqline(res1) 
 
+
 ```
 
 #Findings from  assumptions step 2
@@ -371,10 +352,12 @@ qqline(res1)
 ```{r  assumptions step 3, echo=FALSE}
 #Create density plot of residuals
 plot(density(res1))
+
 #histagram
 hist(res1)
+
 # create pairs plot 
-#ggpairs( df_2 )
+#ggpairs( df_2 ) #this is too much, but maybe with a different dataset it would be useful
 
 ```
 
@@ -386,41 +369,29 @@ hist(res1)
 ```{r  model building, echo=FALSE}
 
 #I need to remove REML (read about this more so that you understand)
+df$Solarrad_daymax
+M1 <- lmer(k_m.d ~ scale(Watertemp_c) +
+                 scale(Water_minus_air_Temp) +
+                 #  scale(Baro_Water_minus_air_Temp) +
+                  scale(log(surface_area_m2)) +
+                  scale(PrecipAccuDay_mm) + 
+                  scale(solarrad_W_m2) +
+                  scale(windspeed_m_s) +
+                  (1 |Wetland), data =df,REML=FALSE)
 
-#summary for global models
 summary(M1)
 modelPerformance(M1)
-summary_M1 <- summary(M1)
-summary_M1$AICtab
-summary(M1)$AIC[1]
-
-M2 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
-                  scale(waterTemp_c_yearly) +
-                  scale(waterTemp_c_day) + 
-                  scale(SA_to_Vol_ratio) + 
-                  scale(log(surface_area_m2)) +
-                #  scale(Watershed_m2) +
-                  scale(precip_mm_ave2) + 
-                  scale(solarrad_Wm2_daymean) +
-                  (1 |Wetland), data =df,REML = FALSE)
-
-summary(M2)$AIC[1]
-modelPerformance(M2)
-
 ```
 
-#simplify maybe?
-> just the 
+
 
 ```{r  model building3, echo=FALSE}
 
+df_1 <- df
+
 Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric())
 
-#df_1 <-df
-df_1 <-df_saved#%>%filter(Wetland!="Wetland12")
-
-n = 6
+n = 7
 grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
 grid_df <- as.data.frame(grid$Var1)
 colnames(grid_df) <- "Var1"
@@ -429,18 +400,20 @@ grid_df$Var3 <- grid$Var3
 grid_df$Var4 <- grid$Var4
 grid_df$Var5 <- grid$Var5
 grid_df$Var6 <- grid$Var6
-#grid_df$Var7 <- grid$Var7
+grid_df$Var7 <- grid$Var7
 
-grid_df$Var1[which(grid_df$Var1 == 1)] <- "BaroTemp_c_yearly"
-grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
-grid_df$Var3[which(grid_df$Var3 == 1)] <- "waterTemp_c_day"
-grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(surface_area_m2)"
-grid_df$Var5[which(grid_df$Var5 == 1)] <- "precip_mm_ave2"
-grid_df$Var6[which(grid_df$Var6 == 1)] <- "solarrad_Wm2_daymean"
-#grid_df$Var7[which(grid_df$Var7 == 1)] <- "SA_to_Vol_ratio"
+grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
+grid_df$Var2[which(grid_df$Var2 == 1)] <- "Water_minus_air_Temp"
+grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
+grid_df$Var4[which(grid_df$Var4 == 1)] <- "PrecipAccuDay_mm"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "solarrad_W_m2"
+grid_df$Var6[which(grid_df$Var6 == 1)] <- "windspeed_m_s"
+grid_df$Var7[which(grid_df$Var7 == 1)] <- "SA_to_Vol_ratio"
 
 grid_df[grid_df == 0] <- NA
 
+#let's remove Wetland 12 for this analysis
+df_1 <- df#%>%filter(Wetland!="Wetland12")
 
 for (row in 2:nrow(grid_df)){
   f <- grid_df[row, ]
@@ -448,7 +421,7 @@ for (row in 2:nrow(grid_df)){
   
   if(length(f_2)==1){
     model <- lmer(
-    as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") + (1 |Wetland)")),
+    as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") + (1 |Wetland)")),
     data = df_1,REML = FALSE)
     summary <- summary(model)
     
@@ -456,218 +429,94 @@ for (row in 2:nrow(grid_df)){
   
       } else if(length(f_2)==2) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Wetland)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
        
       } else if(length(f_2)==3) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Wetland)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
        
       } else if(length(f_2)==4) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Wetland)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
        
       } else if(length(f_2)==5) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("k_m.d~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Wetland)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
        
       } else if(length(f_2)==6) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Wetland)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
-       
-      } else if(length(f_2)==7) { 
+      } else { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Wetland)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
-       
-      } else  {
-         print("too many")
-      }
+       }
 }
 ```
 
 #run best models according to AIC and BIC
 ```{r  model building, echo=FALSE}
 
-df_1 <- df_saved
-df_1$SurfaceArea_log <- log(df_1$surface_area_m2)
 
-#With Wetland 12
-#AIC
+#with and without wetland 12
+#Water_minus_air_Temp
 
-M_AIC_1 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
-                  scale(waterTemp_c_yearly) +
-                  scale(log(SurfaceArea_log)) +
-                  scale(SA_to_Vol_ratio)
+
+df_1 <- df#%>%filter(Wetland!="Wetland12")
+
+#AIC & BIC are same 
+df_1$K600
+M_AIC <- lmer(K600 ~ 
+                 # scale(Water_minus_air_Temp)+
+                    scale(solarrad_W_m2) +
+                   scale(Baro_Water_minus_air_Temp) +
                   (1 |Wetland), data =df_1,REML = FALSE)
-summary(M_AIC_1)
-modelPerformance(M_AIC_1)
+summary(M_AIC)
+modelPerformance(M_AIC)
 
-sum_M_CO2_AIC_W12 <- summary(M_CO2_AIC_W12)
-coeff_M_CO2_AIC_W12 <- as.data.frame(sum_M_CO2_AIC_W12$coefficients)
-coeff_M_CO2_AIC_W12$effects <- rownames(coeff_M_CO2_AIC_W12)
-
-M_BIC_1 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
-                 scale(waterTemp_c_yearly) +
-                  (1 |Wetland), data =df_1,REML = FALSE)
-summary(M_BIC_1)
-modelPerformance(M_BIC_1)
-
-#Without Wetland 12
-
-#AIC
-M_AIC_2 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
-                  scale(waterTemp_c_yearly) +
-                  scale(log(SurfaceArea_)) +
-                  (1 |Wetland), data =df_1,REML = FALSE)
-summary(M_AIC_2)
-modelPerformance(M_AIC_2)
-
-M_BIC_2 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
-                  (1 |Wetland), data =df_1,REML = FALSE)
-summary(M_BIC_2)
-modelPerformance(M_BIC_2)
 
 ```
-#visualize results
-```{r  plot it, echo=FALSE}
 
+```{r  visualize, echo = FALSE}
 
 library(ggeffects)  # install the package first if you haven't already, then load it
 
 # Extract the prediction data frame
-pred.mm <- ggpredict(M_BIC_2, terms = c("BaroTemp_c_yearly"#, "waterTemp_c_yearly", "SurfaceArea_log")
-                                      ))  # this gives overall predictions for the model
+pred.mm <- ggpredict(M_AIC, terms = c("Water_minus_air_Temp" ))  # this gives overall predictions for the model
 # Plot the predictions 
 
 (ggplot(pred.mm) + 
-   geom_line(aes(x = x, y = log(predicted))) +          # slope
-   geom_ribbon(aes(x = x, ymin = log(predicted) - std.error, ymax = log(predicted) + std.error), 
+   geom_line(aes(x = x, y = predicted)) +          # slope
+   geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error), 
                fill = "lightgrey", alpha = 0.5) +  # error band
    geom_point(data = df_1,                      # adding the raw data (scaled values)
-              aes(x = BaroTemp_c_yearly, y = log(CO2_umol.L), colour = Wetland)) + 
-   labs(x = "BaroTemp_c_yearly", y = "log(CO2_umol.L)", 
-        title = "CO2 model") + 
+              aes(x = Water_minus_air_Temp, y = K600, colour = Wetland), size = 3) + 
+   labs(x = "Water - air temperature", y = "k600", 
+        title = "k600 model") + 
    theme_minimal()
 )
 
-ggpredict(M_BIC_2, terms = c("BaroTemp_c_yearly", "Wetland"), type = "re") %>% 
-   plot() +
-   labs(x = "terms", y = "CO2", title = "CO2 model") + 
-   theme_minimal() +
-  scale_fill_manual(values=c("#CC0000", "#006600", "#669999", "#00CCCC", 
-                             "#660099", "#CC0066", "#FF9999", "#FF9900",
-                             "#CC0000", "#006600", "#669999","#FF9900"))
 
-library(sjPlot)
-
-# Visualise random effects 
-(re.effects <- plot_model(M_BIC, type = "re", show.values = TRUE))
-
-# show summary
-summary(M_AIC_2)
-
-
-
-library(sjlabelled)
-
-fit <- lmer(log(CO2_umol.L) ~ BaroTemp_c_yearly +waterTemp_c_yearly+ SurfaceArea_log +(1|Wetland), data=df)
-# facet by group,
-dat <- ggpredict(fit, terms = c("BaroTemp_c_yearly", "waterTemp_c_yearly", "SurfaceArea_log" ))
-plot(dat)
- 
-# don't use facets, b/w figure, w/o confidence bands
-dat <- ggpredict(fit, terms = c("BaroTemp_c_yearly", "waterTemp_c_yearly", "precip_mm_ave2" ))
-plot(dat, colors = "bw", show_ci = FALSE)
-
-#2
-fit <- lmer(log(CO2_umol.L) ~ BaroTemp_c_yearly +waterTemp_c_yearly + (1|Wetland), data=df_saved)
-# facet by group,
-dat <- ggpredict(fit, terms = c("BaroTemp_c_yearly", "waterTemp_c_yearly" ))
-plot(dat)
-
-ggplot(data=df_saved) +
-  geom_point(aes(x=waterTemp_c_yearly ,y=log(CO2_umol.L),color=BaroTemp_c_yearly),size=3)
-
-```
-
-#visualize using sjPlot::plot_model(mod)
-```{r  plot it 2, echo=FALSE}
-
-sjPlot::plot_model(M_BIC_1)
-sjPlot::plot_model(M_BIC_2)
-# Notes: axis labels should be in order from bottom to top. 
-# To see the values of the effect size and p-value, set show.values and show.p= TRUE. Pvalues will only be shown if the effect size values are too
-
-sjPlot::plot_model(M_BIC_1, 
-                   axis.labels=c("Air Temperature yearly average","Water Temperature yearly average"),
-                   show.values=TRUE, show.p=TRUE,
-                   title="Effect of temperature on CO2 concentration")
-
-sjPlot::tab_model(M_BIC_1, 
+sjPlot::tab_model(M_AIC, 
                   show.re.var= TRUE, 
-                  pred.labels =c("(Intercept)", "Air Temp yearly ave (c)", "Water Temp yearly ave (c)"),
-                  dv.labels= "CO2")
-
-# Use the effects package --> effect function. term= the fixed effect you want to get data on, mod= name of your model.
-
-effects_co2 <- effects::effect(term= "BaroTemp_c_yearly", mod= M_BIC_1)
-summary(effects_co2) #output of what the values are
-# Save the effects values as a df:
-x_urch <- as.data.frame(effects_co2)
-
-#Basic steps:
-  #1 Create empty plot
-
-  #2 Add geom_points() from the DATA: urchin data on the x axis (independent va= c.urchinden) and coral data on the y-axis (response var= elkhorn_LAI)
-
-  #3 Add geom_point for the MODEL estimates (data= x_urchi here, this is the dataset you created in the above chunk). We will change the color so they are distinguishable from the data
-
-  #4 Add geom_line for the MODEL estimates. Change the color to match the estimate points (ie whatever color you chose for step3)
-
-  #5 Add geom_ribbon that has the CI limits for the model estimates
-
-  #6 Edit the labels as you see fit!
-
-#1
-urchin_plot <- ggplot() + 
-  #2
-geom_point(data=df_saved, aes(BaroTemp_c_yearly, log(CO2_umol.L))) + 
-  #3
-#  geom_point(data=x_urch, aes(x=BaroTemp_c_yearly, y=fit), color="blue") +
-  #4
-  geom_line(data=x_urch, aes(x=BaroTemp_c_yearly, y=fit), color="blue") +
-  #5
-  geom_ribbon(data= x_urch, aes(x=BaroTemp_c_yearly, ymin=lower, ymax=upper), alpha= 0.3, fill="blue") +
-  #6
-  labs(x="Average yearly air temperature", y="log(CO2 umol/L)")
-
-urchin_plot
+                  pred.labels =c("(Intercept)", "Air - water temperature (c)"),
+                  dv.labels= "k600 prediction model")
 ```
-```{r  partial , echo=FALSE}
-df_added_variable_plots <- df_saved
-M_BIC_1 <- lmer(log(CO2_umol.L) ~ scale(BaroTemp_c_yearly) + scale(waterTemp_c_yearly) + (1 |Wetland), data =df_added_variable_plots,REML = FALSE)
-df_added_variable_plots$M_BIC1_residuals <- residuals(M_BIC_1) 
 
-
-```
