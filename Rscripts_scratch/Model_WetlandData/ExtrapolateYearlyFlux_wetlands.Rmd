@@ -34,6 +34,41 @@ WL_df$WLTemp_c <- NULL
 
 WL_df_saved <- WL_df
 
+#add henry's constant co2
+kH_STP_mol.L.atm = .035
+D_K = 2400 
+T_STP_K = 298.15
+
+#calculate henry's law constant using 
+WL_df$KH_CO2_mol.L.atm <- kH_STP_mol.L.atm * exp(D_K*(1/(WL_df$WaterTemp_c+273.15) - 1/T_STP_K))
+
+
+#add henry's constant CH4
+kH_STP_mol.L.atm = .0014182
+dlnHcppersperK = 1600
+WL_df$KH_CH4_mol.L.atm <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(WL_df$WaterTemp_c+273.15)-1/T_STP_K))
+
+#co2 in the air
+#concentration of air
+#from www.esrl.noaa.gov
+#average of July and August
+#410.86 ppm
+CO2_air_ppm <- 410*10^-6
+R=0.08205736608096
+gCO2asC <- 12
+
+WL_df$air_pressure_atm <- WL_df$Baro_kpa * 0.00986923 #convert kpa to atm
+WL_df$VaporPressure_atm <- 10^(5.40221-(1838.675/((WL_df$BaroTemp_c + 273.15)-31.737)))
+WL_df$TotalAir_atm <- WL_df$air_pressure_atm - WL_df$VaporPressure_atm
+WL_df$Total_air_MolperL <- WL_df$TotalAir_atm/(R*(WL_df$BaroTemp_c + 273.15)) 
+WL_df$CO2_air_umol.L <- WL_df$Total_air_MolperL * CO2_air_ppm *1000
+
+#Ambient CH4 concentration ppm	1.912388333	
+#average 2021 from Moaa
+
+CH4_air_ppm <- 1.912388333	*10^-6
+
+WL_df$CH4_air_umol.L <- WL_df$Total_air_MolperL * CH4_air_ppmq *1000
 ```
 
 #Buid time series data frame
@@ -462,7 +497,7 @@ WL_df_extrapolate$CH4_BIC_W12 <- coeff_df[1,"Estimate"] +
 
 ```
 
-```{r. calc flux, echo=TRUE}
+```{r  calc flux, echo=TRUE}
 #calculate total flux
 WL_df_extrapolate$FLUX_AIC_noW12_umol_15min <- WL_df_extrapolate$FLUX_AIC_noW12 * WL_df_extrapolate$surface_area_m2 * 60 *15 
 
@@ -473,13 +508,13 @@ WL_df_extrapolate$FLUX_AIC_W12_umol_15min <- WL_df_extrapolate$FLUX_AIC_W12 * WL
 WL_df_extrapolate$FLUX_BIC_W12_umol_15min <- WL_df_extrapolate$FLUX_BIC_W12 * WL_df_extrapolate$surface_area_m2 * 60 *15 
 
 #use CO2 and k models to calc flux
-WL_df_extrapolate$FLUX_AIC_noW12_CALC_umol_15min 
+WL_df_extrapolate$FLUX_AIC_noW12_CALC_umol_s <- WL_df_extrapolate$k_AIC_noW12 * (WL_df_extrapolate$CO2_AIC_noW12 - WL_df_extrapolate$CO2_air_umol.L) * WL_df_extrapolate$KH_CO2_mol.L.atm
 
-WL_df_extrapolate$FLUX_BIC_noW12_CALC_umol_15min 
+WL_df_extrapolate$FLUX_AIC_noW12_CALC_umol_15min <- WL_df_extrapolate$FLUX_AIC_noW12_CALC_umol_s * WL_df_extrapolate$surface_area_m2 * 60 *15 #
 
-WL_df_extrapolate$FLUX_AIC_W12_CALC_umol_15min 
+WL_df_extrapolate$FLUX_AIC_W12_CALC_umol_s <- WL_df_extrapolate$k_AIC_W12 * (WL_df_extrapolate$CO2_AIC_W12 - WL_df_extrapolate$CO2_air_umol.L) * WL_df_extrapolate$KH_CO2_mol.L.atm
 
-WL_df_extrapolate$FLUX_BIC_W12_CALC_umol_15min 
+WL_df_extrapolate$FLUX_AIC_W12_CALC_umol_15min <- WL_df_extrapolate$FLUX_AIC_W12_CALC_umol_s * WL_df_extrapolate$surface_area_m2 * 60 *15
 
 ```
 
@@ -498,25 +533,10 @@ WL_df_extrapolate_daySUMMARY <- WL_df_extrapolate%>%
     FLUX_BIC_noW12_umol15min_dayAve = mean(FLUX_BIC_noW12_umol_15min, na.rm = TRUE),
     FLUX_AIC_W12_umol15min_dayAve = mean(FLUX_AIC_W12_umol_15min, na.rm = TRUE),
     FLUX_BIC_W12_umol15min_dayAve = mean(FLUX_BIC_W12_umol_15min, na.rm = TRUE),
+    FLUX_AIC_noW12_CALC_umol15min_dayAve = mean(FLUX_AIC_noW12_CALC_umol_15min, na.rm = TRUE),
+    FLUX_AIC_W12_CALC_umol15min_dayAve = mean(FLUX_AIC_W12_CALC_umol_15min, na.rm = TRUE)
+    
   )
-
-WL_df_extrapolate_monthSUMMARY <- WL_df_extrapolate%>%
-  group_by(month,Wetland)%>% 
-  summarise(
-    FLUX_AIC_noW12_umol15min_monthAve = mean(FLUX_AIC_noW12_umol_15min, na.rm = TRUE),
-    FLUX_BIC_noW12_umol15min_monthAve = mean(FLUX_BIC_noW12_umol_15min, na.rm = TRUE),
-    FLUX_AIC_W12_umol15min_monthAve = mean(FLUX_AIC_W12_umol_15min, na.rm = TRUE),
-    FLUX_BIC_W12_umol15min_monthAve = mean(FLUX_BIC_W12_umol_15min, na.rm = TRUE),
-  )
-
-WL_df_extrapolate_monthSUMMARY$FLUX_AIC_noW12_umol_monthSUM <- WL_df_extrapolate_monthSUMMARY$FLUX_AIC_noW12_umol15min_dayAve * 96 * 30
-
-WL_df_extrapolate_monthSUMMARY$FLUX_BIC_noW12_umol_monthSUM <- WL_df_extrapolate_monthSUMMARY$FLUX_BIC_noW12_umol15min_dayAve * 96 *30
-
-WL_df_extrapolate_monthSUMMARY$FLUX_AIC_W12_umol_montSUM <- WL_df_extrapolate_monthSUMMARY$FLUX_AIC_W12_umol15min_dayAve * 96 * 30
-
-WL_df_extrapolate_monthSUMMARY$FLUX_BIC_W12_umol_monthSUM <- WL_df_extrapolate_monthSUMMARY$FLUX_BIC_W12_umol15min_dayAve * 96 * 30
-
 
 WL_df_extrapolate_yearSUMMARY <- WL_df_extrapolate_daySUMMARY%>%
   group_by(Wetland)%>% 
@@ -525,6 +545,8 @@ WL_df_extrapolate_yearSUMMARY <- WL_df_extrapolate_daySUMMARY%>%
     FLUX_BIC_noW12_umol_yearMEAN = mean(FLUX_BIC_noW12_umol15min_dayAve, na.rm = TRUE),
     FLUX_AIC_W12_umol_yearMEAN = mean(FLUX_AIC_W12_umol15min_dayAve, na.rm = TRUE),
     FLUX_BIC_W12_umol_yearMEAN = mean(FLUX_BIC_W12_umol15min_dayAve, na.rm = TRUE),
+    FLUX_AIC_noW12_CALC_umol_yearMEAN = mean(FLUX_AIC_noW12_CALC_umol15min_dayAve, na.rm = TRUE),
+    FLUX_AIC_W12_CALC_umol_yearMEAN = mean(FLUX_AIC_W12_CALC_umol15min_dayAve, na.rm = TRUE)
   )
 
 WL_df_extrapolate_yearSUMMARY$FLUX_AIC_noW12_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUX_AIC_noW12_umol_yearMEAN *365
@@ -535,7 +557,13 @@ WL_df_extrapolate_yearSUMMARY$FLUX_AIC_W12_umol_year <- WL_df_extrapolate_yearSU
 
 WL_df_extrapolate_yearSUMMARY$FLUX_BIC_W12_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUX_BIC_W12_umol_yearMEAN *365
 
-WL_df_extrapolate_yearSUMMARY <- WL_df_extrapolate_yearSUMMARY[c("Wetland","FLUX_AIC_noW12_umol_year","FLUX_BIC_noW12_umol_year","FLUX_AIC_W12_umol_year","FLUX_BIC_W12_umol_year")]
+WL_df_extrapolate_yearSUMMARY$FLUX_BIC_W12_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUX_BIC_W12_umol_yearMEAN *365
+
+WL_df_extrapolate_yearSUMMARY$FLUX_AIC_W12_CALC_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUX_AIC_W12_CALC_umol_yearMEAN *365
+
+WL_df_extrapolate_yearSUMMARY$FLUX_AIC_noW12_CALC_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUX_AIC_noW12_CALC_umol_yearMEAN *365
+
+WL_df_extrapolate_yearSUMMARY <- WL_df_extrapolate_yearSUMMARY[c("Wetland","FLUX_AIC_noW12_umol_year","FLUX_BIC_noW12_umol_year","FLUX_AIC_W12_umol_year","FLUX_BIC_W12_umol_year","FLUX_AIC_noW12_CALC_umol_year","FLUX_AIC_noW12_CALC_umol_year")]
 library(reshape2)
 melt.WL_df_extrapolate_yearSUMMARY<-melt(WL_df_extrapolate_yearSUMMARY, id=c("Wetland"))
 
