@@ -664,6 +664,8 @@ geom_point(data=df_saved, aes(BaroTemp_c_yearly, log(CO2_umol.L))) +
 
 urchin_plot
 ```
+
+
 ```{r  partial , echo=FALSE}
 df_added_variable_plots <- df_saved
 M_BIC_1 <- lmer(log(CO2_umol.L) ~ scale(BaroTemp_c_yearly) + scale(waterTemp_c_yearly) + (1 |Wetland), data =df_added_variable_plots,REML = FALSE)

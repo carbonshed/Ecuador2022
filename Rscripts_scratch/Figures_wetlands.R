@@ -1,8 +1,19 @@
 #Figs
 #2022-11-06
-#this script is to make a fig to use for AGU poster and wetland paper 
+#this script is to make figs to use for AGU poster and wetland paper 
+
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-10.csv"))
+df$Date <- as.Date(df$Date)
 
 
+pp1 <- ggplot(data=df,aes(x=CO2_umol.L,y=Flux_umol_m2_s, fill=Wetland)) +
+  geom_point(shape=21,size=5) +
+  scale_y_log10() + scale_x_log10() +
+  xlab(expression(CO[2] ~'('~mu*'mol' ~ l^-1~')')) + ylab(expression(CO[2] ~'Flux ('~mu*'mol' ~ m^2~ s^-1~')' )) +
+  theme_bw() +
+  theme(text=element_text(size=18))
+
+pp1
 #I want to make a 12 panel figure with 2 axis depth and surface area
 
 WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv"))
@@ -36,3 +47,38 @@ p1 <- ggplot(WL_df, aes(x=DateTime)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 p1 + facet_wrap(~Station, scales = "free_y")#+theme(text=element_text(size=12))
+
+#med deli plot
+
+
+Summary_df <- WL_df%>%
+ group_by(Station)%>%
+  summarise(
+    SA_max = max(surface_area_m2, na.rm = TRUE),
+    SA_min = min(surface_area_m2, na.rm = TRUE),
+    SA_mean = mean(surface_area_m2, na.rm = TRUE),
+    
+    depth_max = max(depth_ave_m, na.rm = TRUE),
+    depth_min = min(depth_ave_m, na.rm = TRUE),
+    depth_mean = mean(depth_ave_m, na.rm = TRUE)
+  )
+
+Summary_df$name.code <- paste("W",as.numeric(gsub("\\D", "", Summary_df$Station)))
+library(stringr)
+Summary_df$name.code <- str_replace_all(Summary_df$name.code, " ", "")
+
+p2 <- ggplot(data=Summary_df,aes(x=SA_mean,y=depth_mean, color=name.code)) +
+  geom_point(shape=7,size=5) +
+  geom_segment(aes(x = SA_min, y = depth_mean, xend = SA_max, yend = depth_mean, color=name.code),linewidth=1) +
+  geom_segment(aes(x = SA_mean, y = depth_min, xend = SA_mean, yend = depth_max, color=name.code),linewidth=1) +
+  scale_y_log10() + scale_x_log10() +
+  theme_bw() +
+  theme(text=element_text(size=18)) +
+  theme(
+    axis.text.x = element_text(color="black"),
+    axis.ticks = element_line(color = "black")
+  ) +
+  xlab(expression('Surface Area (' ~ m^2~')')) + ylab("Depth ( m )")
+p2 + annotation_logticks() 
+
+expression(Speed ~ ms^-1 ~ by ~ impeller)

@@ -17,37 +17,16 @@ library(reshape2)
 library(ggplot2)
 ```
 
-## modeling CO2 and CH4 flux
+## R Markdown
 
-In this iteration of this R markdown, I am simplifying my analysis. For now this makes sense to do because I need to make a poster very soon and so I need to cut some loses. As of now, I'm not sure whether what I am doing can be fully supported and whether I should add the other analysis in for the paper.
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-1. Drop analysis with no Wetland 12. I looked into dropping wetland 12 because it is different from the other wetlands (lots of veg, uneven border 0and also I didn't measure depth so we don't have depth to surface area ratio. BUT not that i've done analysis, the predictors for co2 and ch4 do not include depth to surface area ratio, so I think, for now, we will leave in wetland 12
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-2. Model with modeled k instead of mean... cause i don't think it matters much? or should I use mean --- ahhhh
-Ok I'm going to just use mean
-
-
-Also added in this version is conversion of k from co2 to ch4, as found here: Raymond et al. 2012
-https://aslopubs.onlinelibrary.wiley.com/doi/full/10.1215/21573689-1597669
-
-k(gas1)/k(gas2) = (sc(gas1)/sc(gas2))^-n
-because we are doing ponds, n = 2/3
-Sc: Schmidt number temperature dependencies -- using Wanninkhof(1992) as reported in linked citation above
-    CO2: 1911 + -118.11* T + 3.453 * T^2 + -0.0413 * T^3
-    CH4: 1898 + -114.28* T + 3.29* T^2 + -.0391 * T^3
-    
-  T is in degree celcius
 ```{r read in data}
 
 df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-10.csv"))
 df$Date <- as.Date(df$Date)
-
-#calculate k for ch4
-#k(gas1)/k(gas2) = (sc(gas1)/sc(gas2))^-n
-df$Sc_co2 <- 1911 - 118.11*df$Watertemp_c + 3.453*(df$Watertemp_c)^2 - 0.0413*(df$Watertemp_c)^3
-df$Sc_ch4 <- 1898 + -114.28*df$Watertemp_c + 3.29*(df$Watertemp_c)^2 + -.0391*(df$Watertemp_c)^3
-
-df$k_ch4 <- (df$Sc_ch4/df$Sc_co2)^2/3 * df$k_m.d
 
 WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv"))
 WL_df <- WL_df[c("DateTime","Station","Baro_kpa","BaroTemp_c","WLTemp_c","depth_ave_m","surface_area_m2","Volumn_m3","SA_to_Vol_ratio")]
@@ -59,7 +38,6 @@ WL_df$WaterTemp_c <- WL_df$WLTemp_c
 WL_df$WLTemp_c <- NULL
 
 WL_df_saved <- WL_df
-
 
 #add henry's constant co2
 kH_STP_mol.L.atm = .035
@@ -216,7 +194,9 @@ WL_df_extrapolate <- WL_df_new
 WL_df_extrapolate$FLUX_noW12_umol_15min
 WL_df_extrapolate$FLUX_W12
 
-#ggplot(WL_df_extrapolate%>%filter(Wetland=="Wetland11"),aes(x=DateTime, y=FLUX_W12)) + geom_point(size=2, shape=23)
+ggplot(WL_df_extrapolate%>%filter(Wetland=="Wetland11"),
+       aes(x=DateTime, y=FLUX_W12)) +
+  geom_point(size=2, shape=23)
 
 
 ```
@@ -224,6 +204,39 @@ WL_df_extrapolate$FLUX_W12
 
 
 ```{r flux models, echo=FALSE}
+
+
+df_1 <- df%>%filter(Wetland!="Wetland12")
+
+#BIC:(Intercept), scale(BaroTemp_c_yearly), scale(waterTemp_c_yearly), scale(waterTemp_c_day), scale(log(surface_area_m2)), scale(solarrad_Wm2_daymean)
+
+M_FLUX_noW12 <- lmer(log(Flux_umol_m2_s) ~ 
+                  BaroTemp_c_yearly+ 
+                  waterTemp_c_yearly +
+                  waterTemp_c_day + 
+                  log(surface_area_m2) +
+                  solarrad_Wm2_daymean +
+                  (1 |Wetland), data =df_1,REML = FALSE)
+
+sum_df <- summary(M_FLUX_noW12)
+coeff_df <- as.data.frame(sum_df$coefficients)
+coeff_df$effects <- rownames(coeff_df)
+
+intercept_df <- coef(M_FLUX_noW12)$Wetland[1]
+intercept_df$Wetland <- rownames(intercept_df)
+colnames(intercept_df) <- c("intercept","Wetland")
+WL_df_extrapolate <- left_join(WL_df_extrapolate,intercept_df,by="Wetland")
+
+WL_df_extrapolate$FLUX_noW12 <- exp(
+  WL_df_extrapolate$intercept + 
+  WL_df_extrapolate$BaroTemp_c_yearly * coeff_df[2,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_yearly * coeff_df[3,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_day * coeff_df[4,"Estimate"] +
+  log(WL_df_extrapolate$surface_area_m2) * coeff_df[5,"Estimate"] +
+  WL_df_extrapolate$solarrad_Wm2_daymean * coeff_df[6,"Estimate"]
+  )
+
+WL_df_extrapolate$intercept <- NULL
 
 #BIC: 	
 #(Intercept), scale(BaroTemp_c_yearly), scale(waterTemp_c_day), scale(log(surface_area_m2)), scale(solarrad_Wm2_daymean)
@@ -247,12 +260,11 @@ intercept_df$Wetland <- rownames(intercept_df)
 colnames(intercept_df) <- c("intercept","Wetland")
 WL_df_extrapolate <- left_join(WL_df_extrapolate,intercept_df,by="Wetland")
 
-WL_df_extrapolate$FLUX_W12 <- exp(WL_df_extrapolate$intercept #+ 
-#   WL_df_extrapolate$BaroTemp_c_yearly * coeff_df[2,"Estimate"] +
-#  WL_df_extrapolate$waterTemp_c_day * coeff_df[3,"Estimate"] +
-#  WL_df_extrapolate$SA_log * coeff_df[4,"Estimate"] +
-#  WL_df_extrapolate$solarrad_Wm2_daymean * coeff_df[5,"Estimate"]
-)
+WL_df_extrapolate$FLUX_W12 <- exp(WL_df_extrapolate$intercept + 
+   WL_df_extrapolate$BaroTemp_c_yearly * coeff_df[2,"Estimate"] +
+  WL_df_extrapolate$waterTemp_c_day * coeff_df[3,"Estimate"] +
+  WL_df_extrapolate$SA_log * coeff_df[4,"Estimate"] +
+  WL_df_extrapolate$solarrad_Wm2_daymean * coeff_df[5,"Estimate"])
 
 WL_df_extrapolate$intercept <- NULL
 
@@ -261,6 +273,30 @@ WL_df_extrapolate$intercept <- NULL
 #co2 models
 
 ```{r co2 models, echo=FALSE}
+
+
+#CO2 WITHOUT Wetland 12
+
+df_1 <- df%>%filter(Wetland!="Wetland12")
+
+#no W12 BIC
+#BIC (Intercept), scale(BaroTemp_c_yearly)
+M_CO2_noW12 <- lmer(log(CO2_umol.L) ~ 
+                  BaroTemp_c_yearly+ 
+                  (1 |Wetland), data =df_1,REML = FALSE)
+sum_df <- summary(M_CO2_noW12)
+coeff_df <- as.data.frame(sum_df$coefficients)
+coeff_df$effects <- rownames(coeff_df)
+
+intercept_df <- coef(M_CO2_noW12)$Wetland[1]
+intercept_df$Wetland <- rownames(intercept_df)
+colnames(intercept_df) <- c("intercept","Wetland")
+WL_df_extrapolate <- left_join(WL_df_extrapolate,intercept_df,by="Wetland")
+
+WL_df_extrapolate$CO2_noW12 <- exp(WL_df_extrapolate$intercept +
+   WL_df_extrapolate$BaroTemp_c_yearly * coeff_df[2,"Estimate"] )
+
+WL_df_extrapolate$intercept <- NULL
 
 ##
 #co2 WITH wetland 12
@@ -301,6 +337,29 @@ for all k models, solar radiation is the most important predictor.
 
 ```{r k models, echo=FALSE}
 
+#k WITHOUT Wetland 12
+df_1 <- df%>%filter(Wetland!="Wetland12")
+
+#BIC - k: (Intercept), scale(solarrad_W_m2)
+
+M_k_noW12 <- lmer(k_m.d ~ 
+                  solarrad_Wm2_daymean+ 
+                  (1 |Wetland), data =df_1,REML = FALSE)
+sum_df <- summary(M_k_noW12)
+coeff_df <- as.data.frame(sum_df$coefficients)
+coeff_df$effects <- rownames(coeff_df)
+
+intercept_df <- coef(M_k_noW12)$Wetland[1]
+intercept_df$Wetland <- rownames(intercept_df)
+colnames(intercept_df) <- c("intercept","Wetland")
+WL_df_extrapolate <- left_join(WL_df_extrapolate,intercept_df,by="Wetland")
+
+WL_df_extrapolate$k_noW12 <- WL_df_extrapolate$intercept +
+   WL_df_extrapolate$solarrad_Wm2_daymean * coeff_df[2,"Estimate"] 
+
+WL_df_extrapolate$intercept <- NULL
+
+
 #k WITH Wetland 12
 df_1 <- df#%>%filter(Wetland!="Wetland12")
 
@@ -317,7 +376,7 @@ intercept_df$Wetland <- rownames(intercept_df)
 colnames(intercept_df) <- c("intercept","Wetland")
 WL_df_extrapolate <- left_join(WL_df_extrapolate,intercept_df,by="Wetland")
 
-WL_df_extrapolate$k_W12 <- WL_df_extrapolate$intercept +
+WL_df_extrapolate$k_W12 <- WL_df_extrapolate$intercept  +
    WL_df_extrapolate$solarrad_Wm2_daymean * coeff_df[2,"Estimate"] 
 
 WL_df_extrapolate$intercept <- NULL
@@ -327,14 +386,42 @@ WL_df_extrapolate$intercept <- NULL
 WL_df_extrapolate$K_m.d_mean <- mean(df$k_m.d)
 WL_df_extrapolate$K600_mean <- mean(df$K600)
 
-WL_df_extrapolate$K_ch4_mean <- mean(df$k_ch4)
-
 ```
 
 
 #model CH4
 
 ```{r  CH4 models, echo=FALSE}
+
+#CH4 WITHOUT Wetland 12
+df_1 <- df%>%filter(Wetland!="Wetland12")
+
+#BIC
+#(Intercept), scale(BaroTemp_c_yearly), scale(Baro_Water_minus_air_Temp), scale(waterTemp_c_day)
+
+M_CH4_noW12 <- lmer(log(CH4_umol.L) ~ 
+                          BaroTemp_c_yearly+
+                          Baro_Water_minus_air_Temp +
+                          waterTemp_c_day +
+                  (1 |Wetland), data =df_1,REML = FALSE)
+
+sum_df <- summary(M_CH4_noW12)
+coeff_df <- as.data.frame(sum_df$coefficients)
+coeff_df$effects <- rownames(coeff_df)
+
+intercept_df <- coef(M_CH4_noW12)$Wetland[1]
+intercept_df$Wetland <- rownames(intercept_df)
+colnames(intercept_df) <- c("intercept","Wetland")
+WL_df_extrapolate <- left_join(WL_df_extrapolate,intercept_df,by="Wetland")
+
+WL_df_extrapolate$CH4_noW12 <- exp(
+  WL_df_extrapolate$intercept +
+   WL_df_extrapolate$BaroTemp_c_yearly * coeff_df[2,"Estimate"]+
+   WL_df_extrapolate$Baro_Water_minus_air_Temp * coeff_df[3,"Estimate"]+
+   WL_df_extrapolate$waterTemp_c_day * coeff_df[4,"Estimate"]
+)
+
+WL_df_extrapolate$intercept <- NULL
 
 #CH4 WITH Wetland 12
 df_1 <- df#%>%filter(Wetland!="Wetland12")
@@ -345,6 +432,8 @@ df_1 <- df#%>%filter(Wetland!="Wetland12")
 
 M_CH4_W12 <- lmer(CH4_umol.L ~ 
                           BaroTemp_c_yearly+
+                          Baro_Water_minus_air_Temp+
+                          waterTemp_c_day +
                   (1 |Wetland), data =df_1,REML = FALSE)
 sum_df <- summary(M_CH4_W12)
 coeff_df <- as.data.frame(sum_df$coefficients)
@@ -357,7 +446,9 @@ WL_df_extrapolate <- left_join(WL_df_extrapolate,intercept_df,by="Wetland")
 
 WL_df_extrapolate$CH4_W12 <- exp(
   WL_df_extrapolate$intercept +
-   WL_df_extrapolate$BaroTemp_c_yearly * coeff_df[2,"Estimate"]
+   WL_df_extrapolate$BaroTemp_c_yearly * coeff_df[2,"Estimate"]+
+   WL_df_extrapolate$Baro_Water_minus_air_Temp * coeff_df[3,"Estimate"]+
+   WL_df_extrapolate$waterTemp_c_day * coeff_df[4,"Estimate"]
 )
 
 WL_df_extrapolate$intercept <- NULL
@@ -366,24 +457,30 @@ WL_df_extrapolate$intercept <- NULL
 
 ```{r  calc flux, echo=TRUE}
 #calculate total flux
+WL_df_extrapolate$FLUX_noW12_umol_15min <- WL_df_extrapolate$FLUX_noW12 * WL_df_extrapolate$surface_area_m2 * 60 *15 
 
 WL_df_extrapolate$FLUX_W12_umol_15min <- WL_df_extrapolate$FLUX_W12 * WL_df_extrapolate$surface_area_m2 * 60 *15 
 
 #use CO2 and k models to calc flux
+WL_df_extrapolate$FLUX_noW12_CALC_umol_s <- WL_df_extrapolate$K_m.d_mean * (WL_df_extrapolate$CO2_noW12 - WL_df_extrapolate$CO2_air_umol.L) #* WL_df_extrapolate$KH_CO2_mol.L.atm
 
-WL_df_extrapolate$FLUX_W12_CALC_umol_s <- WL_df_extrapolate$K_m.d_mean * (WL_df_extrapolate$CO2_W12 - WL_df_extrapolate$CO2_air_umol.L) 
+WL_df_extrapolate$FLUX_noW12_CALC_umol_15min <- WL_df_extrapolate$FLUX_noW12_CALC_umol_s * WL_df_extrapolate$surface_area_m2 * 60 *15 
+
+#
+
+WL_df_extrapolate$FLUX_W12_CALC_umol_s <- WL_df_extrapolate$K_m.d_mean * (WL_df_extrapolate$CO2_W12 - WL_df_extrapolate$CO2_air_umol.L) #* WL_df_extrapolate$KH_CO2_mol.L.atm
 
 WL_df_extrapolate$FLUX_W12_CALC_umol_15min <- WL_df_extrapolate$FLUX_W12_CALC_umol_s * WL_df_extrapolate$surface_area_m2 * 60 *15
 
 #####
 #CH4#
 #####
-WL_df_extrapolate$FLUXch4_noW12_CALC_umol_s <- WL_df_extrapolate$K_ch4_mean * (WL_df_extrapolate$K_ch4_mean - WL_df_extrapolate$CH4_air_umol.L) 
+WL_df_extrapolate$FLUXch4_noW12_CALC_umol_s <- WL_df_extrapolate$k_noW12 * (WL_df_extrapolate$CH4_noW12 - WL_df_extrapolate$CH4_air_umol.L) #* WL_df_extrapolate$KH_CH4_mol.L.atm
 
 WL_df_extrapolate$FLUXch4_noW12_CALC_umol_15min <- WL_df_extrapolate$FLUXch4_noW12_CALC_umol_s * WL_df_extrapolate$surface_area_m2 * 60 *15 
 
 
-WL_df_extrapolate$FLUXch4_W12_CALC_umol_s <- WL_df_extrapolate$K_ch4_mean * (WL_df_extrapolate$CH4_W12 - WL_df_extrapolate$CH4_air_umol.L) 
+WL_df_extrapolate$FLUXch4_W12_CALC_umol_s <- WL_df_extrapolate$k_W12 * (WL_df_extrapolate$CH4_W12 - WL_df_extrapolate$CH4_air_umol.L) # * WL_df_extrapolate$KH_CH4_mol.L.atm
 
 WL_df_extrapolate$FLUXch4_W12_CALC_umol_15min <- WL_df_extrapolate$FLUXch4_W12_CALC_umol_s * WL_df_extrapolate$surface_area_m2 * 60 *15 
 
@@ -400,23 +497,31 @@ WL_df_extrapolate$month <- format(as.Date(WL_df_extrapolate$Date), "%Y-%m")
 WL_df_extrapolate_daySUMMARY <- WL_df_extrapolate%>%
   group_by(Date,Wetland)%>% 
   summarise(
+    FLUX_noW12_umol15min_dayAve = mean(FLUX_noW12_umol_15min, na.rm = TRUE),
     FLUX_W12_umol15min_dayAve = mean(FLUX_W12_umol_15min, na.rm = TRUE),
+    FLUX_noW12_CALC_umol15min_dayAve = mean(FLUX_noW12_CALC_umol_15min, na.rm = TRUE),
     FLUX_W12_CALC_umol15min_dayAve = mean(FLUX_W12_CALC_umol_15min, na.rm = TRUE)
   )
 
 WL_df_extrapolate_yearSUMMARY <- WL_df_extrapolate_daySUMMARY%>%
   group_by(Wetland)%>% 
   summarise(
+    FLUX_noW12_umol_yearMEAN = mean(FLUX_noW12_umol15min_dayAve, na.rm = TRUE),
     FLUX_W12_umol_yearMEAN = mean(FLUX_W12_umol15min_dayAve, na.rm = TRUE),
+    FLUX_noW12_CALC_umol_yearMEAN = mean(FLUX_noW12_CALC_umol15min_dayAve, na.rm = TRUE),
     FLUX_W12_CALC_umol_yearMEAN = mean(FLUX_W12_CALC_umol15min_dayAve, na.rm = TRUE)
   )
 
+
+WL_df_extrapolate_yearSUMMARY$FLUX_noW12_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUX_noW12_umol_yearMEAN *365
 
 WL_df_extrapolate_yearSUMMARY$FLUX_W12_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUX_W12_umol_yearMEAN *365
 
 WL_df_extrapolate_yearSUMMARY$FLUX_W12_CALC_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUX_W12_CALC_umol_yearMEAN *365
 
-WL_df_extrapolate_yearSUMMARY <- WL_df_extrapolate_yearSUMMARY[c("Wetland","FLUX_W12_umol_year","FLUX_W12_CALC_umol_year")]
+WL_df_extrapolate_yearSUMMARY$FLUX_noW12_CALC_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUX_noW12_CALC_umol_yearMEAN *365
+
+WL_df_extrapolate_yearSUMMARY <- WL_df_extrapolate_yearSUMMARY[c("Wetland","FLUX_noW12_umol_year","FLUX_W12_umol_year","FLUX_noW12_CALC_umol_year","FLUX_W12_CALC_umol_year")]
 
 #melt data
 melt.WL_df_extrapolate_yearSUMMARY<-melt(WL_df_extrapolate_yearSUMMARY, id=c("Wetland"))
@@ -428,33 +533,29 @@ melt.WL_df_extrapolate_yearSUMMARY<-melt(WL_df_extrapolate_yearSUMMARY, id=c("We
 WL_df_extrapolate_daySUMMARYch4 <- WL_df_extrapolate%>%
   group_by(Date,Wetland)%>% 
   summarise(
+    FLUXch4_noW12_CALC_umol15min_dayAve = mean(FLUXch4_noW12_CALC_umol_15min, na.rm = TRUE),
     FLUXch4_W12_CALC_umol15min_dayAve = mean(FLUXch4_W12_CALC_umol_15min, na.rm = TRUE),
   )
 
 WL_df_extrapolate_yearSUMMARY <- WL_df_extrapolate_daySUMMARYch4%>%
   group_by(Wetland)%>% 
   summarise(
+    FLUXch4_noW12_CALC_umol_yearMEAN = mean(FLUXch4_noW12_CALC_umol15min_dayAve, na.rm = TRUE),
     FLUXch4_W12_CALC_umol_yearMEAN = mean(FLUXch4_W12_CALC_umol15min_dayAve, na.rm = TRUE)
   )
 
 
 WL_df_extrapolate_yearSUMMARY$FLUXch4_W12_CALC_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUXch4_W12_CALC_umol_yearMEAN *365
 
+WL_df_extrapolate_yearSUMMARY$FLUXch4_noW12_CALC_umol_year <- WL_df_extrapolate_yearSUMMARY$FLUXch4_noW12_CALC_umol_yearMEAN *365
 
-WL_df_extrapolate_yearSUMMARYch4 <- WL_df_extrapolate_yearSUMMARY[c("Wetland","FLUXch4_W12_CALC_umol_year")]
+WL_df_extrapolate_yearSUMMARYch4 <- WL_df_extrapolate_yearSUMMARY[c("Wetland","FLUXch4_W12_CALC_umol_year","FLUXch4_noW12_CALC_umol_year")]
 
 
 melt.WL_df_extrapolate_yearSUMMARYch4<-melt(WL_df_extrapolate_yearSUMMARYch4, id=c("Wetland"))
 
 
 ```
-```{r   play with units, echo=FALSE}
-melt_all <- rbind(melt.WL_df_extrapolate_yearSUMMARYch4,melt.WL_df_extrapolate_yearSUMMARY)
-
-melt_all$value_gC <- melt_all$value * 10^-6 * 12
-
-```
-
 
 
 #plot
@@ -468,94 +569,31 @@ plot_ly(data=WL_df_extrapolate%>%filter(Wetland=="Wetland02"), x = ~DateTime, y 
 p1<-ggplot(data=WL_df_extrapolate_yearSUMMARY, aes(x=Wetland, y=log(FLUX_AIC_noW12_umol_year))) +
   geom_bar(stat="identity")
 
-p2<-ggplot(data=melt.WL_df_extrapolate_yearSUMMARY%>%filter(variable!="FLUX_W12_umol_year")
-           , aes(x=Wetland, y =value,fill=variable)) +
+p2<-ggplot(data=melt.WL_df_extrapolate_yearSUMMARY, aes(x=Wetland, y =log(value),fill=variable)) +
   geom_bar(stat="identity", position=position_dodge())
 
-p3<-ggplot(data=melt.WL_df_extrapolate_yearSUMMARYch4, aes(x=Wetland, y=value,fill=variable)) +
+p3<-ggplot(data=melt.WL_df_extrapolate_yearSUMMARYch4, aes(x=Wetland, y=log(value),fill=variable)) +
   geom_bar(stat="identity", position=position_dodge())
 
-
-
-p4<-ggplot(data=melt_all%>%filter(variable!="FLUX_W12_umol_year"), aes(x=Wetland, y=log(value),fill=variable)) +
-  geom_bar(stat="identity", position=position_dodge())
 
 
 ```
 
-
-```{r final bar plot, echo=FALSE}
-library(MASS) # to access Animals data sets
-library(scales) # to access break formatting functions
-p4<-ggplot(data=melt_all%>%filter(variable!="FLUX_W12_umol_year"), aes(x=Wetland, y=log(value),fill=variable)) +
-  geom_bar(stat="identity", position=position_dodge())
-
-#sort by mean surface area
-size_sum <- WL_df_extrapolate %>%
-  group_by(Wetland)%>% 
-  summarise(
-    SA_mean = mean(surface_area_m2, na.rm = TRUE))
-#join to melt data
-melt_all <- full_join(melt_all,size_sum,by="Wetland")
-
-melt_all$name.code <- paste("W",as.numeric(gsub("\\D", "", melt_all$Wetland)))
-library(stringr)
-melt_all$name.code <- str_replace_all(melt_all$name.code, " ", "")
-
-#
-p4<-ggplot(data=melt_all %>%filter(variable!="FLUX_W12_umol_year"), aes(x=factor(name.code, level=c('W9', 'W11', 'W10', 'W8','W6','W4','W7','W5','W3','W2','W12','W1')), y=value_gC,fill=variable)) +
-  geom_bar(stat="identity", colour="black"
-#           , position=position_dodge()
-           )+
-    scale_fill_discrete(name = "", labels = c(expression('gC as CH'[4]), expression('gC as CO'[2]))) +
-  xlab('Wetland') + ylab('Yearly Emissions') +
-  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
-              labels = trans_format("log10", math_format(10^.x))) +
-  theme_bw() +
-  theme(text=element_text(size=18)) +
-  theme(
-    axis.text.x = element_text(color="black"),
-    axis.ticks = element_line(color = "black")
-  )
-
-p4 + annotation_logticks() 
-
-```
 
 ```{r visualize, echo=FALSE}
 
-M_k_W12 <- lmer(k_m.d ~ 
-                  Water_minus_air_Temp+ 
-                  (1 |Wetland), data =df_1,REML = FALSE)
-
-sjPlot::tab_model(M_k_W12, 
+coef(M_CO2_AIC_noW12)
+M_k_AIC_noW12
+sjPlot::tab_model(M_k_AIC_noW12, 
                   show.re.var= TRUE, 
-                 # pred.labels =c("(Intercept)", "Water/Air temperature difference (c)"),
+                  pred.labels =c("(Intercept)", "Solar Radiation (W m^-2)"),
                   dv.labels= "k (m d^-1)")
-
-sjPlot::tab_model(M_FLUX_W12, 
-                  show.re.var= TRUE, 
-                #  pred.labels =c("(Intercept)", "Water/Air temperature difference (c)"),
-                  dv.labels= "CO2 Flux")
-sjPlot::tab_model(M_CO2_W12, 
-                  show.re.var= TRUE, 
-                 # pred.labels =c("(Intercept)", "Water/Air temperature difference (c)"),
-                  dv.labels= "CO2")
-sjPlot::tab_model(M_CH4_W12, 
-                  show.re.var= TRUE#, 
-                 # pred.labels =c("(Intercept)", "Water/Air temperature difference (c)"),
-                 # dv.labels= (CH[4]~mu*"mol (m d^-1)")
-                 )
-
-
-
 
 WL_df_extrapolate$FLUX_W12_CALC_umol_s
 
 ggplot(WL_df_extrapolate%>%filter(Wetland=="Wetland10"),
        aes(x=DateTime, y=FLUX_W12_CALC_umol_s)) +
   geom_point(size=2, shape=23)
-
 
 ```
 

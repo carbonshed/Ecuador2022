@@ -462,7 +462,7 @@ modelPerformance(M2)
 Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric())
 
 #remove Wetland 12 for this analysis?
-df_1 <- df%>%filter(Wetland!="Wetland12")
+df_1 <- df#%>%filter(Wetland!="Wetland12")
 
 n = 9
 grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
@@ -475,7 +475,7 @@ grid_df$Var5 <- grid$Var5
 grid_df$Var6 <- grid$Var6
 grid_df$Var7 <- grid$Var7
 grid_df$Var8 <- grid$Var8
-grid_df$Var9 <- grid$Var9
+#grid_df$Var9 <- grid$Var9
 
 grid_df$Var1[which(grid_df$Var1 == 1)] <- "BaroTemp_c_yearly"
 grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
@@ -484,8 +484,8 @@ grid_df$Var4[which(grid_df$Var4 == 1)] <- "waterTemp_c_day"
 grid_df$Var5[which(grid_df$Var5 == 1)] <- "windspeed_m_s"
 grid_df$Var6[which(grid_df$Var6 == 1)] <- "log(surface_area_m2)"
 grid_df$Var7[which(grid_df$Var7 == 1)] <- "precip_mm_ave2"
-grid_df$Var8[which(grid_df$Var8 == 1)] <- "solarrad_Wm2_daymean"
-grid_df$Var9[which(grid_df$Var9 == 1)] <- "SA_to_Vol_ratio"
+#grid_df$Var8[which(grid_df$Var8 == 1)] <- "solarrad_Wm2_daymean"
+grid_df$Var8[which(grid_df$Var8 == 1)] <- "SA_to_Vol_ratio"
 
 grid_df[grid_df == 0] <- NA
 

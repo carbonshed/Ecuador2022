@@ -252,7 +252,7 @@ df_2 <- df[,c("Watertemp_c",
               "surface_area_m2",
               "Watershed_m2",
               "PrecipAccuDay_mm",
-              "solarrad_W_m2",
+              "solarrad_Wm2_daymean",
               "windspeed_m_s"
               )]
 
@@ -288,7 +288,7 @@ M1 <- lmer(k_m.d ~ scale(Watertemp_c) +
                    scale(Baro_Water_minus_air_Temp) +
                   scale(log(surface_area_m2)) +
                   scale(PrecipAccuDay_mm) + 
-                  scale(solarrad_W_m2) +
+                  scale(solarrad_Wm2_daymean) +
                   scale(windspeed_m_s) +
                   (1 |Wetland), data =df)
 
@@ -408,7 +408,7 @@ grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
 grid_df$Var2[which(grid_df$Var2 == 1)] <- "Baro_Water_minus_air_Temp"
 grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
 grid_df$Var4[which(grid_df$Var4 == 1)] <- "PrecipAccuDay_mm"
-grid_df$Var5[which(grid_df$Var5 == 1)] <- "solarrad_W_m2"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "solarrad_Wm2_daymean"
 grid_df$Var6[which(grid_df$Var6 == 1)] <- "windspeed_m_s"
 grid_df$Var7[which(grid_df$Var7 == 1)] <- "SA_to_Vol_ratio"
 
