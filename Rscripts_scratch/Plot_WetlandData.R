@@ -142,7 +142,9 @@ df_merge$temp..C. <- df_merge$Watertemp_c
 df_merge$temp..estimate. <- NA
 df_merge$atm..ch4 <- NA
 df_merge$atm..co2 <- df_merge$CO2_ppm
-df_merge <- df_merge%>%select(Reference,Site.Name,Location,latitude,longitude,Study.Years,area..ha.,ch4..umol.L.,co2..umol.L.,temp..C.,atm..co2,temp..estimate.,atm..ch4)
+df_merge <- df_merge[
+  c("Reference","Site.Name","Location","latitude","longitude","Study.Years","area..ha.","ch4..umol.L.","co2..umol.L.","temp..C.","atm..co2","temp..estimate.","atm..ch4"
+    )]
 
 df_Holg <- rbind(df_Holg,df_merge)
 df_Holg$ch4..umol.L. <- as.numeric(df_Holg$ch4..umol.L.)
@@ -152,8 +154,10 @@ df_Holg$Area_ha <- as.numeric(df_Holg$Area_ha)
 colnames(df_Holg) <- c("Reference","Site_Name","Location","latitude","longitude","Study_Years,","Area_ha","CH4_umol.L","CO2_umol.L",
                        "Teemp_c","temp_est","atm_CO2","atm_CH4")
 
+df_Holg$Reference2<-sub(" or ", " \n ", df_Holg$Reference) 
+
 ggplot(df_Holg) +
-  geom_point(aes(x=CO2_umol.L,y=CH4_umol.L,color=Reference)) 
+  geom_point(aes(x=CO2_umol.L,y=CH4_umol.L,color=Reference2)) 
 
 
 #log co2 v c h4
@@ -163,12 +167,23 @@ ggplot() +
              aes(x=log(CO2_umol.L),y=log(CH4_umol.L),color=Site_Name),size=3) + 
   theme_bw(base_size = 16) 
 
-ggplot() +
-  geom_point(data=df_Holg,aes(x=log(CO2_umol.L),y=log(CH4_umol.L),color=Reference),size=5) +
+p <- ggplot() +
+  geom_point(data=df_Holg%>%filter(Reference!="This Study"),
+             aes(x=CO2_umol.L,y=CH4_umol.L,color=Reference2),size=5) +
   geom_point(data=df_Holg%>%filter(Reference=="This Study"),
-             aes(x=log(CO2_umol.L),y=log(CH4_umol.L),shape='Site Name'),size=5)+ 
-  theme_bw(base_size = 16) +
+             aes(x=CO2_umol.L,y=CH4_umol.L,shape=Reference2),size=5)+ 
+  scale_colour_discrete(name  ="Referance",
+                       ) +
+  scale_shape_discrete(name  = NULL,
+                       labels="This Study") +
+   
+  theme_bw(base_size = 20) +
+  xlab(expression(CO[2] ~'('~mu*'mol' ~ l^-1~')')) +
+  ylab(expression(CH[4] ~'('~mu*'mol' ~ l^-1~')')) +
+  scale_y_log10() + scale_x_log10() +
   guides(color=guide_legend(ncol =1))
+
+p + annotation_logticks() 
 
 #co2 and ch4 vs surface extent
 ggplot() +

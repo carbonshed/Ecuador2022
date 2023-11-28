@@ -230,6 +230,9 @@ WL_df_extrapolate$FLUX_W12
 
 df_1 <- df#%>%filter(Wetland!="Wetland12")
 
+M_FLUX_scratch <- lmer(log(Flux_umol_m2_s) ~ 
+                  log(CO2_umol.L)+
+                  (1 |Wetland), data =df_1,REML = FALSE)
 
 M_FLUX_W12 <- lmer(log(Flux_umol_m2_s) ~ 
                   BaroTemp_c_yearly+ 
@@ -343,7 +346,7 @@ df_1 <- df#%>%filter(Wetland!="Wetland12")
 #	(Intercept), (Intercept), scale(BaroTemp_c_yearly), scale(Baro_Water_minus_air_Temp), scale(waterTemp_c_day)
 
 
-M_CH4_W12 <- lmer(CH4_umol.L ~ 
+M_CH4_W12 <- lmer(log(CH4_umol.L) ~ 
                           BaroTemp_c_yearly+
                   (1 |Wetland), data =df_1,REML = FALSE)
 sum_df <- summary(M_CH4_W12)
@@ -505,7 +508,7 @@ melt_all$name.code <- str_replace_all(melt_all$name.code, " ", "")
 #
 p4<-ggplot(data=melt_all %>%filter(variable!="FLUX_W12_umol_year"), aes(x=factor(name.code, level=c('W9', 'W11', 'W10', 'W8','W6','W4','W7','W5','W3','W2','W12','W1')), y=value_gC,fill=variable)) +
   geom_bar(stat="identity", colour="black"
-#           , position=position_dodge()
+           , position=position_dodge()
            )+
     scale_fill_discrete(name = "", labels = c(expression('gC as CH'[4]), expression('gC as CO'[2]))) +
   xlab('Wetland') + ylab('Yearly Emissions') +
@@ -516,7 +519,8 @@ p4<-ggplot(data=melt_all %>%filter(variable!="FLUX_W12_umol_year"), aes(x=factor
   theme(
     axis.text.x = element_text(color="black"),
     axis.ticks = element_line(color = "black")
-  )
+  )+
+  theme(text=element_text(size=25))
 
 p4 + annotation_logticks() 
 
