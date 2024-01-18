@@ -390,8 +390,6 @@ WL_df_extrapolate$FLUXch4_W12_CALC_umol_s <- WL_df_extrapolate$K_ch4_mean * (WL_
 
 WL_df_extrapolate$FLUXch4_W12_CALC_umol_15min <- WL_df_extrapolate$FLUXch4_W12_CALC_umol_s * WL_df_extrapolate$surface_area_m2 * 60 *15 
 
-write.csv(WL_df_extrapolate,here::here("Wetlands/WL_df_extrapolate.csv"))
-
 ```
 
 2. sum per month or week?
@@ -490,10 +488,6 @@ p4<-ggplot(data=melt_all%>%filter(variable!="FLUX_W12_umol_year"), aes(x=Wetland
 
 
 ```{r final bar plot, echo=FALSE}
-#write out
-#write.csv(melt_all, here::here("Wetlands/Wetland_df_MELT_2023-11-28.csv"),row.names = FALSE)
-
-
 library(MASS) # to access Animals data sets
 library(scales) # to access break formatting functions
 p4<-ggplot(data=melt_all%>%filter(variable!="FLUX_W12_umol_year"), aes(x=Wetland, y=log(value),fill=variable)) +
@@ -527,7 +521,6 @@ p4<-ggplot(data=melt_all %>%filter(variable!="FLUX_W12_umol_year"), aes(x=factor
     axis.ticks = element_line(color = "black")
   )+
   theme(text=element_text(size=25))
-
 
 p4 + annotation_logticks() 
 
