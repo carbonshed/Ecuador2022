@@ -1,4 +1,4 @@
-Wetland,Location,Date,Watertemp_c,Waterlevel,ppm_NOTcorrected,viasala_type,Time_CH4,Vial_no_ch4,CH4.ppm.NOT.CORRECTED,N20.ppm.NOT.CORRECTED,Flux_mean,Flux_stdev,Time_Baro,AirPress_kpa,AirTemp_C
+Wetland,Location,Date,Waterlevel,Watertemp_c,ppm_NOTcorrected,viasala_type,Time_CH4,Vial_no_ch4,CH4.ppm.NOT.CORRECTED,N20.ppm.NOT.CORRECTED,Flux_mean,Flux_stdev,Time_Baro,AirPress_kpa,AirTemp_C
 Wetland_06,1,10/15/22,0.1621172,7.949167,274.1695,NewV,11:32,162,,,-0.04,0.017320508,11:30,62.5518,6.904
 Wetland_06,2,10/15/22,0.1621172,7.949167,270.2203,NewV,11:41,253,,,0.0275,0.062383224,11:30,62.5518,6.904
 Wetland_06,2,10/15/22,0.1621172,7.949167,,NewV,11:45,192,,,,,11:30,,
