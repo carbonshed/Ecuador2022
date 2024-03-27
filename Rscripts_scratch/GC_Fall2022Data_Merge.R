@@ -1,9 +1,13 @@
 #this script is to merge data collected in the fall of 2022 with results of GC
+# and to adjust my ppms
 
 #run FindWaterlevelData_2022-08-19 first
+
 library(here)
 library(dplyr)
 library(lubridate)
+
+
 
 #import notes for GC sample processing
 sample_list <- read.csv(here::here("Methane/GCsamples_Fall2022.csv"))
@@ -42,16 +46,22 @@ results <- results%>%
   mutate_at(c('CO', 'CH4','CO2','N2O'), as.numeric)
 
 #import wetland id
-Drone_samples <- read.csv(here::here("Methane/Methane_Sampling_Drone.csv"))%>%
-  select(Site,Site2,Lat,Lon,Bottle_no1,Date,Time_Start)%>%
-  rename(time=Time_Start,Sample.Name=Bottle_no1)%>%
+Drone_samples <- read.csv(here::here("DroneData/CH4andCO2_Sampling_Drone.csv"))%>%
+  select(Site,Site2,Date,Time_End,Bottle_no1,Lat,Lon,ppm_NOTcorrected)%>%
+  rename(time=Time_End,Sample.Name=Bottle_no1)%>%
   mutate_at(c('Sample.Name'), as.character)
 Drone_samples$DateTime <- as.POSIXct(paste(Drone_samples$Date,Drone_samples$time),format="%m/%d/%y %H:%M",tz='UTC')
 Drone_samples$DateTime <- round_date(Drone_samples$DateTime, "15 mins")
 
+Drone_samples <- left_join(Drone_samples,WL_Wetland12%>%select(DateTime,WLTemp_c),by="DateTime")
+Drone_samples <- Drone_samples%>%rename(Watertemp_c = WLTemp_c)
+BaroSTATION <- BaroSTATION%>%rename(AirPress_kpa = Baro_kpa, AirTemp_C = BaroTemp_c)
+Drone_samples <- left_join(Drone_samples,BaroSTATION,by="DateTime")
+Drone_samples$viasala_type <- "NewV"
+Drone_samples$Flux_mean <- NA
 
 OctoberData <- read.csv(here::here("Methane/OctoberData.csv"))%>%
-  select(Wetland,Location,Date,Watertemp_c,Time_CH4,Vial_no_ch4)%>%
+  select(Wetland,Location,Date,Time_CH4,Vial_no_ch4,AirTemp_C,AirPress_kpa,Watertemp_c,viasala_type,ppm_NOTcorrected,Flux_mean)%>%
   rename(time=Time_CH4,Site=Wetland,Sample.Name=Vial_no_ch4,Site2=Location)%>%
   mutate_at(c('Sample.Name'), as.character)
 OctoberData$DateTime <- as.POSIXct(paste(OctoberData$Date,OctoberData$time),format="%m/%d/%y %H:%M",tz='UTC')
@@ -59,20 +69,15 @@ OctoberData$DateTime <- round_date(OctoberData$DateTime, "15 mins")
 OctoberData$Lat <- NA
 OctoberData$Lon <- NA
 
-#add field temp & pressure
-Drone_samples <- left_join(Drone_samples,WL_Wetland12%>%select(DateTime,WLTemp_c),by="DateTime")
-Drone_samples <- Drone_samples%>%rename(Watertemp_c = WLTemp_c)
-
-BaroSTATION <- BaroSTATION%>%rename(AirPress_kpa = Baro_kpa, AirTemp_C = BaroTemp_c)
-
 #bind
 FieldSample_df <- rbind(Drone_samples,OctoberData)
-FieldSample_df <- left_join(FieldSample_df,BaroSTATION,by="DateTime")
-
-
+#FieldSample_df <- left_join(FieldSample_df,BaroSTATION,by="DateTime")
 
 df <- right_join(results, sample_list, by=c('Sample.Name'='Bottle_no'))
-df <- full_join(df, FieldSample_df, by=c('Sample.Name'))
+df <- full_join(df#%>%select(Sample.Name,CH4,N2O)
+                , FieldSample_df, by=c('Sample.Name'))
+
 
 #wirte out df
-write.csv(df,here::here("Kriddie/methanesample_fall2022.csv"))
+#write.csv(df,here::here("Kriddie/methanesample_fall2022.csv"))
+
