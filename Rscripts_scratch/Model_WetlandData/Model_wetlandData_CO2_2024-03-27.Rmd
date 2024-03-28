@@ -1,0 +1,679 @@
+---
+title: "CO2 wetland model"
+author: "Kriddie"
+date: "2023-11-10"
+output: html_document
+---
+
+#mixed model for wetland data CO2
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+stdCoef.merMod <- function(object) {
+  sdy <- sd(getME(object,"y"))
+  sdx <- apply(getME(object,"X"), 2, sd)
+  sc <- fixef(object)*sdx/sdy
+  se.fixef <- coef(summary(object))[,"Std. Error"]
+  se <- se.fixef*sdx/sdy
+  return(data.frame(stdcoef=sc, stdse=se))
+}
+
+library(here)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+library(lme4)
+library(lmerTest)
+library(jtools)
+library(extraoperators)
+library(JWileymisc)
+library(multilevelTools)
+library("Hmisc")
+library(car)
+library(GGally)
+library(MCMCglmm)
+library(effects)
+
+```
+
+# Referances and tutorials
+
+> excellant tutorial, includes dragons
+ https://ourcodingclub.github.io/tutorials/mixed-models/
+
+> mulitvariate model building
+ https://cran.r-project.org/web/packages/multilevelTools/vignettes/lmer-vignette.html
+
+> article:https://peerj.com/articles/4794/
+ https://peerj.com/articles/4794/
+
+> use this to standardize regression coefficients in mixed effects model post-hoc
+    # https://rdrr.io/github/gmonette/spida15/man/vif.lme.html
+    
+> to test for variance inflation
+ https://rdrr.io/github/gmonette/spida15/man/vif.lme.html
+ 
+ > Faq about mixed models 
+ http://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
+ 
+> about model selection including AIC and BIC
+ https://machinelearningmastery.com/probabilistic-model-selection-measures/
+
+#notes from stats consultant:
+
+#need a thery befor applying transformations
+test for homodesticity:
+ https://www.r-bloggers.com/2016/01/how-to-detect-heteroscedasticity-and-rectify-it/
+#normality of residuals: use shapiro wilk test
+https://cran.r-project.org/web/packages/olsrr/vignettes/residual_diagnostics.html
+
+#builing a model
+  > put everything in one model 
+  > step-wise is old-fashioned but people still do it
+  > first think theoretically - and report all the effects, whether or not they are significant
+  > don't add more than 20 predictors
+
+#selecting a model:
+ > Focus on your question, don’t just plug in and drop variables from a model haphazardly until you make something “significant”.
+ > Always choose variables based on biology/ecology: I might use model selection to check a couple of non-focal parameters, but I keep the “core” of the model untouched in most cases. 
+ > Define your goals and questions and focus on that. 
+ > Also, don’t just put all possible variables in (i.e. don’t overfit). 
+ > Remember that as a rule of thumb, you need 10 times more data than parameters you are trying to estimate.
+
+
+#model interpretation!
+ > Estimate is my co-efficient, if it is positive or negative is direction of relationship
+  > In raw metric is can be easy to interpret – ie for each degree temperature  x ppm increase
+  >	If you scale both, then beta cooefficient is comparable to one another	(rules of thumb something below point .3 is small)
+   
+##Mixed model with repeated measures
+  > CO2 degassing is the response variable
+  > Other variables are predictors (fixed effects)
+  > Wetland site is random effect
+
+##What's up with + (1|Wetland) ?:
+with this notation we assume an intercept that’s different for each subject” … and “1” stands for the intercept here.You can think of this formula as telling your model that it should expect that there’s going to be multiple responses per subject, and these responses will depend on each subject’s baseline level. This effectively resolves the non-independence that stems from having multiple responses by the same subject.
+
+##use log variables when you expect diminishing returns
+ > transform regressors for normality and scale
+ > adjust for scale can help with interpretation in some ways, but not necessarily. It depends on how you want to interpret the data
+ > scaling won't change your results, but it may help you to interpret the data. If you have 2 predictor you can compare the 2 when you scale
+
+#the assumption isn't on normality - the assumption is on the residculas
+  > assumption is the *error* is  normaly distributed
+
+#post-hoc tests: 
+  > check for variance inflation vif()
+  > among predictors, if there are high correlations between predictors, this can skew the effects
+  > homoskedasticisty: check that error variance is normal and constant across the predictor variable
+  > extract residuals - see that they are random
+
+ 
+
+```{r load data}
+#read in data
+#df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-04.csv"))[c(17,2,6,14:16,18:45,52:59)]
+df_saved <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-03-27.csv"))
+df_saved$num <- 1:52
+
+```
+
+
+###Predicted drivers of CO2
+
+CO2 increases with Air temperature (increased respiration) - (ave day, ave year)
+    > AirTemp_c
+    > BaroTemp_c_yearly
+
+CO2 increases with Water temperature (increased respiration) - (ave day, ave year)
+    > WaterTemp_c
+    > WaterTemp_c_day
+    > waterTemp_c_yearly
+
+CO2 increases with depth vol ratio (more contact with sediments) 
+    > SA_to_Vol_ratio_day --- not all wetlands
+
+CO2 decreases with surface area
+    > Surface_area_m2
+
+CO2 increases with watershed size 
+    > WS_size_minusSA --- not all wetlands
+    > WS_ratio --- 
+
+precipitation effects CO2 concentration because it dilutes the water (ave of sum day and previous day)
+    > Precio_mm_ave2
+
+Solar radiation because stimulates gpp (ave day)
+    > Solarrad_Wm2_daymean
+
+
+
+##CHecking Assumptions
+#Step 1: Are there outliers in Y and X?
+  > ‘outlier’ losley defined as an observation that sticks out from the rest. A more rigorous approach is to consider whether unusual observations exert undue influence on an analysis (e.g. on estimated parameters). We make a distinction between influential observations in the response variable and in the covariate
+  > In regression-type techniques, outliers in the response variables are more complicated to deal with. Transforming the data is an option, but as the response variable is of primary interest, it is better to choose a statistical method that uses a probability distribution that allows greater variation for large mean values (e.g. gamma for continuous data; Poisson or negative binomial for count data) because doing this allows us to work with the original data. 
+  > For multivariate analyses, this approach is not an option because these methods are not based on probability distributions. Instead, we can use a different measure of association. For example, the Euclidean distance is rather sensitive to large values because it is based on Pythagoras’ theorem, whereas the Chord distance down-weights large values (Legendre & Legendre 1998).
+  > Ultimately, it is up to the ecologist to decide what to do with outliers.
+
+
+```{r  assumptions step 1, echo=FALSE}
+#Step 1: Are there outliers in Y and X?
+
+#remove Wetland 12?
+df <- df_saved%>%filter(Site!="Wetland12")
+
+#boxplots galore
+boxplot(log(df$CO2_umol.L)) ##transformed
+hist(log(df$CO2_umol.L))
+ggplot(df, aes(log(CO2_umol.L), num)) + geom_point()
+
+boxplot(df$AirTemp_c)  # one?? - checked, it is as legit as the data collected can be. 
+hist(df$AirTemp_c)
+ggplot(df, aes(AirTemp_c, num)) + geom_point() #this looks pretty good
+
+boxplot(df$BaroTemp_c_day) #maybe use this data because no big outliers?
+hist(df$BaroTemp_c_day)
+ggplot(df, aes(BaroTemp_c_day, num)) + geom_point()
+
+boxplot(df$BaroTemp_c_yearly) 
+hist(df$BaroTemp_c_yearly)
+
+boxplot(df$Watertemp_c)
+hist(df$Watertemp_c)
+ggplot(df, aes(Watertemp_c, num)) + geom_point()
+
+boxplot(df$waterTemp_c_day) #one? - checked, it is legit
+hist(df$waterTemp_c_day)
+ggplot(df, aes(waterTemp_c_day, num)) + geom_point()
+
+boxplot(df$waterTemp_c_yearly) #one?,- wetland 5 yes, legit
+hist(df$waterTemp_c_yearly)
+ggplot(df, aes(waterTemp_c_yearly, num)) + geom_point() # this looks good
+
+boxplot(df$Water_minus_air_Temp) #one outlier
+hist(df$Water_minus_air_Temp) 
+ggplot(df, aes(Water_minus_air_Temp, num)) + geom_point()# this looks good
+
+boxplot(df$SA_to_Vol_ratio) #transform? I don't know! The extreme outliers are legit
+#boxplot(log(df$SA_to_Vol_ratio)) #lots?
+hist(df$SA_to_Vol_ratio)
+ggplot(df, aes(SA_to_Vol_ratio, num)) + geom_point()
+
+boxplot(log(df$surface_area_m2)) #seems like log transform is the way to go here. looks good after log transform
+hist(log(df$surface_area_m2))
+ggplot(df, aes(log(surface_area_m2), num)) + geom_point()
+
+boxplot(df$WS_size_minusSA) # this is wetland 12, wich, yes is very large watershed
+hist(df$WS_size_minusSA)
+ggplot(df, aes(WS_size_minusSA, num)) + geom_point()
+
+boxplot(df$precip_mm_ave2) 
+hist(df$precip_mm_ave2)
+ggplot(df, aes(precip_mm_ave2, num)) + geom_point()
+
+boxplot(df$solarrad_Wm2_daymean) 
+hist(df$solarrad_Wm2_daymean)
+ggplot(df, aes(solarrad_Wm2_daymean, num)) + geom_point()
+```
+
+#Finding from step 1.
+  > there are outliers but I checked, and these measurments are legit (I did change a few AirTemp_c measurments)
+  > I transformed a few things - the response variable, CO2 and surface area.
+  > I think I will just leave the rest as-is. I denfinatly don't want to delete data since it is so precious. But perhapes I should just keep this in mind for analysis...
+  >waterTemp_c_day - one outlier
+  > waterTemp_c_yearly- wetland 5 is outlier
+  > Water_minus_air_Temp - one outlier (wetland05), but dotplot looks ok
+  > SA_to_Vol_ratio transform maybe? idk it is messy (i think drop this explainer value)
+  > surface_area_m2 - transform
+  > WS_size_minusSA - wetland14 WS is very big
+
+  
+##checking Assumptions
+#Step 5: Is there collinearity among the covariates? (we skip step 4)
+   > Collinearity is the existence of correlation between covariates.
+  > If the underlying question in a study is which covariates are driving the response variable(s), then the biggest problem to overcome is often collinearity. 
+  > Collinearity among predictors can cause several problems in model interpretation because those predictors explain some of the same variance in the response variable, and their effects cannot be estimated independently 
+  > If collinearity is ignored, one is likely to end up with a confusing statistical analysis in which nothing is significant, but where dropping one covariate can make the others significant, or even change the sign of estimated parameters. 
+  > it can cause model convergence issues as models struggle to partition variance between predictor variables. 
+  > positively correlated variables can have negatively correlated regression coefficients, as the marginal effect of one is estimated, given the effect of the other, leading to incorrect interpretations of the direction of effects
+  > collinearity can inflate standard errors of coefficient estimates and make ‘true’ effects harder to detect (Zuur, Ieno & Elphick, 2010).
+  > can affect the accuracy of model averaged parameter estimates during multi-model inference
+  > The price one pays for this situation is that the standard errors of the parameters are inflated with the square root of 1/(1 − Rj2), also called the variance inflation factor (VIF), which means that the P-values get larger making it more difficult to detect an effect.
+
+#Detecting Collinearity: 
+  > creating correlation matrices between raw explanatory variables, with *values > 0.7* suggesting both should not be used in the same model (Dormann et al., 2013)
+  > calculating the variance inflation factor (VIF) of each predictor that is a candidate for inclusion in a model (details in Zuur, Ieno & Elphick, 2010) and dropping variables with a VIF higher than a certain value (e.g. 3, Zuur, Ieno & Elphick, 2010; or 10, Quinn & Keough, 2002). Sequentially drop the covariate with the highest VIF, recalculate the VIFs and repeat this process until all VIFs are smaller than a pre-selected threshold. *Montgomery & Peck (1992) used a value of 10, but a more stringent approach is to use values as low as 3 as we did here.*
+    > High, or even moderate, collinearity is especially problematic when ecological signals are weak. In that case, even a VIF of 2 may cause nonsignificant parameter estimates, compared to the situation without collinearity. One problem with these methods though is that they rely on a user-selected choice of threshold of either the correlation coefficient or the VIF, and use of more stringent (lower) is probably sensible. 
+  > Other ways to detect collinearity include pairwise scatterplots comparing covariates, correlation coefficients or a PCA biplot (J.olliffe 2002) applied on all covariates. 
+  > Some argue that one should always prefer inspection of VIF values over correlation coefficients of raw predictors because strong multicollinearity can be hard to detect with the latter. 
+  
+
+#solutions  
+  > The easiest way to solve collinearity is by dropping collinear covariates. The choice of which covariates to drop can be based on the VIFs, or perhaps better, on common sense or biological knowledge. 
+  > select one variable as representative of multiple collinear variables (Austin, 2002), ideally using biological knowledge/reasoning to select the most meaningful variable (Zuur, Ieno & Elphick, 2010); 
+  > or conduct a dimension-reduction analysis (e.g. Principal Components Analysis; James & McCullugh, 1990), leaving a single variable that accounts for most of the shared variance among the correlated variables. Both approaches will only be applicable if it is possible to group explanatory variables by common features, thereby effectively creating broader, but still meaningful explanatory categories. For instance, by using mass and body length metrics to create a ‘scaled mass index’ representative of body size (Peig & Green, 2009).
+  > An alternative consideration is how easy alternative covariates are to measure in terms of effort and cost. Whenever two covariates X and Z are collinear, and Z is used in the statistical analysis, then the biological discussion in which the effect of Z is explained should include mention of the collinearity, and recognize that it might well be X that is driving the system (cf. Gjerdrum et al. 2008). 
+
+
+```{r  assumptions step 5.1, echo=FALSE}
+#make correlation matrix
+df$Water_minus_air_Temp <- df$Watertemp_c-df$AirTemp_c
+
+df_2 <- df[,c(#"Watertemp_c",
+        #      "AirTemp_c",
+         #     "BaroTemp_c_day",
+              "BaroTemp_c_yearly",
+              "waterTemp_c_yearly",
+              "waterTemp_c_day",
+              "Water_minus_air_Temp",
+              "SA_to_Vol_ratio",
+              "surface_area_m2",
+         #     "Watershed_m2",
+              "precip_mm_ave2",
+              "solarrad_Wm2_daymean"
+              )]
+
+
+
+cor(df_2, use = "complete.obs")
+res2 <- rcorr(as.matrix(df_2))
+res2$r
+res2$P
+correlation_pvalue <- res2$P
+correlation_coefficiant <- res2$r
+
+
+
+```
+
+##findings:
+  > remove AirTemp_c (I don't really trust this data.. just that the sensor might have been heated up by the sun.. or accidently stored next to our bodies. We have this data because we wanted barometric pressure, so we wern't careful about potential airtemp data) Also it coovariates strongly with other variable
+  > remove Watertemp_c because it is correlates strongly with WaterTemp_day and I like using water temp day more
+  > BaroTemp_c_yearly and BaroTemp_c_day are correlated. Which to use? 
+          > I'm going to BaroTemp_c_day because it correlated more strongly with WaterTemp_c_day, and I am trying to test the idea that higher elevation had lower respiration rates, in the long term
+    *now that we've removed factors, all correlation matrices between raw explanatory variables have values < 0.7*
+
+```{r  assumptions step 5.2, echo=FALSE}
+
+#calculating the variance inflation factor (VIF) of each predictor that is a candidate for inclusion in a model
+    #The value for VIF starts at 1 and has no upper limit. A general rule of thumb for interpreting VIFs is as follows:
+        #A value of 1 indicates there is no correlation between a given predictor variable and any other predictor variables in the model.
+        #A value between 1 and 5 indicates moderate correlation between a given predictor variable and other predictor variables in the model, but this is often not severe enough to require attention.
+        #A value greater than 5 indicates potentially severe correlation between a given predictor variable and other predictor variables in the model. In this case, the coefficient estimates and p-values in the regression output are likely unreliable.
+
+
+M1 <- lmer(log(CO2_umol.L) ~ 
+                  scale(BaroTemp_c_yearly)+ 
+                  scale(waterTemp_c_yearly) +
+                
+                  scale(waterTemp_c_day) + 
+                  scale(SA_to_Vol_ratio) + 
+                  scale(log(surface_area_m2)) +
+                #  scale(Watershed_m2) +
+                  scale(precip_mm_ave2) + 
+                  scale(solarrad_Wm2_daymean) +
+                  (1 |Site), data =df)
+
+vif(M1)
+  
+```
+
+#findings from step 5.2
+  > BaroTemp_c_yearly had the highest VIF values, but once I got rid of Watershed_m2 the VIF droped for all variables. I need to get rid of this varliable because I don't have it for all wetlands.
+  > this is also the case for SA_to_Vol_ratio, but I am only missing wetland 12 in this case, so I'm tempted to keep it and do 2 analysis
+
+
+#checking Assumptions
+##Step 2: Do we have homogeneity of variance?
+    
+    *we have to check this after we run the model*
+
+  > Homogeneity of variance is an important assumption in analysis of variance (ANOVA), other regression-related models and in multivariate techniques like discriminant analysis
+  > For a simplistic linear regression model heterogeneity seriously degrades the least-square estimators when the ratio between the largest and smallest variance is 4 (conservative) or more.
+  
+##detection
+  > In regression-type models, verification of homogeneity should be done using the *residuals of the model*; i.e. by plotting residuals vs. fitted values, and making a similar set of conditional boxplots for the residuals. In all these graphs the residual variation should be similar. 
+  
+##solution
+  > The solution to heterogeneity of variance is either a transformation of the response variable to stabilize the variance, or applying statistical techniques that do not require homogeneity (e.g. generalized least squares; Pinheiro & Bates 2000; Zuur et al. 2009a).
+
+
+```{r  assumptions step 2, echo=FALSE}
+##Model 1
+#plot residuals 
+res1 <- resid(M1)
+#produce residual vs. fitted plot
+plot(fitted(M1), res1)
+#add a horizontal line at 0 
+abline(0,0)
+#create Q-Q plot for residuals
+qqnorm(res1)
+#add a straight diagonal line to the plot
+qqline(res1) 
+
+```
+
+#Findings from  assumptions step 2
+> the residual plots look good!
+> the q plots don't look as good
+> model 2 (no SA_to_Vol_ratio) is better than model 1
+
+##checking Assumptions
+#Step 3: Are the data normally distributed?
+
+  *we have to check this after we run the model*
+
+  > Linear regression assumes normality, but is reasonably robust against violation of the assumption (Fitzmaurice, Laird & Ware 2004). 
+  > In linear regression, we actually assume normality of all the replicate observations at a particular covariate value (Fig. 6; Montgomery & Peck 1992), an assumption that cannot be verified unless one has many replicates at each sampled covariate value. 
+  > However, normality of the raw data implies normality of the residuals. Therefore, we can make histograms of residuals to get some impression of normality (Quinn & Keough 2002; Zuur et al. 2007), even though we cannot fully test the assumption
+
+
+```{r  assumptions step 3, echo=FALSE}
+#Create density plot of residuals
+plot(density(res1))
+#histagram
+hist(res1)
+# create pairs plot 
+#ggpairs( df_2 )
+
+```
+
+#Findings from  assumptions step 3
+> looks good ro me!
+> model 2 (no SA_to_Vol_ratio) is better than model 1
+
+
+```{r  model building, echo=FALSE}
+
+#I need to remove REML (read about this more so that you understand)
+
+#summary for global models
+summary(M1)
+modelPerformance(M1)
+summary_M1 <- summary(M1)
+summary_M1$AICtab
+summary(M1)$AIC[1]
+
+M2 <- lmer(log(CO2_umol.L) ~ 
+                  scale(BaroTemp_c_yearly)+ 
+                  scale(waterTemp_c_yearly) +
+                  scale(waterTemp_c_day) + 
+                  scale(SA_to_Vol_ratio) + 
+                  scale(log(surface_area_m2)) +
+                #  scale(Watershed_m2) +
+                  scale(precip_mm_ave2) + 
+                  scale(solarrad_Wm2_daymean) +
+                  (1 |Site), data =df,REML = FALSE)
+
+summary(M2)$AIC[1]
+modelPerformance(M2)
+
+```
+
+#simplify maybe?
+> just the 
+
+```{r  model building3, echo=FALSE}
+
+Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric())
+
+#df_1 <-df
+df_1 <-df_saved%>%filter(Site!="Wetland12")
+
+n = 7
+grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
+grid_df <- as.data.frame(grid$Var1)
+colnames(grid_df) <- "Var1"
+grid_df$Var2 <- grid$Var2
+grid_df$Var3 <- grid$Var3
+grid_df$Var4 <- grid$Var4
+grid_df$Var5 <- grid$Var5
+grid_df$Var6 <- grid$Var6
+grid_df$Var7 <- grid$Var7
+
+grid_df$Var1[which(grid_df$Var1 == 1)] <- "BaroTemp_c_yearly"
+grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
+grid_df$Var3[which(grid_df$Var3 == 1)] <- "waterTemp_c_day"
+grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(surface_area_m2)"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "precip_mm_ave2"
+grid_df$Var6[which(grid_df$Var6 == 1)] <- "solarrad_Wm2_daymean"
+grid_df$Var7[which(grid_df$Var7 == 1)] <- "SA_to_Vol_ratio"
+
+grid_df[grid_df == 0] <- NA
+
+
+for (row in 2:nrow(grid_df)){
+  f <- grid_df[row, ]
+  f_2 <- f[!is.na(f)]
+  
+  if(length(f_2)==1){
+    model <- lmer(
+    as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") + (1 |Site)")),
+    data = df_1,REML = FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+  
+      } else if(length(f_2)==2) { 
+    model <- lmer(
+      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+       
+      } else if(length(f_2)==3) { 
+    model <- lmer(
+      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+       
+      } else if(length(f_2)==4) { 
+    model <- lmer(
+      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+       
+      } else if(length(f_2)==5) { 
+    model <- lmer(
+      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+       
+      } else if(length(f_2)==6) { 
+    model <- lmer(
+      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+       
+      } else if(length(f_2)==7) { 
+    model <- lmer(
+      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+       
+      } else  {
+         print("too many")
+      }
+}
+```
+
+#run best models according to AIC and BIC
+```{r  model building, echo=FALSE}
+
+df_1 <- df_saved
+df_1$SurfaceArea_log <- log(df_1$surface_area_m2)
+
+#With Wetland 12
+#AIC
+
+M_AIC_1 <- lmer(log(CO2_umol.L) ~ 
+                  scale(BaroTemp_c_yearly)+ 
+                  scale(waterTemp_c_yearly) +
+                  scale(log(SurfaceArea_log)) +
+                  scale(SA_to_Vol_ratio)
+                  (1 |Wetland), data =df_1,REML = FALSE)
+summary(M_AIC_1)
+modelPerformance(M_AIC_1)
+
+sum_M_CO2_AIC_W12 <- summary(M_CO2_AIC_W12)
+coeff_M_CO2_AIC_W12 <- as.data.frame(sum_M_CO2_AIC_W12$coefficients)
+coeff_M_CO2_AIC_W12$effects <- rownames(coeff_M_CO2_AIC_W12)
+
+M_BIC_1 <- lmer(log(CO2_umol.L) ~ 
+                  scale(BaroTemp_c_yearly)+ 
+                 scale(waterTemp_c_yearly) +
+                  (1 |Site), data =df_1,REML = FALSE)
+summary(M_BIC_1)
+modelPerformance(M_BIC_1)
+
+#Without Wetland 12
+
+
+#AIC: scale(BaroTemp_c_yearly), scale(waterTemp_c_yearly)
+M_AIC_2 <- lmer(log(CO2_umol.L) ~ 
+                  scale(BaroTemp_c_yearly)+ 
+                  scale(waterTemp_c_yearly) +
+                  (1 |Site), data =df_1,REML = FALSE)
+summary(M_AIC_2)
+modelPerformance(M_AIC_2)
+
+#BIC: (Intercept), scale(BaroTemp_c_yearly), scale(waterTemp_c_yearly)
+M_BIC_2 <- lmer(log(CO2_umol.L) ~ 
+                  scale(BaroTemp_c_yearly)+ 
+                  scale(waterTemp_c_yearly) +
+                  (1 |Site), data =df_1,REML = FALSE)
+summary(M_BIC_2)
+modelPerformance(M_BIC_2)
+
+```
+#visualize results
+```{r  plot it, echo=FALSE}
+
+
+library(ggeffects)  # install the package first if you haven't already, then load it
+
+# Extract the prediction data frame
+pred.mm <- ggpredict(M_BIC_2, terms = c("BaroTemp_c_yearly"#, "waterTemp_c_yearly", "SurfaceArea_log")
+                                      ))  # this gives overall predictions for the model
+# Plot the predictions 
+
+(ggplot(pred.mm) + 
+   geom_line(aes(x = x, y = log(predicted))) +          # slope
+   geom_ribbon(aes(x = x, ymin = log(predicted) - std.error, ymax = log(predicted) + std.error), 
+               fill = "lightgrey", alpha = 0.5) +  # error band
+   geom_point(data = df_1,                      # adding the raw data (scaled values)
+              aes(x = BaroTemp_c_yearly, y = log(CO2_umol.L), colour = Wetland)) + 
+   labs(x = "BaroTemp_c_yearly", y = "log(CO2_umol.L)", 
+        title = "CO2 model") + 
+   theme_minimal()
+)
+
+ggpredict(M_BIC_2, terms = c("BaroTemp_c_yearly", "Wetland"), type = "re") %>% 
+   plot() +
+   labs(x = "terms", y = "CO2", title = "CO2 model") + 
+   theme_minimal() +
+  scale_fill_manual(values=c("#CC0000", "#006600", "#669999", "#00CCCC", 
+                             "#660099", "#CC0066", "#FF9999", "#FF9900",
+                             "#CC0000", "#006600", "#669999","#FF9900"))
+
+library(sjPlot)
+
+# Visualise random effects 
+(re.effects <- plot_model(M_BIC, type = "re", show.values = TRUE))
+
+# show summary
+summary(M_AIC_2)
+
+
+
+library(sjlabelled)
+
+fit <- lmer(log(CO2_umol.L) ~ BaroTemp_c_yearly +waterTemp_c_yearly+ SurfaceArea_log +(1|Wetland), data=df)
+# facet by group,
+dat <- ggpredict(fit, terms = c("BaroTemp_c_yearly", "waterTemp_c_yearly", "SurfaceArea_log" ))
+plot(dat)
+ 
+# don't use facets, b/w figure, w/o confidence bands
+dat <- ggpredict(fit, terms = c("BaroTemp_c_yearly", "waterTemp_c_yearly", "precip_mm_ave2" ))
+plot(dat, colors = "bw", show_ci = FALSE)
+
+#2
+fit <- lmer(log(CO2_umol.L) ~ BaroTemp_c_yearly +waterTemp_c_yearly + (1|Wetland), data=df_saved)
+# facet by group,
+dat <- ggpredict(fit, terms = c("BaroTemp_c_yearly", "waterTemp_c_yearly" ))
+plot(dat)
+
+ggplot(data=df_saved) +
+  geom_point(aes(x=waterTemp_c_yearly ,y=log(CO2_umol.L),color=BaroTemp_c_yearly),size=3)
+
+```
+
+#visualize using sjPlot::plot_model(mod)
+```{r  plot it 2, echo=FALSE}
+
+sjPlot::plot_model(M_BIC_1)
+sjPlot::plot_model(M_BIC_2)
+# Notes: axis labels should be in order from bottom to top. 
+# To see the values of the effect size and p-value, set show.values and show.p= TRUE. Pvalues will only be shown if the effect size values are too
+
+sjPlot::plot_model(M_BIC_1, 
+                   axis.labels=c("Air Temperature yearly average","Water Temperature yearly average"),
+                   show.values=TRUE, show.p=TRUE,
+                   title="Effect of temperature on CO2 concentration")
+
+sjPlot::tab_model(M_BIC_1, 
+                  show.re.var= TRUE, 
+                  pred.labels =c("(Intercept)", "Air Temp yearly ave (c)", "Water Temp yearly ave (c)"),
+                  dv.labels= "CO2")
+
+# Use the effects package --> effect function. term= the fixed effect you want to get data on, mod= name of your model.
+
+effects_co2 <- effects::effect(term= "BaroTemp_c_yearly", mod= M_BIC_1)
+summary(effects_co2) #output of what the values are
+# Save the effects values as a df:
+x_urch <- as.data.frame(effects_co2)
+
+#Basic steps:
+  #1 Create empty plot
+
+  #2 Add geom_points() from the DATA: urchin data on the x axis (independent va= c.urchinden) and coral data on the y-axis (response var= elkhorn_LAI)
+
+  #3 Add geom_point for the MODEL estimates (data= x_urchi here, this is the dataset you created in the above chunk). We will change the color so they are distinguishable from the data
+
+  #4 Add geom_line for the MODEL estimates. Change the color to match the estimate points (ie whatever color you chose for step3)
+
+  #5 Add geom_ribbon that has the CI limits for the model estimates
+
+  #6 Edit the labels as you see fit!
+
+#1
+urchin_plot <- ggplot() + 
+  #2
+geom_point(data=df_saved, aes(BaroTemp_c_yearly, log(CO2_umol.L))) + 
+  #3
+#  geom_point(data=x_urch, aes(x=BaroTemp_c_yearly, y=fit), color="blue") +
+  #4
+  geom_line(data=x_urch, aes(x=BaroTemp_c_yearly, y=fit), color="blue") +
+  #5
+  geom_ribbon(data= x_urch, aes(x=BaroTemp_c_yearly, ymin=lower, ymax=upper), alpha= 0.3, fill="blue") +
+  #6
+  labs(x="Average yearly air temperature", y="log(CO2 umol/L)")
+
+urchin_plot
+```
+
+
+```{r  partial , echo=FALSE}
+df_added_variable_plots <- df_saved
+M_BIC_1 <- lmer(log(CO2_umol.L) ~ scale(BaroTemp_c_yearly) + scale(waterTemp_c_yearly) + (1 |Wetland), data =df_added_variable_plots,REML = FALSE)
+df_added_variable_plots$M_BIC1_residuals <- residuals(M_BIC_1) 
+
+
+```

@@ -153,6 +153,10 @@ df$K600.effective <- df$k_m.d * (600/df$Sc)^(-0.5)
 #write out all fall samples
 #write.csv(df,here::here("Methane/methanedf_WetlandandDrone_fall2022.csv"))
 
+#write out just dron3 data
+drone_df <- df%>%filter(Site=="Gavilan")%>%select(Sample.Name,Site,Site2,Lat,Lon,Date,time,DateTime,Watertemp_c,AirPress_kpa,AirTemp_C,CO2_ppm,CO2_umol.L,CH4_umol.L,CH4_sat)
+write.csv(drone_df,here::here("DroneData/GasSamples_Drone_df.csv"))
+
 #summarize ch4 data
 
 ##WETLAND 7!!!!
@@ -209,8 +213,7 @@ df_sum$Elevation_m <- NA
 df_4 <- rbind(df_saved_1,df_sum)
 
 #write out
-
-write.csv(df_4,here::here("Wetlands/Wetland_df_2024-03-27.csv"))
+#write.csv(df_4,here::here("Wetlands/Wetland_df_2024-03-27.csv"))
 
 
 ggplot(df_4%>%filter(Site=="Gavilan"),

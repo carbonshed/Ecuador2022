@@ -285,7 +285,9 @@ precip_weekAve$precip_mm_ave2 <- (precip_weekAve$PrecipAccu_mm_PreviousDay + pre
 solar_weekAve <- transform(Solar_df, avg2 = rollmeanr(solarrad_W_m2_daymean, 2, fill = NA,na.rm=TRUE))
 colnames(solar_weekAve) <- c("Date","solarrad_Wm2_daymean","Solarrad_daymax","Solar_Wm2_ave3")
 
-watertemp_weekAve <- transform(WL_summary_day%>%select("Site","Date","waterTemp_c_day"), avg3 = rollmeanr(waterTemp_c_day, 3, fill = NA,na.rm=TRUE))
+watertemp_weekAve <- transform(WL_summary_day%>%
+                                 select("Site","Date","waterTemp_c_day"), 
+                               avg3 = rollmeanr(waterTemp_c_day, 3, fill = NA,na.rm=TRUE))
 colnames(watertemp_weekAve) <- c("Site","Date","WaterTemp_c_day","WaterTemp_c_ave3")
 watertemp_weekAve$WaterTemp_c_day <- NULL
 
@@ -302,4 +304,4 @@ df_5 <- left_join(df_5,watertemp_weekAve,by=c("Site","Date"))
 
 df_5 <- unique(df_5)
 #write out
-write.csv(df_5, here::here("Wetlands/Wetland_df_MERGE_2024-03-27.csv"))
+#write.csv(df_5, here::here("Wetlands/Wetland_df_MERGE_2024-03-27.csv"))
