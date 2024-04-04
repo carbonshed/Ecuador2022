@@ -433,13 +433,13 @@ grid_df$Var5 <- grid$Var5
 grid_df$Var6 <- grid$Var6
 grid_df$Var7 <- grid$Var7
 
-grid_df$Var1[which(grid_df$Var1 == 1)] <- "BaroTemp_c_yearly"
+grid_df$Var1[which(grid_df$Var1 == 1)] <- "BaroTemp_c_day"
 grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
 grid_df$Var3[which(grid_df$Var3 == 1)] <- "waterTemp_c_day"
 grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(surface_area_m2)"
 grid_df$Var5[which(grid_df$Var5 == 1)] <- "precip_mm_ave2"
 grid_df$Var6[which(grid_df$Var6 == 1)] <- "solarrad_Wm2_daymean"
-grid_df$Var7[which(grid_df$Var7 == 1)] <- "SA_to_Vol_ratio"
+grid_df$Var7[which(grid_df$Var7 == 1)] <- "log(SA_to_Vol_ratio)"
 
 grid_df[grid_df == 0] <- NA
 
@@ -510,33 +510,11 @@ for (row in 2:nrow(grid_df)){
 df_1 <- df_saved
 df_1$SurfaceArea_log <- log(df_1$surface_area_m2)
 
-#With Wetland 12
-#AIC
-
-M_AIC_1 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
-                  scale(waterTemp_c_yearly) +
-                  scale(log(SurfaceArea_log)) +
-                  scale(SA_to_Vol_ratio)
-                  (1 |Wetland), data =df_1,REML = FALSE)
-summary(M_AIC_1)
-modelPerformance(M_AIC_1)
-
-sum_M_CO2_AIC_W12 <- summary(M_CO2_AIC_W12)
-coeff_M_CO2_AIC_W12 <- as.data.frame(sum_M_CO2_AIC_W12$coefficients)
-coeff_M_CO2_AIC_W12$effects <- rownames(coeff_M_CO2_AIC_W12)
-
-M_BIC_1 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
-                 scale(waterTemp_c_yearly) +
-                  (1 |Site), data =df_1,REML = FALSE)
-summary(M_BIC_1)
-modelPerformance(M_BIC_1)
-
 #Without Wetland 12
 
 
-#AIC: scale(BaroTemp_c_yearly), scale(waterTemp_c_yearly)
+#AIC: (Intercept), scale(BaroTemp_c_day), scale(log(surface_area_m2)), scale(precip_mm_ave2), scale(SA_to_Vol_ratio)
+
 M_AIC_2 <- lmer(log(CO2_umol.L) ~ 
                   scale(BaroTemp_c_yearly)+ 
                   scale(waterTemp_c_yearly) +
@@ -544,10 +522,10 @@ M_AIC_2 <- lmer(log(CO2_umol.L) ~
 summary(M_AIC_2)
 modelPerformance(M_AIC_2)
 
-#BIC: (Intercept), scale(BaroTemp_c_yearly), scale(waterTemp_c_yearly)
+#BIC: (Intercept), scale(BaroTemp_c_day), scale(precip_mm_ave2)
 M_BIC_2 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
-                  scale(waterTemp_c_yearly) +
+                  scale(BaroTemp_c_day)+ 
+                  scale(precip_mm_ave2) +
                   (1 |Site), data =df_1,REML = FALSE)
 summary(M_BIC_2)
 modelPerformance(M_BIC_2)

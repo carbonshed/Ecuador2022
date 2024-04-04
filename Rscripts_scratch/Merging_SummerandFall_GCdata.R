@@ -155,7 +155,7 @@ df$K600.effective <- df$k_m.d * (600/df$Sc)^(-0.5)
 
 #write out just dron3 data
 drone_df <- df%>%filter(Site=="Gavilan")%>%select(Sample.Name,Site,Site2,Lat,Lon,Date,time,DateTime,Watertemp_c,AirPress_kpa,AirTemp_C,CO2_ppm,CO2_umol.L,CH4_umol.L,CH4_sat)
-write.csv(drone_df,here::here("DroneData/GasSamples_Drone_df.csv"))
+#write.csv(drone_df,here::here("DroneData/GasSamples_Drone_df.csv"))
 
 #summarize ch4 data
 
@@ -201,7 +201,7 @@ df_saved_1 <- df_saved%>%select(Wetland,DateTime,CO2_ppm,CO2_umol.L,CH4_umol.L,C
                                   Site=Wetland,WaterLevel_m=Waterlevel_m
                                 )
 #also I want baro press and temp
-df_saved_1 <- left_join(df_saved_1, BaroSTATION %>%select(DateTime,Baro_kpa,BaroTemp_c),by=c("DateTime"))
+df_saved_1 <- left_join(df_saved_1, BaroSTATION %>%select(DateTime,AirPress_kpa,BaroTemp_c),by=c("DateTime"))
 
 
 #

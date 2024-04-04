@@ -252,8 +252,8 @@ df$Water_minus_air_Temp <- df$Watertemp_c - df$AirTemp_c
 
 df_2 <- df[,c(#"Watertemp_c",
         #      "AirTemp_c",
-         #     "BaroTemp_c_day",
-              "BaroTemp_c_yearly",
+              "BaroTemp_c_day",
+         #     "BaroTemp_c_yearly",
               "waterTemp_c_yearly",
               "waterTemp_c_day",
               "Water_minus_air_Temp",
@@ -422,14 +422,14 @@ grid_df$Var6 <- grid$Var6
 grid_df$Var7 <- grid$Var7
 #grid_df$Var8 <- grid$Var8
 
-grid_df$Var1[which(grid_df$Var1 == 1)] <- "BaroTemp_c_yearly"
+grid_df$Var1[which(grid_df$Var1 == 1)] <- "BaroTemp_c_day"
 grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
 #grid_df$Var3[which(grid_df$Var3 == 1)] <- "Baro_Water_minus_air_Temp"
 grid_df$Var3[which(grid_df$Var3 == 1)] <- "waterTemp_c_day"
 grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(surface_area_m2)"
 grid_df$Var5[which(grid_df$Var5 == 1)] <- "precip_mm_ave2"
 grid_df$Var6[which(grid_df$Var6 == 1)] <- "solarrad_Wm2_daymean"
-grid_df$Var7[which(grid_df$Var7 == 1)] <- "SA_to_Vol_ratio"
+grid_df$Var7[which(grid_df$Var7 == 1)] <- "log(SA_to_Vol_ratio)"
 
 grid_df[grid_df == 0] <- NA
 
@@ -506,32 +506,34 @@ for (row in 2:nrow(grid_df)){
 df_1 <- df#%>%filter(Site!="Wetland12")
 
 
-#without wetland 12
-#scale(BaroTemp_c_yearly), scale(waterTemp_c_day), scale(SA_to_Vol_ratio), scale(surface_area_m2), scale(precip_mm_ave2)
+#without wetland 12 
+#(Intercept), scale(BaroTemp_c_day), scale(waterTemp_c_yearly), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio))
+
 #AIC
 M_AIC <- lmer(log(CH4_umol.L) ~ 
+#                scale(BaroTemp_c_day) +
                   scale(BaroTemp_c_yearly)+ 
-                #  scale(waterTemp_c_yearly) +
-                  scale(waterTemp_c_day) + 
-                  scale(SA_to_Vol_ratio) + 
-                  scale(surface_area_m2) +
+                  scale(waterTemp_c_yearly) +
+                #  scale(waterTemp_c_day) + 
+                  scale(log(SA_to_Vol_ratio)) + 
+                  scale(log(surface_area_m2)) +
                 #  scale(Watershed_m2) +
-                  scale(precip_mm_ave2) + 
+                #  scale(precip_mm_ave2) + 
                 #  scale(solarrad_Wm2_daymean) +
                   (1 |Site), data =df_1,REML = FALSE)
 summary(M_AIC)
 modelPerformance(M_AIC)
 
 #without wetland 12
-#(Intercept), scale(BaroTemp_c_yearly), scale(waterTemp_c_day), scale(SA_to_Vol_ratio)
+#	(Intercept), scale(BaroTemp_c_day), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio))
 
 M_BIC <- lmer(log(CH4_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
+                  scale(BaroTemp_c_day)+ 
                 #  scale(waterTemp_c_yearly) +
                #   scale(Water_minus_air_Temp) +
-                  scale(waterTemp_c_day) + 
-                  scale(SA_to_Vol_ratio) + 
-                #  scale(surface_area_m2) +
+                #  scale(waterTemp_c_day) + 
+                  scale(log(SA_to_Vol_ratio)) + 
+                  scale(log(surface_area_m2)) +
                 #  scale(Watershed_m2) +
                #   scale(precip_mm_ave2) + 
                 #  scale(solarrad_Wm2_daymean) +
