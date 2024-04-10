@@ -99,77 +99,40 @@ WL_summary_fall <- WL_df%>%
 
 ##merge with data frame
 
-WL_df <- WL_df%>%select(DateTime,Site,depth_ave_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio)%>%
-  rename(Site=Site)
+#dude we don't need this. Why did I think we needed this? how did this work before. confused
 
-df_1 <- left_join(df,WL_df, by=c("Site","DateTime"))
-df_1$DateTime_saved <- df_1$DateTime
+#WL_df <- WL_df%>%select(DateTime,Site,depth_ave_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio)%>%rename(Site=Site)
+#df_1 <- left_join(df,WL_df, by=c("Site","DateTime"))
+#df_1$DateTime_saved <- df_1$DateTime
 
 #delete 15 min if wl column is empty
-df_1$DateTime <- df_1$DateTime_saved
+#df_1$DateTime <- df_1$DateTime_saved
 
-df_1$DateTime_1 <- ifelse(is.na(df_1$surface_area_m2), 
-                            as.POSIXct(df_1$DateTime - minutes(15),format="%Y-%m-%d %H:%M:%S",tz="UTC"), df_1$DateTime)
-df_1$DateTime <- as.POSIXct(df_1$DateTime_1,format="%Y-%m-%d %H:%M:%S",tz="UTC")
+#df_1$DateTime_1 <- ifelse(is.na(df_1$surface_area_m2), 
+#                            as.POSIXct(df_1$DateTime - minutes(15),format="%Y-%m-%d %H:%M:%S",tz="UTC"), df_1$DateTime)
+#df_1$DateTime <- as.POSIXct(df_1$DateTime_1,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 
-df_1 <- left_join(df_1%>%select(-c(depth_ave_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio)), WL_df,by=c("DateTime","Site"))
+#df_1 <- left_join(df_1%>%select(-c(depth_ave_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio)), WL_df,by=c("DateTime","Site"))
 
 #at this point, I have filled all the rows that I can by subtracting, for a few I will need to add (beggining of sample period)
-df_2 <- df_1%>%filter(is.na(surface_area_m2))
+#df_2 <- df_1%>%filter(is.na(surface_area_m2))
 
 #add 15 min if wl column is empty
-df_2$DateTime <- df_2$DateTime_saved
+#df_2$DateTime <- df_2$DateTime_saved
+#df_2$DateTime_1 <- ifelse(is.na(df_2$surface_area_m2), 
+#                          as.POSIXct(df_2$DateTime + minutes(15),format="%Y-%m-%d %H:%M:%S",tz="UTC"), df_2$DateTime)
+#df_2$DateTime <- as.POSIXct(df_2$DateTime_1,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 
-df_2$DateTime_1 <- ifelse(is.na(df_2$surface_area_m2), 
-                          as.POSIXct(df_2$DateTime + minutes(15),format="%Y-%m-%d %H:%M:%S",tz="UTC"), df_2$DateTime)
-df_2$DateTime <- as.POSIXct(df_2$DateTime_1,format="%Y-%m-%d %H:%M:%S",tz="UTC")
+#df_2 <- left_join(df_2%>%select(-c(depth_ave_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio)), WL_df,by=c("DateTime","Site"))
 
-df_2 <- left_join(df_2%>%select(-c(depth_ave_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio)), WL_df,by=c("DateTime","Site"))
+#df_3 <- rbind(df_2,df_1%>%filter(!is.na(surface_area_m2)))
+#df_3$DateTime <- df_3$DateTime_saved
+#df_3 <- df_3%>%select(!c(DateTime_1,DateTime_saved))
 
-df_3 <- rbind(df_2,df_1%>%filter(!is.na(surface_area_m2)))
-df_3$DateTime <- df_3$DateTime_saved
-df_3 <- df_3%>%select(!c(DateTime_1,DateTime_saved))
+df_3 <- df
 df_3$Date <- as.Date(df_3$Date)
-
-#fill in elevation and water chem data
-for (i in 1:nrow(df_3)) {
-  site_name <- df_3$Site[i]
-  
-  if (site_name == "Wetland04") {
-    df_3$Elevation_m[i] <- 4187.812
-    df_3$DOC_mg.L[i] <- 9.574
-    df_3$TDN_mg.L[i] <- 0.3256
-  } else if (site_name == "Wetland06") {
-    df_3$Elevation_m[i] <- 4166.241
-    df_3$DOC_mg.L[i] <- 7.481
-    df_3$TDN_mg.L[i] <- 0.2561
-  } else if (site_name == "Wetland07") {
-    df_3$Elevation_m[i] <- 4145.449
-    df_3$DOC_mg.L[i] <- 7.838
-    df_3$TDN_mg.L[i] <- 0.2459
-  } else if (site_name == "Wetland08") {
-    df_3$Elevation_m[i] <- 3998.477
-    df_3$DOC_mg.L[i] <- 2.303
-    df_3$TDN_mg.L[i] <- 0.08028
-  } else if (site_name == "Wetland09") {
-    df_3$Elevation_m[i] <- 3999.156
-    df_3$DOC_mg.L[i] <- 1.171
-    df_3$TDN_mg.L[i] <- 0.06864
-  } else if (site_name == "Wetland10") {
-    df_3$Elevation_m[i] <- 3998.755
-    df_3$DOC_mg.L[i] <- 8.867
-    df_3$TDN_mg.L[i] <- 0.5712
-  } else if (site_name == "Wetland11") {
-    df_3$Elevation_m[i] <- 4145.759
-    df_3$DOC_mg.L[i] <- 11.68
-    df_3$TDN_mg.L[i] <- 0.3581
-  } else if (site_name == "Wetland12") {
-    df_3$Elevation_m[i] <- 4124.501
-    df_3$DOC_mg.L[i] <- 4.605
-    df_3$TDN_mg.L[i] <- 0.1557
-  }
-  # Add more conditions for other site names as needed
-}
+df_3$X.1 <- NULL
+df_3$X <- NULL
 
 #now bind in summary
 df_4 <- left_join(df_3,WL_summary_day, by=c("Date","Site"))
@@ -188,10 +151,9 @@ df_4 <- left_join(df_4,WL_Air_day, by=c("Date"))
 #baro station is at elevation = 4158.6912 (found on google earth pro)
 BaroStation <- 4158.6912
 slope_temp <- -6.5/1000
-df_4$BaroTemp_c_yearly <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c_yearly 
-df_4$BaroTemp_c_day <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c_day 
-df_4$BaroTemp_c <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c
-df_4$Baro_Water_minus_air_Temp <- df_4$BaroTemp_c - df_4$Watertemp_c
+df_4$BaroTemp_c_yearly_eleAdjust <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c_yearly 
+df_4$BaroTemp_c_day_eleAdjust <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c_day 
+df_4$BaroTemp_c_eleAdjust <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c
 
 #pressure decreases by about 1.2 kPa (12 hPa) for every 100 m 
 slope_pressure <- -1.2/100
@@ -295,8 +257,9 @@ watertemp_weekAve$WaterTemp_c_day <- NULL
 enviro_df <- full_join(viento_df,humidad_df, by="DateTime")
 enviro_df <- full_join(enviro_df,Solar_df_DateTime, by="DateTime")
 
+df$Date <- as.Date(df$DateTime)
 #join enviro data
-df_5 <- left_join(df_4,enviro_df,by="DateTime")
+df_5 <- left_join(df,enviro_df,by="DateTime")
 df_5 <- left_join(df_5,solar_weekAve,by="Date")
 df_5 <- left_join(df_5,precip_weekAve,by="Date")
 df_5 <- left_join(df_5,watertemp_weekAve,by=c("Site","Date"))

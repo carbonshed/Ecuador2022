@@ -111,31 +111,32 @@ with this notation we assume an intercept that’s different for each subject”
 #read in data
 #df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-04.csv"))[c(17,2,6,14:16,18:45,52:59)]
 df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-03-27.csv"))#[c(17,2,7,14:16,18:45,52:59)]
-df$num <- 1:52
+df$num <- 1:44
+df_saved <- df
 ```
 
 
 ###Predicted drivers of CO2
 
-CO2 increases with Air temperature (increased respiration) - (ave day, ave year)
+CH4 increases with Air temperature (increased respiration) - (ave day, ave year)
     > AirTemp_c
     > BaroTemp_c_yearly
 
-CO2 increases with Water temperature (increased respiration) - (ave day, ave year)
+CH4 increases with Water temperature (increased respiration) - (ave day, ave year)
     > WaterTemp_c
     > WaterTemp_c_day
     > waterTemp_c_yearly
 
-CO2 increases with depth vol ratio (more contact with sediments) 
+CH4 increases with depth vol ratio (more contact with sediments) 
     > SA_to_Vol_ratio_day --- not all wetlands
 
-CO2 decreases with surface area
+CH4 decreases with surface area
     > Surface_area_m2
 
-CO2 increases with watershed size 
+CH4 increases with watershed size 
     > WS_size_minusSA --- not all wetlands
 
-precipitation effects CO2 concentration because it dilutes the water (ave of sum day and previous day)
+precipitation effects CH4 concentration because it dilutes the water (ave of sum day and previous day)
     > Precio_mm_ave2
 
 Solar radiation because stimulates gpp (ave day)
@@ -152,6 +153,8 @@ Solar radiation because stimulates gpp (ave day)
 
 ```{r  assumptions step 1, echo=FALSE}
 #Step 1: Are there outliers in Y and X?
+
+df <- df%>%filter(Site!="Wetland12")
 
 #boxplots galore
 boxplot(log(df$CH4_umol.L)) ##transformed
@@ -181,9 +184,9 @@ boxplot(df$waterTemp_c_yearly) #one?,- wetland 5 yes, legit
 hist(df$waterTemp_c_yearly)
 ggplot(df, aes(waterTemp_c_yearly, num)) + geom_point() # this looks good
 
-boxplot(df$Water_minus_air_Temp) #one outlier
-hist(df$Water_minus_air_Temp) 
-ggplot(df, aes(Water_minus_air_Temp, num)) + geom_point()# this looks good
+#boxplot(df$Water_minus_air_Temp) #one outlier
+#hist(df$Water_minus_air_Temp) 
+#ggplot(df, aes(Water_minus_air_Temp, num)) + geom_point()# this looks good
 
 boxplot(df$SA_to_Vol_ratio) #transform? I don't know! The extreme outliers are legit
 #boxplot(log(df$SA_to_Vol_ratio)) #lots?
@@ -193,10 +196,6 @@ ggplot(df, aes(SA_to_Vol_ratio, num)) + geom_point()
 boxplot(log(df$surface_area_m2)) #seems like log transform is the way to go here. looks good after log transform
 hist(log(df$surface_area_m2))
 ggplot(df, aes(log(surface_area_m2), num)) + geom_point()
-
-boxplot(df$WS_size_minusSA) # this is wetland 12, wich, yes is very large watershed
-hist(df$WS_size_minusSA)
-ggplot(df, aes(WS_size_minusSA, num)) + geom_point()
 
 boxplot(df$precip_mm_ave2) 
 hist(df$precip_mm_ave2)
@@ -248,20 +247,20 @@ ggplot(df, aes(solarrad_Wm2_daymean, num)) + geom_point()
 
 ```{r  assumptions step 5.1, echo=FALSE}
 #make correlation matrix
-df$Water_minus_air_Temp <- df$Watertemp_c - df$AirTemp_c
 
-df_2 <- df[,c(#"Watertemp_c",
-        #      "AirTemp_c",
-              "BaroTemp_c_day",
-         #     "BaroTemp_c_yearly",
-              "waterTemp_c_yearly",
-              "waterTemp_c_day",
-              "Water_minus_air_Temp",
+df_2 <- df [,c("Watertemp_c",
+               "waterTemp_c_yearly",
+              "Elevation_m",
+              "AirTemp_c",
+             # "BaroTemp_c_day",
+             # "BaroTemp_c_yearly",
+             # "waterTemp_c_day",
               "SA_to_Vol_ratio",
               "surface_area_m2",
-        #     "Watershed_m2",
-              "precip_mm_ave2",
-              "solarrad_Wm2_daymean"
+         #     "Watershed_m2",
+              "precip_mm_ave2"
+         #,
+         #     "solarrad_Wm2_daymean"
               )]
 
 
@@ -272,6 +271,7 @@ res2$r
 res2$P
 correlation_pvalue <- res2$P
 correlation_coefficiant <- res2$r
+
 
 
 
@@ -294,33 +294,24 @@ correlation_coefficiant <- res2$r
 
 
 M1 <- lmer(log(CH4_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
+                  scale(Watertemp_c)+ 
                   scale(waterTemp_c_yearly) +
-                #  scale(Water_minus_air_Temp) +
-                  scale(waterTemp_c_day) + 
-                  scale(SA_to_Vol_ratio) + 
-                  scale(surface_area_m2) +
+                scale(Elevation_m) +
+                  scale(AirTemp_c) + 
+                  scale(log(SA_to_Vol_ratio)) + 
+                  scale(log(surface_area_m2)) +
                 #  scale(Watershed_m2) +
                   scale(precip_mm_ave2) + 
-                  scale(solarrad_Wm2_daymean) +
                   (1 |Site), data =df)
 
 vif(M1)
 
-#without SA_to_Vol_ratio size
-M2 <- lmer(log(CH4_umol.L) ~ 
-                  scale(BaroTemp_c_yearly)+ 
-                  scale(waterTemp_c_yearly) +
-               #   scale(Water_minus_air_Temp) +
-                  scale(waterTemp_c_day) + 
-                 # scale(SA_to_Vol_ratio) + 
-                  scale(log(surface_area_m2)) +
-                #  scale(Watershed_m2) +
-                  scale(precip_mm_ave2) + 
-                  scale(solarrad_Wm2_daymean) +
-                  (1 |Site), data =df)
-
-vif(M2)
+#summary for global models
+summary(M1)
+modelPerformance(M1)
+summary_M1 <- summary(M1)
+summary_M1$AICtab
+summary(M1)$AIC[1]
 
   
 ```
@@ -406,7 +397,6 @@ hist(res2)
 
 Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric())
 
-
 #remove Wetland 12 for this analysis?
 df_1 <- df%>%filter(Site!="Wetland12")
 
@@ -422,13 +412,12 @@ grid_df$Var6 <- grid$Var6
 grid_df$Var7 <- grid$Var7
 #grid_df$Var8 <- grid$Var8
 
-grid_df$Var1[which(grid_df$Var1 == 1)] <- "BaroTemp_c_day"
+grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
 grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
-#grid_df$Var3[which(grid_df$Var3 == 1)] <- "Baro_Water_minus_air_Temp"
-grid_df$Var3[which(grid_df$Var3 == 1)] <- "waterTemp_c_day"
+grid_df$Var3[which(grid_df$Var3 == 1)] <- "Elevation_m"
 grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(surface_area_m2)"
-grid_df$Var5[which(grid_df$Var5 == 1)] <- "precip_mm_ave2"
-grid_df$Var6[which(grid_df$Var6 == 1)] <- "solarrad_Wm2_daymean"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "AirTemp_c"
+grid_df$Var6[which(grid_df$Var6 == 1)] <- "precip_mm_ave2"
 grid_df$Var7[which(grid_df$Var7 == 1)] <- "log(SA_to_Vol_ratio)"
 
 grid_df[grid_df == 0] <- NA
@@ -507,33 +496,29 @@ df_1 <- df#%>%filter(Site!="Wetland12")
 
 
 #without wetland 12 
-#(Intercept), scale(BaroTemp_c_day), scale(waterTemp_c_yearly), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio))
+#(Intercept), (Intercept), scale(Watertemp_c), scale(Elevation_m), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio))
+
 
 #AIC
 M_AIC <- lmer(log(CH4_umol.L) ~ 
-#                scale(BaroTemp_c_day) +
-                  scale(BaroTemp_c_yearly)+ 
-                  scale(waterTemp_c_yearly) +
-                #  scale(waterTemp_c_day) + 
+                  scale(Watertemp_c)+ 
+                  scale(Elevation_m) +
                   scale(log(SA_to_Vol_ratio)) + 
                   scale(log(surface_area_m2)) +
-                #  scale(Watershed_m2) +
-                #  scale(precip_mm_ave2) + 
-                #  scale(solarrad_Wm2_daymean) +
                   (1 |Site), data =df_1,REML = FALSE)
 summary(M_AIC)
 modelPerformance(M_AIC)
 
 #without wetland 12
-#	(Intercept), scale(BaroTemp_c_day), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio))
+#	(Intercept), (Intercept), scale(Elevation_m), scale(log(SA_to_Vol_ratio))
 
 M_BIC <- lmer(log(CH4_umol.L) ~ 
-                  scale(BaroTemp_c_day)+ 
+                  scale(Elevation_m)+ 
                 #  scale(waterTemp_c_yearly) +
                #   scale(Water_minus_air_Temp) +
                 #  scale(waterTemp_c_day) + 
                   scale(log(SA_to_Vol_ratio)) + 
-                  scale(log(surface_area_m2)) +
+               #   scale(log(surface_area_m2)) +
                 #  scale(Watershed_m2) +
                #   scale(precip_mm_ave2) + 
                 #  scale(solarrad_Wm2_daymean) +

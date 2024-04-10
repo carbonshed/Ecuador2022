@@ -20,7 +20,7 @@ library(clustsig)
 library(here)
 
 #Set working directory (You'll need to change this based on your computer)
-setwd("/Volumes/SCHULTE/R_Ordination_Nate")
+#setwd("/Volumes/SCHULTE/R_Ordination_Nate")
 
 #Download Data and defining df and omitting zeros
 df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-03-27.csv"))

@@ -160,7 +160,7 @@ drone_df <- df%>%filter(Site=="Gavilan")%>%select(Sample.Name,Site,Site2,Lat,Lon
 #summarize ch4 data
 
 ##WETLAND 7!!!!
-df_sum <- df%>%filter(Site!="Gavilan")%>%filter(Site!="Chakanas")%>%filter(Sample.Name!="179")%>%
+df_sum <- df %>%filter(Site!="Gavilan")%>%filter(Site!="Chakanas")%>%filter(Sample.Name!="179")%>%
   group_by(Site)%>%summarise(
     DateTime = mean(DateTime),
     CO2_ppm=mean(CO2_ppm,na.rm = TRUE),
@@ -173,7 +173,7 @@ df_sum <- df%>%filter(Site!="Gavilan")%>%filter(Site!="Chakanas")%>%filter(Sampl
     KH_mol.L.atm=mean(KH_mol.L.atm,na.rm = TRUE),
     Watertemp_c=mean(Watertemp_c,na.rm = TRUE),
     AirPress_kpa=mean(AirPress_kpa,na.rm = TRUE),
-    AirTemp_c=mean(AirPress_kpa,na.rm = TRUE)
+    AirTemp_c=mean(AirTemp_C,na.rm = TRUE)
   )
 
 df_sum$DateTime <- round_date(df_sum$DateTime, "15 mins")
@@ -185,7 +185,7 @@ WL_Wetland$Site <-  gsub(".*?_", "", WL_Wetland$Site)
 
 df_sum <- left_join(df_sum, WL_Wetland %>%select(DateTime,Site,Baro_kpa,BaroTemp_c,WaterLevel_m),by=c("DateTime","Site"))
 
-#delete 15 min if wl column is empty
+#delete 15 min if wl column is empty 2x
 df_sum$DateTime_1 <- ifelse(is.na(df_sum$WaterLevel_m), 
                           as.POSIXct(df_sum$DateTime - minutes(15),format="%Y-%m-%d %H:%M:%S",tz="UTC"), 
                           df_sum$DateTime)
@@ -201,65 +201,16 @@ df_saved_1 <- df_saved%>%select(Wetland,DateTime,CO2_ppm,CO2_umol.L,CH4_umol.L,C
                                   Site=Wetland,WaterLevel_m=Waterlevel_m
                                 )
 #also I want baro press and temp
-df_saved_1 <- left_join(df_saved_1, BaroSTATION %>%select(DateTime,AirPress_kpa,BaroTemp_c),by=c("DateTime"))
-
+df_saved_1 <- left_join(df_saved_1, Baro %>%select(DateTime,Baro_kpa,BaroTemp_c),by=c("DateTime"))
+df_saved_1 <- df_saved_1%>%filter(DateTime<as.POSIXct("2022-10-01 00:00:00"))
 
 #
+bind_df <- df_saved_1%>%select(Site,Elevation_m,DOC_mg.L,TDN_mg.L)
+bind_df <- unique(bind_df)
 
-df_sum$DOC_mg.L <- NA
-df_sum$TDN_mg.L <- NA
-df_sum$Elevation_m <- NA
+df_sum <- left_join(df_sum,bind_df,by="Site")
 
 df_4 <- rbind(df_saved_1,df_sum)
 
 #write out
 #write.csv(df_4,here::here("Wetlands/Wetland_df_2024-03-27.csv"))
-
-
-ggplot(df_4%>%filter(Site=="Gavilan"),
-       aes(x=CO2_umol.L,y=CH4_umol.L, color=Site2)) + 
-  geom_point()
-
-ggplot(df_4%>%filter(Site!="Gavilan")%>%filter(Site!="Chakanas"),
-       aes(x=log(CO2_umol.L),y=log(CH4_umol.L), color=DateTime)) + geom_point()# +
-#  geom_mark_ellipse(aes(color = Site), expand = unit(0.5,"mm"))
-
-ggplot(df_4%>%filter(Site!="Gavilan")%>%filter(Site!="Chakanas"),
-       aes(x=log1p(CO2_umol.L),y=log1p(CH4_umol.L), color=Site)) + geom_point() +
-  geom_mark_ellipse(aes(color = Site), expand = unit(0.5,"mm"))
-
-ggplot(df_4%>%filter(Site!="Gavilan")%>%filter(Site!="Chakanas"),
-       aes(x=CO2_umol.L,y=CH4_umol.L, color=Site)) + geom_point() +
-  geom_mark_ellipse(aes(color = Site), expand = unit(0.5,"mm"))
-
-ggplot(df_4%>%filter(Site=="Gavilan"|Site=="Chakanas"),
-       aes(x=log(CO2_umol.L),y=log(CH4_umol.L), color=Site)) + geom_point() +
-  geom_mark_ellipse(aes(color = Site), expand = unit(0.5,"mm"))
-
-
-#
-df_4$Date <- as.Date(df_4$DateTime)
-ggplot() + 
-  geom_point(data=df_4%>%filter(Site!="Gavilan")%>%filter(Site!="Chakanas")%>%filter(Date>"2022-09-01"), 
-             aes(x=CO2_umol.L, y=CH4_umol.L), color='black',size=3)+
-  geom_point(data=df_4%>%filter(Site!="Gavilan")%>%filter(Site!="Chakanas"), 
-             aes(x=CO2_umol.L, y=CH4_umol.L, color=Site)) + 
-  geom_mark_ellipse(data=df_4%>%filter(Site!="Gavilan")%>%
-                      filter(Site!="Chakanas"),
-                    aes(x=CO2_umol.L, y=CH4_umol.L,color = Site), expand = unit(0.5,"mm"))+
-  scale_x_log10() + scale_y_log10()
-
-
-df_test <- df%>%filter(Site!="Gavilan")%>%filter(Site!="Chakanas")
-
-
-df_test <- df_test%>%drop_na(Sample.Name)
-df_test$Sample.Name <- as.numeric(df_test$Sample.Name)
-df_test <- df_test%>%drop_na(Sample.Name)
-
-
-df_dronedata <- df_4 %>%filter(Site=="Gavilan"|Site=="Chakanas")
-ggplot(df_dronedata,
-       aes(x=Site2,y=CH4_umol.L, color=Site)) + geom_point() +
-  geom_mark_ellipse(aes(color = Site), expand = unit(0.5,"mm")) +
-  scale_y_log10()
