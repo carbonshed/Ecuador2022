@@ -135,29 +135,31 @@ df_3$X.1 <- NULL
 df_3$X <- NULL
 
 #now bind in summary
-df_4 <- left_join(df_3,WL_summary_day, by=c("Date","Site"))
+#df_4 <- left_join(df_3,WL_summary_day, by=c("Date","Site"))
 #df_2 <- left_join(df_2,WL_summary_summer, by=c("Site"))
 #df_2 <- left_join(df_2,WL_summary_fall, by=c("Site"))
-df_4 <- left_join(df_4,WL_summary_yearly, by=c("Site"))
+#df_4 <- left_join(df_4,WL_summary_yearly, by=c("Site"))
 
 
 #add air press and air temp data and then correct both for elevation
-df_4$Baro_kpa_yearly <- WL_Air_yearly$Baro_kpa_yearly
-df_4$BaroTemp_c_yearly <- WL_Air_yearly$BaroTemp_c_yearly
-df_4 <- left_join(df_4,WL_Air_day, by=c("Date"))
+#df_4$Baro_kpa_yearly <- WL_Air_yearly$Baro_kpa_yearly
+#df_4$BaroTemp_c_yearly <- WL_Air_yearly$BaroTemp_c_yearly
+#df_4 <- left_join(df_4,WL_Air_day, by=c("Date"))
 
 #correct baro and temp for elevation below
 #air temperature to decrease by 6.5° C for every 1000 meters you gain. 
 #baro station is at elevation = 4158.6912 (found on google earth pro)
-BaroStation <- 4158.6912
-slope_temp <- -6.5/1000
-df_4$BaroTemp_c_yearly_eleAdjust <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c_yearly 
-df_4$BaroTemp_c_day_eleAdjust <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c_day 
-df_4$BaroTemp_c_eleAdjust <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c
+#BaroStation <- 4158.6912
+#slope_temp <- -6.5/1000
+#df_4$BaroTemp_c_yearly_eleAdjust <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c_yearly 
+#df_4$BaroTemp_c_day_eleAdjust <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c_day 
+#df_4$BaroTemp_c_eleAdjust <- slope_temp*(df_4$Elevation_m - BaroStation) + df_4$BaroTemp_c
 
 #pressure decreases by about 1.2 kPa (12 hPa) for every 100 m 
-slope_pressure <- -1.2/100
-df_4$Baro_kpa_yearly <- slope_pressure*(df_4$Elevation_m - BaroStation) + df_4$Baro_kpa_yearly 
+#slope_pressure <- -1.2/100
+#df_4$Baro_kpa_yearly <- slope_pressure*(df_4$Elevation_m - BaroStation) + df_4$Baro_kpa_yearly 
+
+df_4 <- df_3
 
 rm( WL_summary_fall, WL_summary_summer,WL_summary_yearly, WL_Air_day,WL_Air_yearly)
 
@@ -266,5 +268,14 @@ df_5 <- left_join(df_5,watertemp_weekAve,by=c("Site","Date"))
 
 
 df_5 <- unique(df_5)
+df_5$X.1 <- NULL
+df_5$X <- NULL
+
+#merge in the watershed data (think of better names for columns first plz, or not. lol)
+
+WS_df <- read.csv(here::here("Wetlands/WS_all_SummarizeWithin_TableToExcel.csv"))
+
+df_6 <- full_join(df_5,WS_df,by="Site")
+
 #write out
-#write.csv(df_5, here::here("Wetlands/Wetland_df_MERGE_2024-03-27.csv"))
+#write.csv(df_6, here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))

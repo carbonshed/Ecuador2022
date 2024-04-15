@@ -110,7 +110,9 @@ with this notation we assume an intercept that’s different for each subject”
 ```{r load data}
 #read in data
 #df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-04.csv"))[c(17,2,6,14:16,18:45,52:59)]
-df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-03-27.csv"))#[c(17,2,7,14:16,18:45,52:59)]
+#df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-03-27.csv"))#[c(17,2,7,14:16,18:45,52:59)]
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))
+
 df$num <- 1:44
 df_saved <- df
 ```
@@ -204,6 +206,18 @@ ggplot(df, aes(precip_mm_ave2, num)) + geom_point()
 boxplot(df$solarrad_Wm2_daymean) 
 hist(df$solarrad_Wm2_daymean)
 ggplot(df, aes(solarrad_Wm2_daymean, num)) + geom_point()
+
+boxplot(log(df$WS_area_minus_pond))
+hist(log(df$WS_area_minus_pond))
+ggplot(df, aes(log(WS_area_minus_pond), num)) + geom_point()
+
+boxplot(log(df$percentpond))
+hist(log(df$percentpond))
+ggplot(df, aes(log(percentpond), num)) + geom_point()
+
+boxplot(df$percent_DTW)
+hist(df$percent_DTW)
+ggplot(df, aes(percent_DTW, num)) + geom_point()
 ```
 
 #Finding from step 1.
@@ -215,7 +229,9 @@ ggplot(df, aes(solarrad_Wm2_daymean, num)) + geom_point()
   > Water_minus_air_Temp - one outlier (wetland05), but dotplot looks ok
   > SA_to_Vol_ratio transform maybe? idk it is messy (i think drop this explainer value)
   > surface_area_m2 - transform
-  > WS_size_minusSA - wetland14 WS is very big
+  > WS_size_minusSA - log this s
+  > percent pond - transform
+  > percent DTW - do not transform
 
   
 ##checking Assumptions
@@ -257,7 +273,9 @@ df_2 <- df [,c("Watertemp_c",
              # "waterTemp_c_day",
               "SA_to_Vol_ratio",
               "surface_area_m2",
-         #     "Watershed_m2",
+              "WS_area_minus_pond",
+             "percentpond",
+             "percent_DTW",
               "precip_mm_ave2"
          #,
          #     "solarrad_Wm2_daymean"
@@ -294,15 +312,17 @@ correlation_coefficiant <- res2$r
 
 
 M1 <- lmer(log(CH4_umol.L) ~ 
-                  scale(Watertemp_c)+ 
-                  scale(waterTemp_c_yearly) +
-                scale(Elevation_m) +
-                  scale(AirTemp_c) + 
-                  scale(log(SA_to_Vol_ratio)) + 
-                  scale(log(surface_area_m2)) +
-                #  scale(Watershed_m2) +
-                  scale(precip_mm_ave2) + 
-                  (1 |Site), data =df)
+             scale(Watertemp_c)+ 
+             scale(waterTemp_c_yearly) +
+             scale(Elevation_m) +
+             scale(AirTemp_c) + 
+             scale(log(SA_to_Vol_ratio)) + 
+             scale(log(surface_area_m2)) +
+             scale(log(WS_area_minus_pond)) +
+      #       scale(log(percentpond)) +
+             scale(percent_DTW) +
+             scale(precip_mm_ave2) + 
+             (1 |Site), data =df)
 
 vif(M1)
 
@@ -400,7 +420,7 @@ Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as
 #remove Wetland 12 for this analysis?
 df_1 <- df%>%filter(Site!="Wetland12")
 
-n = 7
+n = 8
 grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
 grid_df <- as.data.frame(grid$Var1)
 colnames(grid_df) <- "Var1"
@@ -410,15 +430,19 @@ grid_df$Var4 <- grid$Var4
 grid_df$Var5 <- grid$Var5
 grid_df$Var6 <- grid$Var6
 grid_df$Var7 <- grid$Var7
-#grid_df$Var8 <- grid$Var8
+grid_df$Var8 <- grid$Var8
 
 grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
 grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
-grid_df$Var3[which(grid_df$Var3 == 1)] <- "Elevation_m"
-grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(surface_area_m2)"
-grid_df$Var5[which(grid_df$Var5 == 1)] <- "AirTemp_c"
-grid_df$Var6[which(grid_df$Var6 == 1)] <- "precip_mm_ave2"
-grid_df$Var7[which(grid_df$Var7 == 1)] <- "log(SA_to_Vol_ratio)"
+grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
+grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(SA_to_Vol_ratio)"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "log(WS_area_minus_pond)"
+grid_df$Var6[which(grid_df$Var6 == 1)] <- "percent_DTW"
+grid_df$Var7[which(grid_df$Var7 == 1)] <- "precip_mm_ave2"
+grid_df$Var8[which(grid_df$Var8 == 1)] <- "Elevation_m"
+
+
+
 
 grid_df[grid_df == 0] <- NA
 
@@ -498,7 +522,6 @@ df_1 <- df#%>%filter(Site!="Wetland12")
 #without wetland 12 
 #(Intercept), (Intercept), scale(Watertemp_c), scale(Elevation_m), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio))
 
-
 #AIC
 M_AIC <- lmer(log(CH4_umol.L) ~ 
                   scale(Watertemp_c)+ 
@@ -510,18 +533,20 @@ summary(M_AIC)
 modelPerformance(M_AIC)
 
 #without wetland 12
-#	(Intercept), (Intercept), scale(Elevation_m), scale(log(SA_to_Vol_ratio))
+#(Intercept), scale(waterTemp_c_yearly), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio)), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
 
 M_BIC <- lmer(log(CH4_umol.L) ~ 
-                  scale(Elevation_m)+ 
-                #  scale(waterTemp_c_yearly) +
-               #   scale(Water_minus_air_Temp) +
-                #  scale(waterTemp_c_day) + 
-                  scale(log(SA_to_Vol_ratio)) + 
-               #   scale(log(surface_area_m2)) +
-                #  scale(Watershed_m2) +
-               #   scale(precip_mm_ave2) + 
-                #  scale(solarrad_Wm2_daymean) +
+                scale(Elevation_m)+ 
+                scale(waterTemp_c_yearly) +
+                #scale(Water_minus_air_Temp) +
+                #scale(waterTemp_c_day) + 
+                scale(log(SA_to_Vol_ratio)) + 
+                scale(log(surface_area_m2)) +
+                scale(log(WS_area_minus_pond)) +
+                scale(percent_DTW) +
+                #scale(Watershed_m2) +
+                #scale(precip_mm_ave2) + 
+                scale(solarrad_Wm2_daymean) +
                   (1 |Site), data =df_1,REML = FALSE)
 summary(M_BIC)
 modelPerformance(M_BIC)

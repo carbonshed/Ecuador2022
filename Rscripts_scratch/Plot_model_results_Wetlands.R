@@ -16,48 +16,38 @@ library(GGally)
 library(MCMCglmm)
 library(effects)
 
-df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-03-27.csv"))
-
-#scale(BaroTemp_c_day), scale(waterTemp_c_yearly), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio))
-M_AIC <- lmer(log(CH4_umol.L) ~ 
-                scale(BaroTemp_c_day) +
-#                scale(BaroTemp_c_yearly)+ 
-                  scale(waterTemp_c_yearly) +
-              #  scale(waterTemp_c_day) + 
-                scale(log(SA_to_Vol_ratio)) + 
-                scale(log(surface_area_m2)) +
-                #  scale(Watershed_m2) +
-              #  scale(precip_mm_ave2) + 
-                #  scale(solarrad_Wm2_daymean) +
-                (1 |Site), data =df%>%filter(Site!="Wetland_12"),REML = FALSE)
-summary(M_AIC)
-modelPerformance(M_AIC)
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))
 
 #without wetland 12
-#(Intercept), scale(BaroTemp_c_day), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio))
+#(Intercept), scale(waterTemp_c_yearly), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio)), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
 
-M_BIC <- lmer(log(CH4_umol.L) ~ 
-                # scale(BaroTemp_c_yearly)
-                 scale(BaroTemp_c_day)+ 
-              #    scale(waterTemp_c_yearly) +
-                #   scale(Water_minus_air_Temp) +
-                # scale(waterTemp_c_day) + 
+M_CH4_BIC <- lmer(log(CH4_umol.L) ~ 
+                scale(Elevation_m)+ 
+                scale(waterTemp_c_yearly) +
                 scale(log(SA_to_Vol_ratio)) + 
-                  scale(log(surface_area_m2)) +
-                #  scale(Watershed_m2) +
-                #   scale(precip_mm_ave2) + 
-                #  scale(solarrad_Wm2_daymean) +
-                (1 |Site), data =df %>%filter(Site!="Wetland_12"),REML = FALSE)
-summary(M_BIC)
-modelPerformance(M_BIC)
+                scale(log(surface_area_m2)) +
+                scale(log(WS_area_minus_pond)) +
+                scale(percent_DTW) +
+                (1 |Site), data =df%>%filter(Site!="Wetland_12"),REML = FALSE)
+summary(M_CH4_BIC)
+modelPerformance(M_CH4_BIC)
 
-df$CH4_sat
-ggplot(df,aes(x=BaroTemp_c_yearly,y=log(CH4_umol.L),color=Site)) + geom_point(size=3)
-ggplot(df,aes(x=BaroTemp_c_day,y=log(CH4_umol.L),color=Site),size=3) + geom_point(size=3)
+lm_CH4 <- lm(log(CH4_umol.L) ~ 
+                scale(Elevation_m)+ 
+                scale(waterTemp_c_yearly) +
+                scale(log(SA_to_Vol_ratio)) + 
+#                scale(log(surface_area_m2)) +
+                scale(log(WS_area_minus_pond)) +
+                scale(percent_DTW),
+             data =df%>%filter(Site!="Wetland_12"))
+summary(lm_CH4)
 
-ggplot(df,aes(x=waterTemp_c_yearly,y=log(CH4_umol.L),color=Site)) + geom_point(size=3)
+ggplot(df,aes(x=Elevation_m,y=log(CH4_umol.L),color=Site)) + geom_point(size=3)
+ggplot(df,aes(x=waterTemp_c_yearly,y=log(CH4_umol.L),color=Site),size=3) + geom_point(size=3)
 ggplot(df,aes(x=log(SA_to_Vol_ratio),y=log(CH4_umol.L),color=Site)) + geom_point(size=3)
 ggplot(df,aes(x=log(surface_area_m2),y=log(CH4_umol.L),color=Site)) + geom_point(size=3)
+ggplot(df,aes(x=log(WS_area_minus_pond),y=log(CH4_umol.L),color=Site)) + geom_point(size=3)
+ggplot(df,aes(x=percent_DTW,y=log(CH4_umol.L),color=Site),size=3) + geom_point(size=3)
 
 #######
 ##CO2##
@@ -66,24 +56,29 @@ ggplot(df,aes(x=log(surface_area_m2),y=log(CH4_umol.L),color=Site)) + geom_point
 #without wetland 12
 
 
-#AIC: (Intercept), scale(BaroTemp_c_day), scale(log(surface_area_m2)), scale(precip_mm_ave2), scale(log(SA_to_Vol_ratio))
+#(Intercept), scale(Watertemp_c), scale(waterTemp_c_yearly), scale(Elevation_m), scale(log(surface_area_m2)), scale(log(WS_area_minus_pond)), scale(percent_DTW)
 
-M_AIC_2 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_day)+ 
+M_CO2_BIC <- lmer(log(CO2_umol.L) ~ 
+                  scale(Watertemp_c) + 
+                  scale(waterTemp_c_yearly) +
+                  scale(Elevation_m) +
                   scale(log(surface_area_m2)) +
-                  scale(precip_mm_ave2) +
-                  scale(log(SA_to_Vol_ratio)) +
-                  (1 |Site), data =df%>%filter(Site!="Wetland_12"),REML = FALSE)
-summary(M_AIC_2)
-modelPerformance(M_AIC_2)
-
-#BIC: (Intercept), scale(BaroTemp_c_day), scale(precip_mm_ave2)
-M_BIC_2 <- lmer(log(CO2_umol.L) ~ 
-                  scale(BaroTemp_c_day)+ 
-                  scale(precip_mm_ave2) +
-                  (1 |Site), data =df%>%filter(Site!="Wetland_12"),REML = FALSE)
+                  scale(log(WS_area_minus_pond)) +
+                  scale(percent_DTW) +
+                  (1 |Site), data =df_1,REML = FALSE)
 summary(M_BIC_2)
 modelPerformance(M_BIC_2)
+
+
+lm_CO2 <- lm(log(CO2_umol.L) ~ 
+             scale(Watertemp_c) + 
+             scale(waterTemp_c_yearly) +
+             scale(Elevation_m) +
+             scale(log(surface_area_m2)) +
+             scale(log(WS_area_minus_pond)) +
+             scale(percent_DTW),
+           data =df_1)
+summary(lm_CO2)
 
 ggplot(df,aes(x=BaroTemp_c_yearly,y=log(CO2_umol.L),color=Site)) + geom_point(size=3)
 ggplot(df,aes(x=precip_mm_ave2,y=log(CO2_umol.L),color=Site)) + geom_point(size=3)
