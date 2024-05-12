@@ -162,6 +162,8 @@ WL_Wetland02 <- WL_Wetland02%>%filter(DateTime != as.POSIXct("2023-06-20 11:45:0
                                        DateTime != as.POSIXct("2023-06-20 12:00:00",tz = "UTC"))
 
  #string broke, bad data for water level. We do need water level for wetland 02 so that we can pair with ave depths measurments collected in July 2023. lets do the correction so that we at least have an thos estimates, and then we will delete the data. I had hoped we could save all the data, but it just looks so weird. I don't know whats going on. maybe some could be saved if I understood?
+
+#I've decided to keep the bad data, so that I can make the year round estimates. I dont' want to plot it, and I will need to make a note in methods, but its the best I can do
 wl02_sub_1 <- WL_Wetland02%>%filter(DateTime <  as.POSIXct("2023-03-20 14:30:00",tz = "UTC"))
 wl02_sub_2 <- WL_Wetland02%>%filter(DateTime >  as.POSIXct("2023-03-20 14:30:00",tz = "UTC"))
 wl02_sub_2$WLPres_kpa <- wl02_sub_2$WLPres_kpa + (68.612 - 66.423)
@@ -171,7 +173,7 @@ WL_Wetland02_1 <- rbind(wl02_sub_1,wl02_sub_2)
 WL_atDepthMeasurment_kpa <- WL_Wetland02_1$WLPres_kpa[WL_Wetland02_1$DateTime ==  as.POSIXct("2023-06-20 09:00:00",tz = "UTC")] 
 
   #lets keep temp, but delete the bad water level
-WL_Wetland02$WLPres_kpa[WL_Wetland02$DateTime >  as.POSIXct("2023-03-20 14:15:00",tz = "UTC")] <- NA
+#WL_Wetland02$WLPres_kpa[WL_Wetland02$DateTime >  as.POSIXct("2023-03-20 14:15:00",tz = "UTC")] <- NA
 
 
 #wetland03

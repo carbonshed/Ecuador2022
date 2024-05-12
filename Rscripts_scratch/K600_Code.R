@@ -154,7 +154,7 @@ df$air_pressure_atm <- df$Total_hPa * 0.0009869233
 df$VaporPressure_atm <- 10^(5.40221-(1838.675/((df$AirTemp_c + 273.15)-31.737)))
 
 df$TotalAir_atm <- synoptic.df$air_pressure_atm - df$VaporPressure_atm
-df$Total_air_MolperL <- df$TotalAir_atm/(R*(df$AirTemp_c + 273.15)) 
+df$Total_air_MolperL <- df$TotalAir_atm/(R*(df$AirTemp_c + 273.15)) #PV=nRT; n/V=P/RT
 df$CO2_air_MolesPerLiter <- df$Total_air_MolperL * CO2_air_ppm
 # 12 grams of C in 1 mole of CO2
 df$CO2_air_gCO2asCPerLiter <- df$CO2_air_MolesPerLiter * gCO2asC
@@ -185,7 +185,7 @@ UatmToatm <- 10^6
 #calculate mass equivalence of CO2 in water
 df$CO2_water_gCO2asCPerLiter <- (df$adjusted_ppm / UatmToatm) * synoptic.df$KH_mol.L.atm * gCO2asC
 
-#calculate concntration difference between CO2 in the water and in the air
+#calculate concentration difference between CO2 in the water and in the air
 #for some reason, unclear to me, Mcdowell multiplies by henry's constant AGAIN. Let's try it
 LiterToCubicMeter = 1000
 
@@ -228,7 +228,9 @@ df$k_m.d <- df$Flux_gCO2asCperM2perDay  / df$deltaCO2_gCO2asCperM3
 #SC= schmidst constant, temperature dependent
 #SC = 1911.1 - 118.11*T + 3.4527*T^2 - 0.04132*T^3
 #T = temperature in c
-df$Sc <- 1911.1 - 118.11*df$WaterTemp_c + 3.4527*(df$WaterTemp_c)^2 - 0.04132*(synoptic.df$WaterTemp_c)^3
+
+#Wanninkhop 2014 update: Relationshipbetweenwindspeedandgasexchangeovertheoceanrevisited
+df$Sc <- 1923.6 - 125.06*df$WaterTemp_c + 4.3773*(df$WaterTemp_c)^2 - 0.085681*(synoptic.df$WaterTemp_c)^3 + 0.00070284*(df$WaterTemp_c)^4
 
 df$K600.effective <- df$k_m.d * (600/df$Sc)^(-0.5)
 

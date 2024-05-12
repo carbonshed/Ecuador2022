@@ -1,0 +1,49 @@
+---
+title: "Pond Paper Figures"
+author: "Kriddie"
+date: "2024-04-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(here)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+```
+
+## Variance within wetlands
+
+First we do ananlysis to see if there is a significant difference between the edges and middle of pond
+
+
+
+
+```{r analysis 1}
+#this script takes the methane data and summarizes it 
+#now this is included in Merge_WetlandDATA.R
+
+CH4_df <- read.csv(here::here("Methane/Methane_df_2023-07-20.csv"))%>%
+  select("Site","Date_collected","CH4_umol_L.1","CH4_.sat","CH4_Gcoutput")%>%
+  filter(Site!="Colmillo")%>%filter(Site!="Gavi-main")%>%filter(Site!="Gavi-trib") %>% 
+  rename(Wetland = Site, Date = Date_collected)
+CH4_df$Date <- as.Date.character(CH4_df$Date,format="%m/%d/%y")
+
+
+#fall samples
+CH4_fall_df <- read.csv(df,here::here("Kriddie/methanesample_fall2022.csv"))
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

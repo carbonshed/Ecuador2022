@@ -48,3 +48,4 @@ g <- rbind(ggplotGrob(pp2), ggplotGrob(pp3), size = "last")
 #ggarrange(pp1, leg, g, ncol=3,widths = c(2,.5,2))
 ggarrange(pp1, g, nrow=1, widths = c(2,2)
           )
+

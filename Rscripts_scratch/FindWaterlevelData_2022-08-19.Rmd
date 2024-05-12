@@ -148,8 +148,8 @@ WL_Wetland02 <- WL_Wetland02%>%filter(DateTime < as.POSIXct("2023-02-20 05:15:00
 WL_Wetland02 <- WL_Wetland02%>%filter(DateTime != as.POSIXct("2023-06-20 11:45:00",tz = "UTC")&
                                        DateTime != as.POSIXct("2023-06-20 12:00:00",tz = "UTC"))
 
-  #string broke, bad data for water level. but lets keep temp
-WL_Wetland02$WLPres_kpa[WL_Wetland02$DateTime >  as.POSIXct("2023-03-20 11:30:00",tz = "UTC")] <- NA
+  #string broke, bad data for water level. let's leave it for now
+#WL_Wetland02$WLPres_kpa[WL_Wetland02$DateTime >  as.POSIXct("2023-03-20 11:30:00",tz = "UTC")] <- NA
 
 
 
@@ -382,6 +382,8 @@ WL_Wetland <- left_join(BaroSTATION,WL_Wetland,by="DateTime")
 WL_Wetland$WaterLevel_m <- (WL_Wetland$WLPres_kpa - WL_Wetland$Baro_kpa) * 0.10197442889221
 
 
+##we must deal with wetland02 bad data subtract
+
 
 p_baro <- ggplot(data = BaroSTATION , aes(x = DateTime, y = Baro_kpa)) + geom_point()
 p_baro
@@ -389,9 +391,19 @@ p_baro
 p1 <- ggplot(data = WL_Wetland, aes(x = DateTime, y = WaterLevel_m)) + geom_point()
 p1 + facet_wrap(~Station)
 
-#export data (dani)
-#write.csv(WL_Wetland, "../daniela/WL_data.csv")
-#write.csv(WL_Wetland, here::here("Kriddie/WL_data.csv"))
+p2 <-ggplot(data = WL_Wetland%>%filter(Station=="WL_Wetland02"), aes(x = DateTime, y = WaterLevel_m)) + geom_point()
+
+#WL_Wetland$test <- WL_Wetland$WaterLevel_m
+WL_Wetland$WaterLevel_m <- WL_Wetland$test
+
+
+for(i in 1:nrow(WL_Wetland)){
+  if(WL_Wetland$Station[i]=="WL_Wetland02" & WL_Wetland$DateTime[i] > as.POSIXct("2023-03-20 14:45:00",tz="UTC")){WL_Wetland$WaterLevel_m[i] <- WL_Wetland$WaterLevel_m[i] + (.638982 - .3856775)}
+  else {(WL_Wetland$WaterLevel_m[i]==WL_Wetland$WaterLevel_m[i]) }
+}
+
+plot_ly(data = WL_Wetland%>%filter(Station=="WL_Wetland02"), x = ~DateTime, y = ~WaterLevel_m)
+
 
 ```
 

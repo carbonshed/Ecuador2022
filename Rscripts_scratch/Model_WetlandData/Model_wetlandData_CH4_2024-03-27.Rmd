@@ -420,7 +420,7 @@ Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as
 #remove Wetland 12 for this analysis?
 df_1 <- df%>%filter(Site!="Wetland12")
 
-n = 8
+n = 7
 grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
 grid_df <- as.data.frame(grid$Var1)
 colnames(grid_df) <- "Var1"
@@ -434,13 +434,12 @@ grid_df$Var8 <- grid$Var8
 
 grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
 grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
-grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
-grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(SA_to_Vol_ratio)"
-grid_df$Var5[which(grid_df$Var5 == 1)] <- "log(WS_area_minus_pond)"
-grid_df$Var6[which(grid_df$Var6 == 1)] <- "percent_DTW"
-grid_df$Var7[which(grid_df$Var7 == 1)] <- "precip_mm_ave2"
-grid_df$Var8[which(grid_df$Var8 == 1)] <- "Elevation_m"
-
+grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(SA_to_Vol_ratio)"
+grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(WS_area_minus_pond)"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "percent_DTW"
+grid_df$Var6[which(grid_df$Var6 == 1)] <- "precip_mm_ave2"
+#grid_df$Var7[which(grid_df$Var7 == 1)] <- "Elevation_m"
+grid_df$Var7[which(grid_df$Var7 == 1)] <- "log(surface_area_m2)"
 
 
 

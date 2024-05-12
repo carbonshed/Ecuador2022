@@ -417,7 +417,7 @@ Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as
 #df_1 <-df
 df_1 <-df_saved%>%filter(Site!="Wetland12")
 
-n = 7
+n = 8
 grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
 grid_df <- as.data.frame(grid$Var1)
 colnames(grid_df) <- "Var1"
@@ -437,7 +437,7 @@ grid_df$Var5[which(grid_df$Var5 == 1)] <- "percent_DTW"
 grid_df$Var6[which(grid_df$Var6 == 1)] <- "precip_mm_ave2"
 
 grid_df$Var7[which(grid_df$Var7 == 1)] <- "Elevation_m"
-#grid_df$Var8[which(grid_df$Var8 == 1)] <- "log(surface_area_m2)"
+grid_df$Var8[which(grid_df$Var8 == 1)] <- "log(surface_area_m2)"
 
 
 grid_df[grid_df == 0] <- NA
@@ -498,6 +498,13 @@ for (row in 2:nrow(grid_df)){
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
        
       }  else if(length(f_2)==8) { 
+    model <- lmer(
+      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + scale(",f_2[8],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+       
+      } else if(length(f_2)==9) { 
     model <- lmer(
       as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + scale(",f_2[8],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
