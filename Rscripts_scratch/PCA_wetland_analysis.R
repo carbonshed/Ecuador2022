@@ -19,12 +19,17 @@ library(vegan)
 library(clustsig)
 library(here)
 
-#Set working directory (You'll need to change this based on your computer)
-#setwd("/Volumes/SCHULTE/R_Ordination_Nate")
-
 #Download Data and defining df and omitting zeros
-df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-03-27.csv"))
-df<-na.omit(df)
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))
+df$New.Name <- df$Site
+
+#,ake column with new name to reflect elevation. S stands for "site"
+df <- df%>%
+  mutate(New.Name = recode(New.Name, 'Wetland01'= 'S1', 'Wetland02' = 'S2','Wetland03' = 'S3',
+                           'Wetland04' = 'S4','Wetland05' = 'S8','Wetland06' = 'S5', 
+                           'Wetland07' = 'S7','Wetland08' = 'S12','Wetland09' = 'S10',
+                           'Wetland10' = 'S11', 'Wetland11' = 'S6','Wetland12' = 'S9',))
+
 
 ##################################################################################
 #Ordination Analysis--------------------------------------------------------------

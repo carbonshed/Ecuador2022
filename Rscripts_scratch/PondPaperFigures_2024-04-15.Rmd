@@ -12,38 +12,274 @@ library(here)
 library(lubridate)
 library(dplyr)
 library(ggplot2)
+library(reshape2)
+library("ggpubr")
+library(rstatix)
+library(devtools)
+library(PMCMRplus)
+
 ```
 
 ## Variance within wetlands
 
-First we do ananlysis to see if there is a significant difference between the edges and middle of pond
+First - how do I report the variance found in ponds? we have reps and we have 3 sample location (and then 2 sample locations)
 
+do i use standard error? how do I report standard error? 
 
+below I have some code as a starting point
 
 
 ```{r analysis 1}
 #this script takes the methane data and summarizes it 
 #now this is included in Merge_WetlandDATA.R
 
-CH4_df <- read.csv(here::here("Methane/Methane_df_2023-07-20.csv"))%>%
-  select("Site","Date_collected","CH4_umol_L.1","CH4_.sat","CH4_Gcoutput")%>%
+CH4_summer_df <- read.csv(here::here("Methane/Methane_df_2023-07-20.csv"))%>%
+  select("Site","Location","Date_collected","CH4_umol_L.1","CH4_.sat")%>%
   filter(Site!="Colmillo")%>%filter(Site!="Gavi-main")%>%filter(Site!="Gavi-trib") %>% 
-  rename(Wetland = Site, Date = Date_collected)
-CH4_df$Date <- as.Date.character(CH4_df$Date,format="%m/%d/%y")
+  rename(Date = Date_collected, CH4_umol.L = CH4_umol_L.1, CH4_sat = CH4_.sat)
+CH4_summer_df$Date <- as.Date.character(CH4_summer_df$Date,format="%m/%d/%y")
 
 
 #fall samples
-CH4_fall_df <- read.csv(df,here::here("Kriddie/methanesample_fall2022.csv"))
+CH4_fall_df <- read.csv(here::here("Methane/Methane_fall2022_update.csv"))%>%
+  select("Site","Location","Date_collected","CH4_umol.L","CH4_sat")%>%
+  rename(Date = Date_collected)%>%
+  filter(Site!="Chakanas")%>%filter(Site!="Gavilan")
+CH4_fall_df$Date <- as.Date.character(CH4_fall_df$Date,format="%m/%d/%y")
+
+#for the fall we did not have the same sampling strategy of site #2 being in the middle (I think), but we did do reps. so lets see what the variance is in reps to see if its the same
+
+CH4_df <- rbind(CH4_summer_df,CH4_fall_df)
+
+CH4_reps <- CH4_df%>%group_by(Site,Location,Date)%>%
+summarize(
+  min = min(CH4_umol.L), max = max(CH4_umol.L),
+  mean = mean(CH4_umol.L),
+  sd = sd(CH4_umol.L),
+  n = n())%>%
+  filter(n>1)
+CH4_reps$se <-  CH4_reps$sd / sqrt(2)
+CH4_reps$type <- "reps"
+
+CH4_se <- CH4_df%>%group_by(Site,Date)%>%
+summarize(
+  min = min(CH4_umol.L), max = max(CH4_umol.L),
+  mean = mean(CH4_umol.L),
+  sd = sd(CH4_umol.L),
+  n = n())
+CH4_se$se <-  CH4_se$sd / sqrt(2)
+CH4_se$type <- "allsamples"
+
+
+CH4_summary <- rbind(CH4_reps,CH4_se)
+
+CH4_summary$dif_prec <- (CH4_summary$max-CH4_summary$min)/CH4_summary$mean * 100
+
+
+ggplot(CH4_summary, aes(x=Site, y=log(se),color=type)) + 
+  geom_boxplot()
+
+##now look at differences between wetland positon (this can only be done for spring samples)
+
+ggplot(CH4_summer_df,aes(x=as.factor(Location),y=log(CH4_umol.L))) + geom_point()
+ggplot(CH4_fall_df,aes(x=as.factor(Location),y=log(CH4_umol.L))) + geom_point()
 
 
 ```
 
-## Including Plots
+## Variance between sites
 
-You can also embed plots, for example:
+1. are locations at the edge of pond significantly different from locations in the middle?
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+> findings:
+  1. 9 waterbodies fit parametric model assumptions, so we ran 1-way anova
+  2. Site 2, 7, 11 do not, so we ran kusker-Wallis
+  3. effect of location was insignificnat EXCEPT for W07
+  
+We will report mean and standard deviation for each wetland by day 
+for wetland 7, we report both center and edge
+
+```{r location variance, echo=FALSE}
+
+CH4_df2 <- CH4_df
+CH4_df2$Location[CH4_df2$Location == 3] <- 1
+CH4_df3 <- CH4_df2%>%filter(Location == 1 | Location == 2)
+CH4_df2 <- CH4_df3%>%filter(Date< "2022-10-01")
+
+#now run stats
+#not normal: wetland 2 & 7 & 11 
+#all other wetland meet assumptions and also location is not significant
+
+result <- aov(log1p(CH4_umol.L) ~ Location , data = CH4_df2%>%filter(Site=="Wetland_12"))
+summary(result)
+
+# Check normality of residuals
+res <- residuals(result)
+qqnorm(res) 
+qqline(res)
+shapiro.test(res) #normality
+bartlett.test(log1p(CH4_umol.L)  ~ Location, data = CH4_df2%>%filter(Site=="Wetland_12"))  #monovariance
+
+#run kuskerwallis on other wetland 2 & 7 & 11 
+kruskal.test(log1p(CH4_umol.L) ~ Location , data = CH4_df2%>%filter(Site=="Wetland_07"))
+
+#wetland 07 failed the test
+W_07 <- CH4_df2%>%filter(Date<"2022-10-01")%>%filter(Site=="Wetland_07")%>%group_by(Location)%>%summarise(
+  mean=mean(CH4_umol.L),
+  median = median(CH4_umol.L)
+)
+
+ggplot(CH4_df%>%filter(Date<"2022-10-01")%>%filter(Site=="Wetland_07"),aes(x=as.factor(Location),y=log(CH4_umol.L),color=Site)) + geom_point() + facet_grid(~Site)
+
+ggplot(CH4_df2%>%filter(Date>"2022-10-01"),aes(x=as.factor(Location),y=log(CH4_umol.L),color=Site)) + geom_point() + facet_grid(~Site)
+
+ggplot(CH4_df2#%>%filter(Date<"2022-10-01")
+         ,aes(x=as.factor(Location),y=log(CH4_umol.L),color=Site)) + geom_point() + facet_grid(~Site)
+
+
+CH4_summary <- CH4_df%>%group_by(Site,Date)%>%
+summarize(
+  mean = mean(CH4_umol.L),
+  sd = sd(CH4_umol.L),
+  n = n())
+
+CH4_summary_W07 <- CH4_df3%>%filter(Site=="Wetland_07")%>%group_by(Site,Date,Location)%>%
+summarize(
+  mean = mean(CH4_umol.L),
+  sd = sd(CH4_umol.L),
+  n = n())
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+#variance between sites
+now we test for variance between sites
+
+```{r site variance, echo=FALSE}
+
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))
+df$New.Name <- df$Site
+
+#,ake column with new name to reflect elevation. S stands for "site"
+df <- df%>%
+  mutate(New.Name = recode(New.Name, 
+                      'Wetland01'= 'S1', 
+                      'Wetland02' = 'S2',
+                      'Wetland03' = 'S3',
+                      'Wetland04' = 'S4',
+                      'Wetland05' = 'S8',
+                      'Wetland06' = 'S5',
+                      'Wetland07' = 'S7',
+                      'Wetland08' = 'S12',
+                      'Wetland09' = 'S10',
+                      'Wetland10' = 'S11',
+                      'Wetland11' = 'S6',
+                      'Wetland12' = 'S9',))
+
+options(scipen = 100)
+#methane
+CH4_model <- aov(log1p(CH4_umol.L) ~ New.Name , data = df)
+summary(CH4_model)
+
+# Check normality of residuals
+res <- residuals(CH4_model)
+qqnorm(res) 
+qqline(res)
+shapiro.test(res) #normality
+bartlett.test(log(CH4_umol.L)  ~ Site, data = df) 
+
+#non-parametric
+kruskal.test(log1p(CH4_umol.L) ~ Site , data = df)
+#this on is good
+conver_results_CH4<- kwAllPairsConoverTest(log1p(CH4_umol.L) ~ as.factor(New.Name), data = df, p.adjust="bonferroni")
+conver_results_CH4 <- conver_results_CH4$p.value
+conver_results_CH4[conver_results_CH4>.05]<-NA
+
+
+##co2
+
+CO2_model <- aov(log1p(CO2_umol.L) ~ New.Name , data = df)
+summary(CO2_model)
+# Check assumptions
+res <- residuals(CO2_model)
+qqnorm(res) 
+qqline(res)
+shapiro.test(res) #normality
+bartlett.test(log1p(CO2_umol.L)  ~ Site, data = df) 
+
+conver_results_CO2<- kwAllPairsConoverTest(log(CO2_umol.L) ~ as.factor(Site), data = df, p.adjust="bonferroni")
+conver_results_CO2 <- conver_results_CO2$p.value
+
+#co2 passes assumptions, but CH4 does not
+tuk <- TukeyHSD(CO2_model)
+tuk_df <- data.frame(tuk$New.Name)
+tuk_df <- tuk_df%>%filter(p.adj<.05)
+
+co2_sum <- df%>%group_by(New.Name)%>%summarise(
+  mean_cO2 =mean(CO2_umol.L),
+  mean_size = mean(surface_area_m2)
+)
+
+ggplot(df,aes(x=reorder(New.Name,surface_area_m2,median),y=log(CH4_umol.L),color=Site)) + geom_point(size=3) 
+
+ggplot(df,aes(x=as.factor(Site),y=log(CH4_umol.L),color=Site)) + geom_point(size=3) 
+ggplot(df,aes(x=as.factor(Site),y=log(CO2_umol.L),color=Site)) + geom_point(size=3) 
+
+elev_df <- df%>%select(Site,Elevation_m)
+
+
+#now you can do the figure
+p.ch4 <- ggplot(df,aes(x=reorder(New.Name,surface_area_m2,median),y=CH4_umol.L)) +
+   geom_point(size=2) +
+  stat_summary(geom = "point", fun = "mean", col = "black", size = 3, shape = 24, fill = "red") +
+  scale_y_log10() +
+   ylab(expression(CH[4] ~'('~mu*'mol' ~ l^-1~')')) + xlab("") +
+  theme_bw(base_size = 16) +
+  theme(axis.text.x=element_blank()) +
+  annotate("text", x = "S10", y = 20, label = "A") +
+  annotate("text", x = "S6", y = 20, label = "BCEFG") +
+  annotate("text", x = "S11", y = 20, label = "A") +
+  annotate("text", x = "S12", y = 20, label = "AC") +
+  annotate("text", x = "S5", y = 20, label = "BCEFG") +
+  annotate("text", x = "S4", y = 20, label = "AF") +
+  annotate("text", x = "S7", y = 20, label = "DG") +
+  annotate("text", x = "S8", y = 20, label = "AB") +
+  annotate("text", x = "S3", y = 20, label = "DE") +
+  annotate("text", x = "S2", y = 20, label = "D") +
+  annotate("text", x = "S9", y = 20, label = "BCDFG") +
+  annotate("text", x = "S1", y = 20, label = "D") 
+
+
+
+p.co2 <- ggplot(df,aes(x=reorder(New.Name,surface_area_m2,median),y=CO2_umol.L)) +
+   geom_point(size=2) +
+  stat_summary(geom = "point", fun = "mean", col = "black", size = 3, shape = 24, fill = "red") +
+  scale_y_log10() +
+  ylab(expression(CO[2] ~'('~mu*'mol' ~ l^-1~')')) + xlab("Site") +
+theme_bw(base_size = 16) +
+  annotate("text", x = "S1", y = 900, label = "BE") +
+  annotate("text", x = "S10", y = 900, label = "ACD") +
+  annotate("text", x = "S11", y = 900, label = "C") +
+  annotate("text", x = "S12", y = 900, label = "D") +
+  annotate("text", x = "S2", y = 900, label = "E") +
+  annotate("text", x = "S3", y = 900, label = "BE") +
+  annotate("text", x = "S4", y = 900, label = "B") +
+  annotate("text", x = "S5", y = 900, label = "BE") +
+  annotate("text", x = "S6", y = 900, label = "BE") +
+  annotate("text", x = "S7", y = 900, label = "BE") +
+  annotate("text", x = "S8", y = 900, label = "BE") +
+  annotate("text", x = "S9", y = 900, label = "AC") 
+
+p.all <- ggarrange(p.ch4, p.co2, labels = c("A", "B"),ncol = 1, nrow = 2)
+
+```
+
+# PCA
+in the next chunk I run a PCA. Sure how this will be fun.
+
+```{r PCA, echo=FALSE}
+
+
+
+
+```
+

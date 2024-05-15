@@ -1,63 +1,63 @@
-notes2,notes,Bottle_no1,Site,Location,Rep,Date_collected,Watertemp_Field_c,AirPress_Field_kpa,CH4_umol.L,CH4_sat
-,overpressure,188,Gavilan,waypy04,,11/29/22,7.287,62.2511,0.0000,0.0000
-,overpressure,200,Gavilan,waypy04,,11/29/22,7.287,62.2511,0.0000,0.0000
-,evak 13ml,260,Wetland_07,2,,10/15/22,7.848667,62.4949,0.0000,0.0000
-,overpressure,179,Wetland_07,2,,10/15/22,7.848667,62.5118,0.0000,0.0000
-,evak 13ml,148,Wetland_07,1,,10/15/22,7.848667,62.5118,0.0089,381.5679
-,evak 13ml,186,Wetland_07,1,,10/15/22,7.848667,62.5118,0.0146,630.3261
-,evak 13ml,241,Wetland_11,1,,10/15/22,7.582,62.4702,0.0716,3069.8402
-,evak 13ml,243,Wetland_11,1,,10/15/22,7.582,62.455,0.0732,3135.7829
-,evak 13ml,143,Wetland_11,2,,10/15/22,7.582,62.455,0.0743,3182.9268
+notes2,notes,Bottle No,Site,Location,Rep,Date_collected,Watertemp_Field_c,AirPress_Field_kpa,CH4_umol.L,CH4_sat
+,evak 13ml,185,Chakanas,Resotered outlet,,11/28/22,7.66,62.4074,0.294,12632.3125
+,evak 13ml,187,Chakanas,Resotered outlet,,11/28/22,7.66,62.4074,0.3164,13595.4039
 ,evak 13ml,217,Chakanas, Not restored outle,,11/28/22,7.632,62.3595,0.0868,3728.3222
 ,evak 13ml,292,Chakanas, Not restored outle,,11/28/22,7.632,62.3595,0.0884,3800.1171
-,evak 13ml,237,Wetland_12,1,,10/16/22,7.589333,62.4354,0.1730,7420.8834
-,overpressure,274,Gavilan,waypt14,,11/30/22,7.507,62.3582,0.1789,7668.8159
 ,overpressure,149,Gavilan,waypt14,,11/30/22,7.507,62.3582,0.1893,8116.4834
-,evak 13ml,184,Wetland_12,1,,10/16/22,7.589333,62.4405,0.2093,8977.6023
-"this might be wetland 06, but it's different from all the other sample. Will erase for now. Revisit if yoy want, but I don't know if its worth it. Changed the bottle number on this sheet for this row, it was labeled as 210 (please see methane worksheet)",evak 13ml,,Wetland_06,NA,,10/15/22,7.949167,62.5518,0.2160,9312.0740
-,overpressure,266,Gavilan,Waypt03,,11/29/22,7.309,62.3038,0.2214,9459.7750
-,evak 13ml,290,Wetland_12,2,,10/16/22,7.589333,62.4221,0.2640,11324.9446
-,evak 13ml,185,Chakanas,Resotered outlet,,11/28/22,7.66,62.4074,0.2940,12632.3125
-,overpressure,183,Gavilan,waypt10,,11/29/22,7.348,62.3777,0.2985,12751.5812
-,overpressure,212,Wetland_12,2,,10/16/22,7.589333,62.4405,0.3015,12928.6844
-,overpressure,230,Gavilan,waypt10,,11/29/22,7.348,62.3777,0.3024,12919.1698
-,evak 13ml,187,Chakanas,Resotered outlet,,11/28/22,7.66,62.4074,0.3164,13595.4039
-,evak 13ml,150,Wetland_04,2,,10/16/22,8.248667,62.5337,0.3436,14909.5710
-,overpressure,175,Gavilan,Waypt03,,11/29/22,7.309,62.3038,0.3492,14924.0301
-,evak 13ml,147,Wetland_04,2,,10/16/22,8.248667,62.5337,0.3727,16171.8469
-,evak 13ml,167,Wetland_11,2,,10/15/22,7.582,62.455,0.3899,16713.5490
-,evak 13ml,261,Wetland_04,1,,10/16/22,8.248667,62.5279,0.6865,29795.3271
-,overpressure,201,Gavilan,waypt11,,11/29/22,7.321,62.3358,0.8299,35457.1804
-,overpressure,224,Gavilan,waypt11,,11/29/22,7.321,62.3358,0.8543,36495.7128
-,overpressure,231,Gavilan,waypt06,,11/29/22,7.284,62.2254,0.8845,37824.5423
-,overpressure,182,Gavilan,waypt06,,11/29/22,7.284,62.2254,0.9108,38952.6758
-,overpressure,239,Wetland_04,1,,10/16/22,8.248667,62.2807,0.9385,40892.4473
-,evak 13ml,162,Wetland_06,1,,10/15/22,7.949167,62.5518,1.1832,51018.5020
-,overpressure,156,Gavilan,waypt08,,11/30/22,7.486,62.3242,1.2702,54459.1484
-,overpressure,275,Gavilan,waypt08,,11/30/22,7.486,62.3242,1.5216,65237.7957
-,overpressure,276,Gavilan,waypt09,,12/1/22,8.226,62.3198,1.6500,71814.7042
-,overpressure,245,Gavilan,waypt09,,12/1/22,8.226,62.3198,1.7017,74065.9065
-,evak 13ml,197,Wetland_10,1,,10/16/22,8.978,62.2605,1.9305,85386.8558
-,evak 13ml,253,Wetland_06,2,,10/15/22,7.949167,62.541,2.2364,96453.7815
-,evak 13ml,257,Gavilan,Waypt01,,11/29/22,7.396,62.4071,2.2586,96529.4305
 "gas leak, probably bad (meh, maybe not, rep looks good)",overpressure,152,Gavilan,waypt13,,11/30/22,7.538,62.3872,2.5151,107835.4148
-,overpressure,269,Gavilan,waypt13,,11/30/22,7.538,62.3872,2.5550,109546.7525
-,overpressure,192,Wetland_06,2,,10/15/22,7.949167,62.5518,2.7439,118318.5057
-,overpressure,258,Gavilan,waypt07,,11/30/22,7.464,62.2761,3.6229,155376.7667
+,overpressure,156,Gavilan,waypt08,,11/30/22,7.486,62.3242,1.2702,54459.1484
+,overpressure,159,Gavilan,waypt12,,11/30/22,7.561,62.3681,9.6714,414985.9361
 ,overpressure,172,Gavilan,waypt07,,11/30/22,7.464,62.2761,3.8544,165307.8096
-,evak 13ml,190,Wetland_09,2,,10/16/22,8.481,62.2664,4.5852,200769.5736
-,evak 13ml,233,Wetland_08,1,,10/16/22,8.382,62.2806,4.6092,201370.8457
+,overpressure,175,Gavilan,Waypt03,,11/29/22,7.309,62.3038,0.3492,14924.0301
+,overpressure,178,Gavilan,waypt05,,12/1/22,8.289,62.3366,20.0253,872465.0007
+,overpressure,182,Gavilan,waypt06,,11/29/22,7.284,62.2254,0.9108,38952.6758
+,overpressure,183,Gavilan,waypt10,,11/29/22,7.348,62.3777,0.2985,12751.5812
+,overpressure,188,Gavilan,waypy04,,11/29/22,7.287,62.2511,0,0
+,overpressure,200,Gavilan,waypy04,,11/29/22,7.287,62.2511,0,0
+,overpressure,201,Gavilan,waypt11,,11/29/22,7.321,62.3358,0.8299,35457.1804
+,overpressure,209,Gavilan,waypt12,,11/30/22,7.561,62.3681,8.2002,351859.4234
+,overpressure,224,Gavilan,waypt11,,11/29/22,7.321,62.3358,0.8543,36495.7128
+,overpressure,230,Gavilan,waypt10,,11/29/22,7.348,62.3777,0.3024,12919.1698
+,overpressure,231,Gavilan,waypt06,,11/29/22,7.284,62.2254,0.8845,37824.5423
+,overpressure,245,Gavilan,waypt09,,12/1/22,8.226,62.3198,1.7017,74065.9065
 ,overpressure,256,Gavilan,Waypt01,,11/29/22,7.396,62.4071,5.2388,223897.2836
-,evak 13ml,211,Wetland_09,2,,10/16/22,8.481,62.2664,6.4497,282411.5697
-,evak 13ml,204,Wetland_10,2,,10/16/22,8.978,62.2605,6.7507,298589.1591
+,evak 13ml,257,Gavilan,Waypt01,,11/29/22,7.396,62.4071,2.2586,96529.4305
+,overpressure,258,Gavilan,waypt07,,11/30/22,7.464,62.2761,3.6229,155376.7667
+,overpressure,266,Gavilan,Waypt03,,11/29/22,7.309,62.3038,0.2214,9459.775
+,overpressure,269,Gavilan,waypt13,,11/30/22,7.538,62.3872,2.555,109546.7525
+,overpressure,274,Gavilan,waypt14,,11/30/22,7.507,62.3582,0.1789,7668.8159
+,overpressure,275,Gavilan,waypt08,,11/30/22,7.486,62.3242,1.5216,65237.7957
+,overpressure,276,Gavilan,waypt09,,12/1/22,8.226,62.3198,1.65,71814.7042
+"This was mislabeld. I think this is Gavilan waypoint05 by process of deduction, Changed the bottle number on this sheet for this row, it was labeled as 215 (please see methane worksheet)",evak 13ml,205,Gavilan,waypt05,,12/1/22,8.289,62.3366,16.7675,730525.3403
+,evak 13ml,261,Wetland_04,1,,10/16/22,8.248667,62.5279,0.6865,29795.3271
+,evak 13ml,147,Wetland_04,2,,10/16/22,8.248667,62.5337,0.3727,16171.8469
+,evak 13ml,150,Wetland_04,2,,10/16/22,8.248667,62.5337,0.3436,14909.571
+,overpressure,239,Wetland_04,1,,10/16/22,8.248667,62.2807,0.9385,40892.4473
+,evak 13ml,253,Wetland_06,2,,10/15/22,7.949167,62.541,2.2364,96453.7815
+,evak 13ml,162,Wetland_06,1,,10/15/22,7.949167,62.5518,1.1832,51018.502
+"this might be wetland 06. Changed the bottle number on this sheet for this row, it was labeled as 210 (please see methane worksheet)",evak 13ml,,Wetland_06,NA,,10/15/22,7.949167,62.5518,0.216,9312.074
+,overpressure,192,Wetland_06,2,,10/15/22,7.949167,62.5518,2.7439,118318.5057
+,evak 13ml,186,Wetland_07,1,,10/15/22,7.848667,62.5118,0.0146,630.3261
+,evak 13ml,148,Wetland_07,1,,10/15/22,7.848667,62.5118,0.0089,381.5679
+,evak 13ml,260,Wetland_07,2,,10/15/22,7.848667,62.4949,0,0
+,overpressure,179,Wetland_07,2,,10/15/22,7.848667,62.5118,0,0
+,evak 13ml,233,Wetland_08,1,,10/16/22,8.382,62.2806,4.6092,201370.8457
+"This was mislabeld. I think this is wetland08 by process of deduction. Changed the vial number on this sheet for this row, it was labeled as 151 (please see methane worksheet)",overpressure,251,Wetland_08,2,,10/16/22,8.382,62.2806,8.5729,374543.047
+,evak 13ml,225,Wetland_08,2,,10/16/22,8.382,62.2806,8.3072,362936.7059
+,evak 13ml,227,Wetland_08,1,,10/16/22,8.382,62.2788,8.493,371061.4251
 ,evak 13ml,189,Wetland_09,1,,10/16/22,8.481,62.2664,6.8345,299258.4179
 ,evak 13ml,166,Wetland_09,1,,10/16/22,8.481,62.2664,7.6192,333617.8883
-,overpressure,209,Gavilan,waypt12,,11/30/22,7.561,62.3681,8.2002,351859.4234
-,evak 13ml,225,Wetland_08,2,,10/16/22,8.382,62.2806,8.3072,362936.7059
-,evak 13ml,227,Wetland_08,1,,10/16/22,8.382,62.2788,8.4930,371061.4251
-"This was mislabeld. I think this is wetland08 by process of deduction. Changed the vial number on this sheet for this row, it was labeled as 151 (please see methane worksheet)",overpressure,251,Wetland_08,2,,10/16/22,8.382,62.2806,8.5729,374543.0470
-,****evak 14ml,146,Wetland_10,1,,10/16/22,8.978,62.2605,9.5249,421297.6073
-,overpressure,159,Gavilan,waypt12,,11/30/22,7.561,62.3681,9.6714,414985.9361
+,evak 13ml,190,Wetland_09,2,,10/16/22,8.481,62.2664,4.5852,200769.5736
+,evak 13ml,211,Wetland_09,2,,10/16/22,8.481,62.2664,6.4497,282411.5697
+,****evak 14ml,146,Wetland_10,2,,10/16/22,8.978,62.2605,9.5249,421297.6073
+,evak 13ml,197,Wetland_10,1,,10/16/22,8.978,62.2605,1.9305,85386.8558
+,evak 13ml,204,Wetland_10,1,,10/16/22,8.978,62.2605,6.7507,298589.1591
 ,overpressure,214,Wetland_10,2,,10/16/22,8.978,62.2605,10.7445,475243.7832
-"This was mislabeld. I think this is Gavilan waypoint05 by process of deduction, Changed the bottle number on this sheet for this row, it was labeled as 215 (please see methane worksheet)",evak 13ml,205,Gavilan,waypt05,,12/1/22,8.289,62.3366,16.7675,730525.3403
-,overpressure,178,Gavilan,waypt05,,12/1/22,8.289,62.3366,20.0253,872465.0007
+,evak 13ml,167,Wetland_11,2,,10/15/22,7.582,62.455,0.3899,16713.549
+,evak 13ml,143,Wetland_11,2,,10/15/22,7.582,62.455,0.0743,3182.9268
+,evak 13ml,241,Wetland_11,1,,10/15/22,7.582,62.4702,0.0716,3069.8402
+,evak 13ml,243,Wetland_11,1,,10/15/22,7.582,62.455,0.0732,3135.7829
+,evak 13ml,184,Wetland_12,1,,10/16/22,7.589333,62.4405,0.2093,8977.6023
+,evak 13ml,237,Wetland_12,1,,10/16/22,7.589333,62.4354,0.173,7420.8834
+,evak 13ml,290,Wetland_12,2,,10/16/22,7.589333,62.4221,0.264,11324.9446
+,overpressure,212,Wetland_12,2,,10/16/22,7.589333,62.4405,0.3015,12928.6844
