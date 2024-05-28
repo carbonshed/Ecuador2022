@@ -34,6 +34,7 @@ library("Hmisc")
 library(car)
 library(GGally)
 library(MCMCglmm)
+library(MuMIn)
 
 ```
 
@@ -136,7 +137,7 @@ CH4 decreases with surface area
     > Surface_area_m2
 
 CH4 increases with watershed size 
-    > WS_size_minusSA --- not all wetlands
+    > WS_size_minusSA
 
 precipitation effects CH4 concentration because it dilutes the water (ave of sum day and previous day)
     > Precio_mm_ave2
@@ -156,7 +157,7 @@ Solar radiation because stimulates gpp (ave day)
 ```{r  assumptions step 1, echo=FALSE}
 #Step 1: Are there outliers in Y and X?
 
-df <- df%>%filter(Site!="Wetland12")
+df_1 <- df%>%filter(Site!="Wetland12")
 
 #boxplots galore
 boxplot(log(df$CH4_umol.L)) ##transformed
@@ -310,21 +311,27 @@ correlation_coefficiant <- res2$r
         #A value between 1 and 5 indicates moderate correlation between a given predictor variable and other predictor variables in the model, but this is often not severe enough to require attention.
         #A value greater than 5 indicates potentially severe correlation between a given predictor variable and other predictor variables in the model. In this case, the coefficient estimates and p-values in the regression output are likely unreliable.
 
+df_2 <- df_1%>%filter(Site=="Wetland04"|Site=="Wetland05"|Site=="Wetland06"|Site=="Wetland07"|Site=="Wetland11")
+
+df_3 <- df_1%>%filter(Site=="Wetland01"|Site=="Wetland02"|Site=="Wetland03")
+
+df_4 <- df_1%>%filter(Site=="Wetland08"|Site=="Wetland09"|Site=="Wetland10")
 
 M1 <- lmer(log(CH4_umol.L) ~ 
              scale(Watertemp_c)+ 
              scale(waterTemp_c_yearly) +
-             scale(Elevation_m) +
+         #    scale(Elevation_m) +
              scale(AirTemp_c) + 
              scale(log(SA_to_Vol_ratio)) + 
-             scale(log(surface_area_m2)) +
+          #  scale(log(surface_area_m2)) +
              scale(log(WS_area_minus_pond)) +
-      #       scale(log(percentpond)) +
              scale(percent_DTW) +
-             scale(precip_mm_ave2) + 
-             (1 |Site), data =df)
+             scale(log1p(precip_mm_ave2)) + 
+             (1 |Site), data=df_2)
 
 vif(M1)
+
+
 
 #summary for global models
 summary(M1)
@@ -333,7 +340,7 @@ summary_M1 <- summary(M1)
 summary_M1$AICtab
 summary(M1)$AIC[1]
 
-  
+ggplot(df_1, aes(x=Elevation_m,y=log(CH4_umol.L),color=log(SA_to_Vol_ratio))) + geom_point()
 ```
 
 #findings from step 5.2
@@ -368,13 +375,6 @@ abline(0,0)
 qqnorm(res1)
 #add a straight diagonal line to the plot
 qqline(res1) 
-
-##Model 2
-res2 <- resid(M2)
-plot(fitted(M2), res2)
-abline(0,0)
-qqnorm(res2)
-qqline(res2)
 
 ```
 
@@ -413,14 +413,14 @@ hist(res2)
 
 
 
-```{r  model building3, echo=FALSE}
+```{r  model building3 ch4 umol/l, echo=FALSE}
 
-Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric())
+Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric(),"AICc" = as.numeric())
 
 #remove Wetland 12 for this analysis?
 df_1 <- df%>%filter(Site!="Wetland12")
 
-n = 7
+n = 6
 grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
 grid_df <- as.data.frame(grid$Var1)
 colnames(grid_df) <- "Var1"
@@ -429,17 +429,16 @@ grid_df$Var3 <- grid$Var3
 grid_df$Var4 <- grid$Var4
 grid_df$Var5 <- grid$Var5
 grid_df$Var6 <- grid$Var6
-grid_df$Var7 <- grid$Var7
-grid_df$Var8 <- grid$Var8
+#grid_df$Var7 <- grid$Var7
 
 grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
 grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
 grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(SA_to_Vol_ratio)"
-grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(WS_area_minus_pond)"
-grid_df$Var5[which(grid_df$Var5 == 1)] <- "percent_DTW"
-grid_df$Var6[which(grid_df$Var6 == 1)] <- "precip_mm_ave2"
-#grid_df$Var7[which(grid_df$Var7 == 1)] <- "Elevation_m"
-grid_df$Var7[which(grid_df$Var7 == 1)] <- "log(surface_area_m2)"
+#grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(WS_area_minus_pond)"
+grid_df$Var4[which(grid_df$Var4 == 1)] <- "percent_DTW"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "log1p(precip_mm_ave2)"
+grid_df$Var6[which(grid_df$Var6 == 1)] <- "Elevation_m"
+
 
 
 
@@ -455,56 +454,56 @@ for (row in 2:nrow(grid_df)){
     data = df_1,REML = FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
   
       } else if(length(f_2)==2) { 
     model <- lmer(
       as.formula(paste0("log(CH4_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==3) { 
     model <- lmer(
       as.formula(paste0("log(CH4_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==4) { 
     model <- lmer(
       as.formula(paste0("log(CH4_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==5) { 
     model <- lmer(
       as.formula(paste0("log(CH4_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==6) { 
     model <- lmer(
       as.formula(paste0("log(CH4_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==7) { 
     model <- lmer(
       as.formula(paste0("log(CH4_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==8) { 
     model <- lmer(
       as.formula(paste0("log(CH4_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + scale(",f_2[8],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else {
          print("too many")
@@ -519,35 +518,127 @@ df_1 <- df#%>%filter(Site!="Wetland12")
 
 
 #without wetland 12 
-#(Intercept), (Intercept), scale(Watertemp_c), scale(Elevation_m), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio))
+#(Intercept), scale(waterTemp_c_yearly), scale(log(SA_to_Vol_ratio)), scale(percent_DTW), scale(Elevation_m)
 
-#AIC
-M_AIC <- lmer(log(CH4_umol.L) ~ 
-                  scale(Watertemp_c)+ 
-                  scale(Elevation_m) +
-                  scale(log(SA_to_Vol_ratio)) + 
-                  scale(log(surface_area_m2)) +
+
+M_AICc <- lmer(log(CH4_umol.L) ~ 
+                  scale(waterTemp_c_yearly)+ 
+                  scale(log(SA_to_Vol_ratio)) +
+                scale(percent_DTW) +
+                scale(Elevation_m) +
                   (1 |Site), data =df_1,REML = FALSE)
-summary(M_AIC)
-modelPerformance(M_AIC)
+summary(M_AICc)
+modelPerformance(M_AICc)
 
 #without wetland 12
-#(Intercept), scale(waterTemp_c_yearly), scale(log(surface_area_m2)), scale(log(SA_to_Vol_ratio)), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
+#(Intercept), (Intercept), scale(log(SA_to_Vol_ratio)), scale(Elevation_m)
+
 
 M_BIC <- lmer(log(CH4_umol.L) ~ 
-                scale(Elevation_m)+ 
-                scale(waterTemp_c_yearly) +
-                #scale(Water_minus_air_Temp) +
-                #scale(waterTemp_c_day) + 
                 scale(log(SA_to_Vol_ratio)) + 
-                scale(log(surface_area_m2)) +
-                scale(log(WS_area_minus_pond)) +
-                scale(percent_DTW) +
-                #scale(Watershed_m2) +
-                #scale(precip_mm_ave2) + 
-                scale(solarrad_Wm2_daymean) +
+                scale(Elevation_m)+
                   (1 |Site), data =df_1,REML = FALSE)
 summary(M_BIC)
 modelPerformance(M_BIC)
 
+```
+
+# %CH4 saturation 
+
+```{r  model building3 ch4 umol/l, echo=FALSE}
+
+Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric(),"AICc" = as.numeric())
+
+#remove Wetland 12 for this analysis?
+df_1 <- df %>%filter(Site!="Wetland12")
+
+n = 7
+grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
+grid_df <- as.data.frame(grid$Var1)
+colnames(grid_df) <- "Var1"
+grid_df$Var2 <- grid$Var2
+grid_df$Var3 <- grid$Var3
+grid_df$Var4 <- grid$Var4
+grid_df$Var5 <- grid$Var5
+grid_df$Var6 <- grid$Var6
+grid_df$Var7 <- grid$Var7
+
+grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
+grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
+grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(SA_to_Vol_ratio)"
+grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(WS_area_minus_pond)"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "percent_DTW"
+grid_df$Var6[which(grid_df$Var6 == 1)] <- "log1p(precip_mm_ave2)"
+grid_df$Var7[which(grid_df$Var7 == 1)] <- "Elevation_m"
+
+
+
+
+grid_df[grid_df == 0] <- NA
+
+for (row in 2:nrow(grid_df)){
+  f <- grid_df[row, ]
+  f_2 <- f[!is.na(f)]
+  
+  if(length(f_2)==1){
+    model <- lmer(
+    as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") + (1 |Site)")),
+    data = df_1,REML = FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+  
+      } else if(length(f_2)==2) { 
+    model <- lmer(
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==3) { 
+    model <- lmer(
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==4) { 
+    model <- lmer(
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==5) { 
+    model <- lmer(
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==6) { 
+    model <- lmer(
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==7) { 
+    model <- lmer(
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==8) { 
+    model <- lmer(
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + scale(",f_2[8],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else {
+         print("too many")
+      }
+}
 ```

@@ -17,6 +17,15 @@ library("ggpubr")
 library(rstatix)
 library(devtools)
 library(PMCMRplus)
+library(lme4)
+library(lmerTest)
+library(jtools)
+library(extraoperators)
+library(JWileymisc)
+library(multilevelTools)
+library(broom)
+library(tidyverse)
+
 
 ```
 
@@ -273,13 +282,157 @@ p.all <- ggarrange(p.ch4, p.co2, labels = c("A", "B"),ncol = 1, nrow = 2)
 
 ```
 
-# PCA
-in the next chunk I run a PCA. Sure how this will be fun.
+# model results
 
-```{r PCA, echo=FALSE}
-
+I'm not sure how to report these. But I think a table of selected models could work
 
 
+```{r model tables, echo=FALSE}
 
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))
+
+#without wetland 12 
+df_1 <- df%>%filter(Site!="Wetland12")
+
+#(Intercept), scale(waterTemp_c_yearly), scale(log(SA_to_Vol_ratio)), scale(percent_DTW), scale(Elevation_m)
+
+M_AICc_CH4 <- lmer(log(CH4_umol.L) ~ 
+                  scale(waterTemp_c_yearly)+ 
+                  scale(log(SA_to_Vol_ratio)) +
+                scale(percent_DTW) +
+                scale(Elevation_m) +
+                  (1 |Site), data =df_1,REML = FALSE)
+sum_AICc_CH4 <- summary(M_AICc_CH4)
+sum_AICc_CH4_coefficients <- sum_AICc_CH4$coefficients
+modelPerformance(M_AICc_CH4)
+
+#without wetland 12
+#(Intercept), (Intercept), scale(log(SA_to_Vol_ratio)), scale(Elevation_m)
+M_BIC_CH4 <- lmer(log(CH4_umol.L) ~ 
+                scale(log(SA_to_Vol_ratio)) + 
+                scale(Elevation_m)+
+                  (1 |Site), data =df_1,REML = FALSE)
+sum_BIC_CH4 <- summary(M_BIC_CH4)
+sum_BIC_CH4_coefficients <- sum_BIC_CH4$coefficients
+modelPerformance(M_BIC_CH4)
+
+#CO2 AICc 
+#AICc: (Intercept), scale(Watertemp_c), scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m)
+M_AICc_CO2 <- lmer(log(CO2_umol.L) ~ 
+                  scale(Watertemp_c)+ 
+                  scale(waterTemp_c_yearly) +
+                  scale(percent_DTW) +
+                  scale(Elevation_m) +
+                  (1 |Site), data =df_1,REML = FALSE)
+sum_AICc_CO2 <- summary(M_AICc_CO2)
+sum_AICc_CO2_coefficients <- sum_AICc_CO2$coefficients
+modelPerformance(M_AICc_CO2)
+
+#CO2 BIC
+M_BIC_CO2 <- lmer(log(CO2_umol.L) ~ 
+                scale(percent_DTW) +
+                scale(Elevation_m) +
+                  (1 |Site), data =df_1,REML = FALSE)
+sum_BIC_CO2 <- summary(M_BIC_CO2)
+sum_BIC_CO2_coefficients <- sum_BIC_CO2$coefficients
+modelPerformance(M_BIC_CO2)
+
+write.csv(sum_AICc_CH4_coefficients,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/AICc_CH4_coefficients.csv")
+write.csv(sum_BIC_CH4_coefficients,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/BIC_CH4_coefficients.csv")
+write.csv(sum_AICc_CO2_coefficients,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/AICc_CO2_coefficients.csv")
+write.csv(sum_BIC_CO2_coefficients,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/BIC_CO2_coefficients.csv")
+
+sum_AICc_CH4_coefficients <- read.csv("~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/AICc_CH4_coefficients.csv")%>%rename(
+  variable=X,std_err=Std..Error,pvalue=Pr...t..)
+sum_BIC_CH4_coefficients <- read.csv("~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/BIC_CH4_coefficients.csv")%>%rename(
+  variable=X,std_err=Std..Error,pvalue=Pr...t..)
+sum_AICc_CO2_coefficients <- read.csv("~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/AICc_CO2_coefficients.csv")%>%rename(
+  variable=X,std_err=Std..Error,pvalue=Pr...t..)
+sum_BIC_CO2_coefficients <- read.csv("~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/BIC_CO2_coefficients.csv")%>%rename(
+  variable=X,std_err=Std..Error,pvalue=Pr...t..)
+sum_AICc_CH4_coefficients$Model <- "AICc_CH4"
+sum_BIC_CH4_coefficients$Model <- "BIC_CH4"
+sum_AICc_CO2_coefficients$Model <- "AICc_CO2"
+sum_BIC_CO2_coefficients$Model<- "BIC_CO2"
+
+model_df <- rbind(sum_AICc_CH4_coefficients,sum_BIC_CH4_coefficients,sum_AICc_CO2_coefficients,sum_BIC_CO2_coefficients)
+model_df <- model_df%>% filter(variable!="(Intercept)")%>% 
+  mutate(Low=Estimate-std_err,High=Estimate+std_err)
+
+
+p.model <- ggplot(data=model_df, aes(x=variable, y=Estimate)) + facet_grid(~Model) +
+  geom_point() + geom_errorbar(aes(ymin=Low,ymax=High),width=0)+
+    geom_hline(yintercept = 0, linetype="dashed",color="red",linewidth=1)
+
+
+p.CH4.AICc <-
+  sum_AICc_CH4_coefficients %>% filter(variable!="(Intercept)")%>% 
+  mutate(Low=Estimate-std_err,High=Estimate+std_err) %>%
+  ggplot(aes(x=variable, y=Estimate)) + facet_grid(~Model) +
+  geom_point() + geom_errorbar(aes(ymin=Low,ymax=High),width=0)+
+    geom_hline(yintercept = 0, linetype="dashed",color="red",linewidth=1)
+
+
+p.CH4.AICc <-
+  sum_AICc_CH4_coefficients %>% filter(variable!="(Intercept)")%>% 
+  mutate(Low=Estimate-std_err,High=Estimate+std_err) %>%
+  ggplot(aes(x=variable, y=Estimate)) + 
+  geom_point() + geom_errorbar(aes(ymin=Low,ymax=High),width=0)+
+    geom_hline(yintercept = 0, linetype="dashed",color="red",linewidth=1) +
+ ylab(expression(CH[4] ~'model, AICc estimates')) + theme_bw() +
+  annotate("text", y = 0.4605, x = "scale(waterTemp_c_yearly)", label = ".",vjust=-1) +
+  annotate("text", y = 0.6486, x = "scale(percent_DTW)", label = "*",vjust=-1) +
+   annotate("text", y = -0.3270, x = "scale(log(SA_to_Vol_ratio))", label = "*",vjust=-1) +
+  annotate("text", y = -1.7371, x = "scale(Elevation_m)", label = "***",vjust=-1) +
+  ylim(-2, 2) + 
+    scale_x_discrete(labels = c("scale(Elevation)","scale(surface area: volume)","scale(% DTW < 1)","scale(yearly water temp.)")) +
+  theme(axis.title.y=element_blank())  + theme(text=element_text(size=14)) +
+  coord_flip()
+
+p.CH4.BIC <-
+sum_BIC_CH4_coefficients %>% filter(variable!="(Intercept)")%>%
+  mutate(Low=Estimate-std_err,High=Estimate+std_err) %>%
+  ggplot(aes(x=variable, y=Estimate)) + geom_point() +
+  geom_errorbar(aes(ymin=Low,ymax=High),width=0)+ geom_hline(yintercept = 0, linetype="dashed",color="red",linewidth=1) + 
+  ylab(expression(CH[4] ~'model, BIC estimates')) + theme_bw() +
+    annotate("text", y = -0.4165, x = "scale(log(SA_to_Vol_ratio))", label = "*",vjust=-1) +
+  annotate("text", y = -1.6359 , x = "scale(Elevation_m)", label = "***",vjust=-1) +
+    ylim(-2, 2)  + scale_x_discrete(labels = c("scale(Elevation)","scale(surface area: volume)")) +
+  theme(axis.title.y=element_blank()) + theme(text=element_text(size=14)) +
+  coord_flip()
+
+
+p.CO2.AICc <-
+sum_AICc_CO2_coefficients %>% filter(variable!="(Intercept)")%>%
+  mutate(Low=Estimate-std_err,High=Estimate+std_err) %>%
+  ggplot(aes(x=variable, y=Estimate)) + geom_point() +
+  geom_errorbar(aes(ymin=Low,ymax=High),width=0) + geom_hline(yintercept = 0, linetype="dashed",color="red",linewidth=1) + 
+  ylab(expression(CO[2] ~'model, AICc estimates')) + theme_bw() +
+  annotate("text", y = 0.12238, x = "scale(Watertemp_c)", label = ".",vjust=-1) +
+  annotate("text", y = -0.21030, x = "scale(waterTemp_c_yearly)", label = "*",vjust=-1) +
+  annotate("text", y =  0.28209, x = "scale(percent_DTW)", label = "*",vjust=-1) +
+  annotate("text", y = -1.12876, x = "scale(Elevation_m)", label = "***",vjust=-1) +
+    ylim(-2, 2) +  scale_x_discrete(labels = c("scale(Elevation)","scale(% DTW < 1)","scale(yearly water temp.)","scale(water temp.)")) +
+  theme(axis.title.y=element_blank()) + theme(text=element_text(size=14)) +
+  coord_flip()
+
+
+p.CO2.BIC <-
+sum_BIC_CO2_coefficients %>% filter(variable!="(Intercept)")%>%
+  mutate(Low=Estimate-std_err,High=Estimate+std_err) %>%
+  ggplot(aes(x=variable, y=Estimate)) + geom_point() +
+  geom_errorbar(aes(ymin=Low,ymax=High),width=0) + geom_hline(yintercept = 0, linetype="dashed",color="red",linewidth=1) + 
+  ylab(expression(CO[2] ~'model, BIC estimates')) + theme_bw() +
+  annotate("text", y = 0.34398, x = "scale(percent_DTW)", label = "**",vjust=-1) +
+  annotate("text", y = -1.11051, x = "scale(Elevation_m)", label = "***",vjust=-1) + 
+    ylim(-2, 2) + scale_x_discrete(labels = c("scale(Elevation)","scale(% DTW < 1)")) +
+  theme(axis.title.y=element_blank()) + theme(text=element_text(size=14)) +
+  coord_flip()
+
+
+#figure <- ggarrange(p.CH4.AICc, p.CO2.AICc,p.CH4.BIC,p.CO2.BIC,
+                    labels = c("A", "B", "C","D"),
+                    ncol = 2, nrow = 2)
+#figure
 ```
 

@@ -110,7 +110,9 @@ with this notation we assume an intercept that’s different for each subject”
 ```{r load data}
 #read in data
 #df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-04.csv"))[c(17,2,6,14:16,18:45,52:59)]
-df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-10.csv"))
+#df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2023-11-10.csv"))
+df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
+df$temp_diff <- df$AirTemp_c - df$Watertemp_c
 df$num <- 1:44
 ```
 
@@ -244,7 +246,7 @@ ggplot(df, aes(windspeed_m_s, num)) + geom_point()
 #make correlation matrix
 
 df_2 <- df[,c("Watertemp_c",
-            #"AirTemp_c",
+            "AirTemp_c",
              # "BaroTemp_c_day",
             "Baro_Water_minus_air_Temp",
               "waterTemp_c_day",
@@ -283,14 +285,15 @@ correlation_coefficiant <- res2$r
         #A value greater than 5 indicates potentially severe correlation between a given predictor variable and other predictor variables in the model. In this case, the coefficient estimates and p-values in the regression output are likely unreliable.
 
 
-M1 <- lmer(k_m.d ~ scale(Watertemp_c) +
-                  scale(Water_minus_air_Temp) +
-                   scale(Baro_Water_minus_air_Temp) +
+M1 <- lmer(k_m_d ~ scale(Watertemp_c) +
+              #    scale(Water_minus_air_Temp) +
+             #      scale(Baro_Water_minus_air_Temp) +
+             scale(Elevation_m) +
                   scale(log(surface_area_m2)) +
                   scale(PrecipAccuDay_mm) + 
                   scale(solarrad_Wm2_daymean) +
                   scale(windspeed_m_s) +
-                  (1 |Wetland), data =df)
+                  (1 |Site), data =df)
 
 vif(M1)
 
@@ -370,14 +373,16 @@ hist(res1)
 
 #I need to remove REML (read about this more so that you understand)
 
-M1 <- lmer(k_m.d ~ scale(Watertemp_c) +
-                 scale(Water_minus_air_Temp) +
+M1 <- lmer(k_m_d ~ #scale(Watertemp_c) +
+               #  scale(Water_minus_air_Temp) +
                  #  scale(Baro_Water_minus_air_Temp) +
+          #   scale(Elevation_m) +
                   scale(log(surface_area_m2)) +
-                  scale(PrecipAccuDay_mm) + 
-                  scale(solarrad_W_m2) +
-                  scale(windspeed_m_s) +
-                  (1 |Wetland), data =df,REML=FALSE)
+           #       scale(PrecipAccuDay_mm) + 
+                  scale(solarrad_Wm2_daymean) +
+            #      scale(windspeed_m_s) +
+             
+                  (1 |Site), data =df_1,REML=FALSE)
 
 summary(M1)
 modelPerformance(M1)
@@ -389,9 +394,99 @@ modelPerformance(M1)
 
 
 #remove Wetland 12 for this analysis?
-df_1 <- df%>%filter(Wetland!="Wetland12")
+df_1 <- df%>%filter(Site!="Wetland12")
 
-Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric())
+Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric(),"AICc" = as.numeric())
+
+n = 4
+grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
+grid_df <- as.data.frame(grid$Var1)
+colnames(grid_df) <- "Var1"
+grid_df$Var2 <- grid$Var2
+grid_df$Var3 <- grid$Var3
+grid_df$Var4 <- grid$Var4
+#grid_df$Var5 <- grid$Var5
+#grid_df$Var6 <- grid$Var6
+#grid_df$Var7 <- grid$Var7
+
+grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
+#grid_df$Var2[which(grid_df$Var2 == 1)] <- "temp_diff"
+grid_df$Var2[which(grid_df$Var2 == 1)] <- "log(surface_area_m2)"
+grid_df$Var3[which(grid_df$Var3 == 1)] <- "PrecipAccuDay_mm"
+#grid_df$Var5[which(grid_df$Var5 == 1)] <- "solarrad_Wm2_daymean"
+grid_df$Var4[which(grid_df$Var4 == 1)] <- "windspeed_m_s"
+#grid_df$Var6[which(grid_df$Var6 == 1)] <- "Elevation_m"
+
+grid_df[grid_df == 0] <- NA
+
+for (row in 2:nrow(grid_df)){
+  f <- grid_df[row, ]
+  f_2 <- f[!is.na(f)]
+  
+  if(length(f_2)==1){
+    model <- lmer(
+    as.formula(paste0("k_m_d ~ ","scale(",f_2[1],") + (1 |Site)")),
+    data = df_1,REML = FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+  
+      } else if(length(f_2)==2) { 
+    model <- lmer(
+      as.formula(paste0("k_m_d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==3) { 
+    model <- lmer(
+      as.formula(paste0("k_m_d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==4) { 
+    model <- lmer(
+      as.formula(paste0("k_m_d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==5) { 
+    model <- lmer(
+      as.formula(paste0("k_m_d~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==6) { 
+    model <- lmer(
+      as.formula(paste0("k_m_d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+      } else if(length(f_2)==7) { 
+    model <- lmer(
+      as.formula(paste0("k_m_d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       }
+}
+```
+
+
+#k600
+
+```{r  k600 model building3, echo=FALSE}
+
+
+#remove Wetland 12 for this analysis?
+df_1 <- df%>%filter(Site!="Wetland12")
+df_1 <- df_1%>%filter(DateTime < "2022-10-01 00:00:00")
+
+
+Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric(),"AICc" = as.numeric())
 
 n = 7
 grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
@@ -405,100 +500,12 @@ grid_df$Var6 <- grid$Var6
 grid_df$Var7 <- grid$Var7
 
 grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
-grid_df$Var2[which(grid_df$Var2 == 1)] <- "Baro_Water_minus_air_Temp"
-grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
-grid_df$Var4[which(grid_df$Var4 == 1)] <- "PrecipAccuDay_mm"
-grid_df$Var5[which(grid_df$Var5 == 1)] <- "solarrad_Wm2_daymean"
-grid_df$Var6[which(grid_df$Var6 == 1)] <- "windspeed_m_s"
-grid_df$Var7[which(grid_df$Var7 == 1)] <- "SA_to_Vol_ratio"
-
-grid_df[grid_df == 0] <- NA
-
-for (row in 2:nrow(grid_df)){
-  f <- grid_df[row, ]
-  f_2 <- f[!is.na(f)]
-  
-  if(length(f_2)==1){
-    model <- lmer(
-    as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") + (1 |Wetland)")),
-    data = df_1,REML = FALSE)
-    summary <- summary(model)
-    
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
-  
-      } else if(length(f_2)==2) { 
-    model <- lmer(
-      as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Wetland)")),data=df_1,REML=FALSE)
-    summary <- summary(model)
-    
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
-       
-      } else if(length(f_2)==3) { 
-    model <- lmer(
-      as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Wetland)")),data=df_1,REML=FALSE)
-    summary <- summary(model)
-    
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
-       
-      } else if(length(f_2)==4) { 
-    model <- lmer(
-      as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Wetland)")),data=df_1,REML=FALSE)
-    summary <- summary(model)
-    
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
-       
-      } else if(length(f_2)==5) { 
-    model <- lmer(
-      as.formula(paste0("k_m.d~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Wetland)")),data=df_1,REML=FALSE)
-    summary <- summary(model)
-    
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
-       
-      } else if(length(f_2)==6) { 
-    model <- lmer(
-      as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Wetland)")),data=df_1,REML=FALSE)
-    summary <- summary(model)
-    
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
-      } else if(length(f_2)==7) { 
-    model <- lmer(
-      as.formula(paste0("k_m.d ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Wetland)")),data=df_1,REML=FALSE)
-    summary <- summary(model)
-    
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
-       }
-}
-```
-
-
-#k600
-
-```{r  k600 model building3, echo=FALSE}
-
-
-#remove Wetland 12 for this analysis?
-df_1 <- df#%>%filter(Wetland!="Wetland12")
-
-Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric())
-
-n = 6
-grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
-grid_df <- as.data.frame(grid$Var1)
-colnames(grid_df) <- "Var1"
-grid_df$Var2 <- grid$Var2
-grid_df$Var3 <- grid$Var3
-grid_df$Var4 <- grid$Var4
-grid_df$Var5 <- grid$Var5
-grid_df$Var6 <- grid$Var6
-#grid_df$Var7 <- grid$Var7
-
-grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
-grid_df$Var2[which(grid_df$Var2 == 1)] <- "Baro_Water_minus_air_Temp"
+grid_df$Var2[which(grid_df$Var2 == 1)] <- "temp_diff"
 grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
 grid_df$Var4[which(grid_df$Var4 == 1)] <- "PrecipAccuDay_mm"
 grid_df$Var5[which(grid_df$Var5 == 1)] <- "solarrad_W_m2"
 grid_df$Var6[which(grid_df$Var6 == 1)] <- "windspeed_m_s"
-#grid_df$Var7[which(grid_df$Var7 == 1)] <- "SA_to_Vol_ratio"
+grid_df$Var7[which(grid_df$Var7 == 1)] <- "Elevation_m"
 
 grid_df[grid_df == 0] <- NA
 
@@ -508,52 +515,52 @@ for (row in 2:nrow(grid_df)){
   
   if(length(f_2)==1){
     model <- lmer(
-    as.formula(paste0("K600 ~ ","scale(",f_2[1],") + (1 |Wetland)")),
+    as.formula(paste0("K600 ~ ","scale(",f_2[1],") + (1 |Site)")),
     data = df_1,REML = FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
   
       } else if(length(f_2)==2) { 
     model <- lmer(
-      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==3) { 
     model <- lmer(
-      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==4) { 
     model <- lmer(
-      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==5) { 
     model <- lmer(
-      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==6) { 
     model <- lmer(
-      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
       } else { 
     model <- lmer(
-      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Wetland)")),data=df_1,REML=FALSE)
+      as.formula(paste0("K600 ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2])
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        }
 }
 ```
@@ -562,48 +569,30 @@ for (row in 2:nrow(grid_df)){
 ```{r  model building, echo=FALSE}
 
 
-#with and without wetland 12
-#Water_minus_air_Temp
 
+M1 <- lm(k_m_d ~ 
+                  scale(log(surface_area_m2)) +
+                  scale(solarrad_Wm2_daymean) , data =df_1,REML=FALSE)
 
-df_1 <- df#%>%filter(Wetland!="Wetland12")
+summary(M1)
+modelPerformance(M1)
 
-#AIC & BIC are same 
-df_1$K600
-M_AIC <- lmer(K600 ~ 
-                 # scale(Water_minus_air_Temp)+
-                    scale(solarrad_W_m2) +
-                   scale(Baro_Water_minus_air_Temp) +
-                  (1 |Wetland), data =df_1,REML = FALSE)
-summary(M_AIC)
-modelPerformance(M_AIC)
+M1 <- lm(k_m_d ~ 
+                  scale(log(surface_area_m2)) +
+                  scale(solarrad_W_m2) , data =df_1 ,REML=FALSE)
+
+summary(M1)
+modelPerformance(M1)
+
+M1 <- lmer(K600 ~ 
+                  scale(log(surface_area_m2)) +
+                  scale(solarrad_W_m2) +
+             (1|Site), data =df_1 ,REML=FALSE)
+
+summary(M1)
+
+modelPerformance(M1)
+
 
 
 ```
-
-```{r  visualize, echo = FALSE}
-
-library(ggeffects)  # install the package first if you haven't already, then load it
-
-# Extract the prediction data frame
-pred.mm <- ggpredict(M_AIC, terms = c("Water_minus_air_Temp" ))  # this gives overall predictions for the model
-# Plot the predictions 
-
-(ggplot(pred.mm) + 
-   geom_line(aes(x = x, y = predicted)) +          # slope
-   geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error), 
-               fill = "lightgrey", alpha = 0.5) +  # error band
-   geom_point(data = df_1,                      # adding the raw data (scaled values)
-              aes(x = Water_minus_air_Temp, y = K600, colour = Wetland), size = 3) + 
-   labs(x = "Water - air temperature", y = "k600", 
-        title = "k600 model") + 
-   theme_minimal()
-)
-
-
-sjPlot::tab_model(M_AIC, 
-                  show.re.var= TRUE, 
-                  pred.labels =c("(Intercept)", "Air - water temperature (c)"),
-                  dv.labels= "k600 prediction model")
-```
-

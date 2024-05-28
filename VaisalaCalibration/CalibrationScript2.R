@@ -291,3 +291,15 @@ summary(model)
 plot(df2$new_ave_adjusted, df2$Unnamed_adjusted)
 model <- lm(new_ave_adjusted~Unnamed_adjusted, data = df2)
 summary(model)
+
+
+### I need to see how different the k600 sensor is compared to stn3
+
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)   91.15452   82.56933   1.104     0.32    
+#stn3_adjusted  0.88591    0.01485  59.658  2.5e-08 ***
+  
+plot(df2$K600_adjusted, df2$stn3_adjusted)
+model <- lm(K600_adjusted~stn3_adjusted, data = df2)
+summary(model)

@@ -1,9 +1,9 @@
 ###################################################################################
-#Name: Initial Analysis 
+#Name: Principle Componenet Analysis 
 #Coder: C. Nathan Jones
-#Edited: Morgan Schulte
-#Date: 1/10/17
-#Purpose: Morgan's Great Dismal Swamp Dataset 
+#code editor: Kriddie Whitmore
+#Date: 5/15/2024
+#Purpose: Kriddie's GHG in paramo ponds
 ##################################################################################
 
 ##################################################################################
@@ -13,23 +13,152 @@
 rm(list=ls(all=TRUE)) 
 
 #Download Relevant Libraries (to download library: 
-install.packages("vegan")
-install.packages("clustsig")
 library(vegan)
-library(clustsig)
 library(here)
 
 #Download Data and defining df and omitting zeros
 df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))
 df$New.Name <- df$Site
+df$site.date <- paste(df$Site,df$Date)
 
-#,ake column with new name to reflect elevation. S stands for "site"
-df <- df%>%
+#make column with new name to reflect elevation. S stands for "site"
+df <- df %>%
   mutate(New.Name = recode(New.Name, 'Wetland01'= 'S1', 'Wetland02' = 'S2','Wetland03' = 'S3',
                            'Wetland04' = 'S4','Wetland05' = 'S8','Wetland06' = 'S5', 
                            'Wetland07' = 'S7','Wetland08' = 'S12','Wetland09' = 'S10',
                            'Wetland10' = 'S11', 'Wetland11' = 'S6','Wetland12' = 'S9',))
+df1 <- df%>%filter(Site!="Wetland12")%>%select(site.date,CO2_ppm,CO2_umol.L,CH4_umol.L,CH4_sat,
+                                               Watertemp_c,Elevation_m,
+                  DOC_mg.L,TDN_mg.L,#Baro_kpa,BaroTemp_c_eleAdjust,AirTemp_c,
+                  depth_ave_m,
+                  Volumn_m3,SA_to_Vol_ratio,precip_mm_ave2,pond_size,WS_area_minus_pond)
+df2 <- df1%>%select(!CO2_ppm)%>%
+  select(!CO2_umol.L)%>%
+  select(!CH4_umol.L)%>%
+  select(!CH4_sat)%>%
+  select(!DOC_mg.L)%>%select(!TDN_mg.L)
+df2 <- df2[,-1]
+rownames(df2) <- df1[,1]
 
+PCA <- rda(df2, scale = TRUE)
+barplot(as.vector(PCA$CA$eig)/sum(PCA$CA$eig)) 
+sum((as.vector(PCA$CA$eig)/sum(PCA$CA$eig))[1:2]) # 51%
+plot(PCA)
+plot(PCA, display = "sites", type = "points")
+plot(PCA, display = "species", type = "text")
+# You can extract the species and site scores on the new PC for further analyses:
+sitePCA <- PCA$CA$u # Site scores
+speciesPCA <- PCA$CA$v # Species scores
+
+##vegan totrial2####
+
+library(vegan)
+library(ape)
+library(dplyr)
+
+data(varespec)
+# With this command, you`ll perform a NMDS and plot the results
+varespec %>%
+  metaMDS(trace = F) %>%
+  ordiplot(type = "none") %>%
+  text("sites")
+
+PCA <- rda(varespec, scale = FALSE)
+# Use scale = TRUE if your variables are on different scales (e.g. for abiotic variables).
+# Here, all species are measured on the same scale 
+# So use scale = FALSE
+
+# Now plot a bar plot of relative eigenvalues. This is the percentage variance explained by each axis
+barplot(as.vector(PCA$CA$eig)/sum(PCA$CA$eig)) 
+# How much of the variance in our dataset is explained by the first principal component?
+
+# Calculate the percent of variance explained by first two axes
+sum((as.vector(PCA$CA$eig)/sum(PCA$CA$eig))[1:2]) # 79%, this is ok.
+# Also try to do it for the first three axes
+
+# Now, we`ll plot our results with the plot function
+plot(PCA)
+plot(PCA, display = "sites", type = "points")
+plot(PCA, display = "species", type = "text")
+# You can extract the species and site scores on the new PC for further analyses:
+sitePCA <- PCA$CA$u # Site scores
+speciesPCA <- PCA$CA$v # Species scores
+
+# In a biplot of a PCA, species' scores are drawn as arrows 
+# that point in the direction of increasing values for that variable
+biplot(PCA, choices = c(1,2), type = c("text", "points"), xlim = c(-5,10)) # biplot of axis 1 vs 2
+biplot(PCA, choices = c(1,3), type = c("text","points")) # biplot of axis 1 vs 3
+
+# Check out the help file how to pimp your biplot further:
+?biplot.rda
+
+# You can even go beyond that, and use the ggbiplot package.
+# You can install this package by running:
+library(devtools)
+library(ggbiplot)
+
+# First step is to calculate a distance matrix. 
+# Here we use Bray-Curtis distance metric
+dist <- vegdist(varespec,  method = "bray")
+
+# PCoA is not included in vegan. 
+# We will use the ape package instead
+library(ape)
+PCOA <- pcoa(dist)
+
+# plot the eigenvalues and interpret
+barplot(PCOA$values$Relative_eig[1:10])
+# Can you also calculate the cumulative explained variance of the first 3 axes?
+
+# Some distance measures may result in negative eigenvalues. In that case, add a correction:
+PCOA <- pcoa(dist, correction = "cailliez")
+
+# Plot your results
+biplot.pcoa(PCOA)
+
+# You see what`s missing? 
+# Indeed, there are no species plotted on this biplot. 
+# That's because we used a dissimilarity matrix (sites x sites) 
+# as input for the PCOA function. 
+# Hence, no species scores could be calculated. 
+#However, we could work around this problem like this:
+biplot.pcoa(PCOA, varespec)
+
+# Extract the plot scores from first two PCoA axes (if you need them):
+PCOAaxes <- PCOA$vectors[,c(1,2)]
+
+# Compare this result with the PCA plot
+par(mfrow = c(1, 2)) 
+biplot.pcoa(PCOA)
+plot(PCA)
+
+# reset plot window
+par(mfrow = c(1, 1)) 
+
+
+
+
+######vegan tutorial
+data(dune)
+ord <- decorana(dune)
+ord
+plot(ord)
+plot(ord, type = "n")
+points(ord, display = "sites", cex = 0.8, pch=21, col="red", bg="yellow")
+text(ord, display = "species", cex=0.7, col="blue")
+
+plot(ord, type = "n") |>
+  points("sites", cex = 0.8, pch=21, col="red", bg="yellow") |>
+  text("species", cex=0.7, col="blue")
+
+data(dune.env)
+attach(dune.env)
+plot(ord, disp="sites", type="n")
+ordihull(ord, Management, col=1:4, lwd=3)
+ordiellipse(ord, Management, col=1:4, kind = "ehull", lwd=3)
+ordiellipse(ord, Management, col=1:4, draw="polygon")
+ordispider(ord, Management, col=1:4, label = TRUE)
+points(ord, disp="sites", pch=21, col="red", bg="yellow", cex=1.3)
 
 ##################################################################################
 #Ordination Analysis--------------------------------------------------------------

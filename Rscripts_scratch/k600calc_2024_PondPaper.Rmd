@@ -1,0 +1,151 @@
+---
+title: "k600_calculation_2024"
+author: "Kriddie"
+date: "2024-05-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(here)
+library(dplyr) 
+library(tidyr) 
+library(ggplot2)
+library(cowplot)
+library(tidyverse)
+library(rstatix)
+library(ggpubr)
+library(dplyr)
+library(lubridate)
+library(readr)
+```
+
+## gas transfer velocity calculation
+
+we need to figure this shit out
+
+# Read in data
+
+
+```{r read in data}
+
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))%>%
+  select(Site,DateTime,Date,
+         CO2_ppm,CH4_umol.L,CH4_sat,Flux_umol_m2_s,DOC_mg.L,TDN_mg.L,
+         AirPress_kpa,AirTemp_c,Watertemp_c,waterTemp_c_day,WaterTemp_c_ave3,waterTemp_c_yearly,
+         Baro_kpa,BaroTemp_c,
+         Elevation_m,depth_ave_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio,
+         surface_area_day,Volumn_m3_day,
+         WS_area_minus_pond,percentpond,percent_DTW,
+         PrecipAccuDay_mm,PrecipAccu_mm_PreviousDay,precip_mm_ave2,Precip_mm_ave7, solarrad_W_m2,solarrad_Wm2_daymean,windspeed_m_s, winddirecion)
+
+df$DateTime <- as.POSIXct(df$DateTime)
+
+```
+
+#calibrate CO2 sensors
+I think I came up with an defense for not calibrating sensors (see text). I really don't want to because the old sensor had a low y-intercept and if I calibrate it then the sites are even lower in co2, wich would mean i'd have to do even more explaining, and I just don't think, science-wise there is a lot to be gained. So i'd like to avoid all that. Anyway, if we find that we need to do all this, look at the script - "CalibrationCode2.r" in the VaisalaCalibration folder. It's actually pretty well organized.
+
+## working with the final data set (synoptic)
+
+output for viasala is:
+
+molecular density - so molecules/volume of gas. Here the volume of the gas is what is inside the cuvette. So, the sensor is basically giving out the number of molecules in the optical path.
+
+```{r the kriddie way for final, echo=FALSE}
+#pV=nRT
+#p=nRT/V
+#R m3⋅Pa⋅K−1⋅mol−1
+#R=8.31446261815324 	
+
+#adjust henry to temp: KH = KH(STP) x exp(D(1/T-1/T(STP)))
+#use constants in  	Burkholder et al. (2019) and convert to desired units
+#  k°H (mol/(kg*bar) = mol/l/atm
+#d(ln(kH))/d(1/T) (K)
+kH_STP_mol.l.atm = .035*1/0.986923
+D_K = 2400 
+T_STP_K = 298.15
+
+df$pCO2_air_ppm <- 418.53 # 2022 average manoa
+
+
+#########
+#airpressure was collected at each site, so no need to adjust for elevation
+
+df$air_pressure_atm <- df$AirPress_kpa / 101.3
+
+df$water_pressure_atm <- df$AirPress_kpa / 101.3 + 0.000967841
+
+
+########
+
+df$pCO2_air_atm <-  df$pCO2_air_ppm / 10^6  * df$air_pressure_atm
+
+
+df$pCO2_w_atm <- df$CO2_ppm / 10^6 * df$water_pressure_atm 
+
+#henry's constant adjust for temp
+df$KH_mol.l.atm <- kH_STP_mol.l.atm * exp(D_K*(1/(df$Watertemp_c+273.15) - 1/T_STP_K))
+df$KH_mol.m3.atm <- df$KH_mol.l.atm * 1000
+
+df$CO2_sat_mol.L <- df$KH_mol.l.atm*df$pCO2_air_atm
+
+df$CO2_mol.L <- df$KH_mol.l.atm*df$pCO2_w_atm
+df$CO2_umol.L <- df$CO2_mol.L*10^6
+
+
+df$CO2_sat <- df$CO2_mol.L/df$CO2_sat_mol.L*100
+
+
+#change units of flux (umol/m2/s - > mol/m2/d)
+#86400 seconds in a day
+df$Flux_mol_m2_d <- df$Flux_umol_m2_s / 10^6 * 86400
+
+#now calculate k in m/d
+df$k_m_d <- df$Flux_mol_m2_d / (df$KH_mol.m3.atm * (df$pCO2_w_atm -  df$pCO2_air_atm )) 
+
+df$Sc_co2 <- 1923.6 - 125.06*df$Watertemp_c + 4.3773*(df$Watertemp_c)^2 - 0.085681*(df$Watertemp_c)^3 + 0.00070284 * (df$Watertemp_c)^4
+
+
+#add henry's constant CH4
+kH_STP_mol.L.atm = .0014182
+dlnHcppersperK = 1600
+df$KH_CH4_mol.L.atm <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(df$Watertemp_c+273.15)-1/T_STP_K))
+
+#Ambient CH4 concentration ppb	1910.97 	
+#average 2021 from Moaa
+CH4_air_ppb <- 1910.97 
+
+df$CH4_air_atm <- df$air_pressure_atm * CH4_air_ppb * 10^-9
+
+df$CH4_sat_umol.L <- df$CH4_air_atm*df$KH_CH4_mol.L.atm * 10^6
+
+df$CH4_pSat <- df$CH4_umol.L/df$CH4_sat_umol.L *100
+
+#One can calculate the gas transfer velocity of one gas (gas1) from another (gas2) using kgas1/kgas2 = (Scgas1/Scgas2)^-n. where Sc is the Schmidt number and n is the Schmidt number exponent, which is generally assigned a value of 1/2 to 2/3 depending on the surface state of the water (Jahne et al. 1987), - Raymond et al 2012
+
+#Matthews et al. 2003 Environ. Sci. Technol.
+df$Sc_ch4 <- 1897.8 + -114.28*df$Watertemp_c + 32902*(df$Watertemp_c)^2 + .039061*(df$Watertemp_c)^3
+
+df$k_ch4 <- (df$Sc_ch4/df$Sc_co2)^(-2/3) * df$k_m_d
+
+df$K600 <- df$k_m_d * (600/df$Sc_co2)^(-.57)
+#df$K600_.67 <- df$k_m_d * (600/df$Sc_co2)^(-2/3)
+
+
+#df <- df%>%filter(DateTime < "2022-10-01 00:00:00")
+
+
+
+
+
+p1 <- ggplot(df) + geom_point(aes(x=CO2_ppm,y=K600,color=DateTime)) + scale_x_log10()
+p2 <- ggplot(df) + geom_point(aes(x=CO2_ppm,y=k_m_d,color=DateTime)) + scale_x_log10()
+
+
+#write.csv(df,here::here("ProcessedData/PondPaper_k600.csv"))
+
+
+```
+
