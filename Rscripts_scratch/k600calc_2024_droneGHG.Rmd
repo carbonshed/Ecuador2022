@@ -1,0 +1,113 @@
+---
+title: "k600_calculation_2024"
+author: "Kriddie"
+date: "2024-05-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(here)
+library(dplyr) 
+library(tidyr) 
+library(ggplot2)
+library(cowplot)
+library(tidyverse)
+library(rstatix)
+library(ggpubr)
+library(dplyr)
+library(lubridate)
+library(readr)
+```
+
+## gas transfer velocity calculation
+
+we need to figure this shit out
+
+# Read in data
+
+
+```{r read in data}
+
+df <- read_csv("~/Documents/Ecuador2022/DroneData/GasSamples_Drone_df.csv")
+
+df$DateTime <- as.POSIXct(df$DateTime,format="%m/%d/%y")
+
+```
+
+## working with the final data set (synoptic)
+
+output for viasala is:
+
+molecular density - so molecules/volume of gas. Here the volume of the gas is what is inside the cuvette. So, the sensor is basically giving out the number of molecules in the optical path.
+
+```{r the kriddie way for final, echo=FALSE}
+#pV=nRT
+#p=nRT/V
+#R m3⋅Pa⋅K−1⋅mol−1
+#R=8.31446261815324 	
+
+#adjust henry to temp: KH = KH(STP) x exp(D(1/T-1/T(STP)))
+#use constants in  	Burkholder et al. (2019) and convert to desired units
+#  k°H (mol/(kg*bar) = mol/l/atm
+#d(ln(kH))/d(1/T) (K)
+kH_STP_mol.l.atm = .035*1/0.986923
+D_K = 2400 
+T_STP_K = 298.15
+
+df$pCO2_air_ppm <- 418.53 # 2022 average manoa
+
+
+#########
+#airpressure was collected at each site, so no need to adjust for elevation
+
+df$air_pressure_atm <- df$AirPress_kpa / 101.3
+
+df$water_pressure_atm <- df$AirPress_kpa / 101.3 + 0.000967841
+
+
+########
+
+df$pCO2_air_atm <-  df$pCO2_air_ppm / 10^6  * df$air_pressure_atm
+
+
+df$pCO2_w_atm <- df$CO2_ppm / 10^6 * df$water_pressure_atm 
+
+#henry's constant adjust for temp
+df$KH_mol.l.atm <- kH_STP_mol.l.atm * exp(D_K*(1/(df$Watertemp_c+273.15) - 1/T_STP_K))
+df$KH_mol.m3.atm <- df$KH_mol.l.atm * 1000
+
+df$CO2_sat_mol.L <- df$KH_mol.l.atm*df$pCO2_air_atm
+
+df$CO2_mol.L <- df$KH_mol.l.atm*df$pCO2_w_atm
+df$CO2_umol.L <- df$CO2_mol.L*10^6
+
+
+df$CO2_sat <- df$CO2_mol.L/df$CO2_sat_mol.L*100
+
+
+#add henry's constant CH4
+kH_STP_mol.L.atm = .0014182
+dlnHcppersperK = 1600
+df$KH_CH4_mol.L.atm <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(df$Watertemp_c+273.15)-1/T_STP_K))
+
+#Ambient CH4 concentration ppb	1910.97 	
+#average 2021 from Moaa
+CH4_air_ppb <- 1910.97 
+
+df$CH4_air_atm <- df$air_pressure_atm * CH4_air_ppb * 10^-9
+
+df$CH4_sat_umol.L <- df$CH4_air_atm*df$KH_CH4_mol.L.atm * 10^6
+
+df$CH4_pSat <- df$CH4_umol.L/df$CH4_sat_umol.L *100
+
+p1 <- ggplot(df) + geom_point(aes(x=CO2_umol.L,y=CH4_umol.L,color=DateTime)) + scale_x_log10()
+p2 <- ggplot(df) + geom_point(aes(x=CO2_ppm,y=k_m_d,color=DateTime)) + scale_x_log10()
+
+
+write.csv(df,here::here("ProcessedData/Drone_Gavi_sampling_GHG.csv"))
+
+
+```
+

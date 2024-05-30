@@ -867,4 +867,70 @@ full_2 <- ggarrange(p.ch4, p.co2, ncol = 1, nrow = 2,common.legend = TRUE)
 
 ```
 
+```{r holgerson and raymond, echo=FALSE}
+
+df_merge <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%rename("Site_Name"="Site")
+df_merge$Area_ha <-  df_merge$surface_area_m2 / 10000
+df_merge$Reference <- "This Study"
+df_merge$Location <- "La Virgen"
+df_merge$latitude <- -0.324311
+df_merge$longitude <- -78.1995
+df_merge$Study.Years <- 2022
+df_merge <- df_merge%>%select(Reference,Site_Name,Location,latitude,longitude,Study.Years,CH4_umol.L,CO2_umol.L,Area_ha,Watertemp_c)
+
+#read in Holgerston & Raymond data set
+df_Holg <- read.csv(here::here("Wetlands/Holgerson&Raymond_data1.csv"))%>%rename("Site_Name"="Site.Name","CH4_umol.L"="ch4..umol.L.","CO2_umol.L"="co2..umol.L.","Area_ha"="area..ha.","Watertemp_c"="temp..C.")%>%select(Reference,Site_Name,Location,latitude,longitude,Study.Years,CH4_umol.L,CO2_umol.L,Area_ha,Watertemp_c)
+
+df_Holg <- rbind(df_Holg,df_merge)
+df_Holg$CH4_umol.L <- as.numeric(df_Holg$CH4_umol.L)
+df_Holg$CO2_umol.L <- as.numeric(df_Holg$CO2_umol.L)
+
+df_Holg$New.Name <- df_Holg$Site_Name
+df_Holg <- df_Holg%>%
+  mutate(New.Name = case_match(New.Name, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8', 'Wetland06' ~ 'S5', 'Wetland07' ~ 'S7', 'Wetland08' ~ 'S12', 'Wetland09' ~ 'S10', 'Wetland10' ~ 'S11', 'Wetland11' ~ 'S6','Wetland12' ~ 'S9'))
+df_Holg$New.Name <- factor(df_Holg$New.Name, levels = c("S1", "S2", "S3","S4","S5","S6","S7","S8","S9","S10","S11","S12"))
+
+#log co2 v ch4
+ggplot() +
+  geom_point(data=df_Holg,aes(x=CO2_umol.L,y=CH4_umol.L),color='grey',size=3) +
+  geom_point(data=df_Holg%>%filter(Reference=="This Study"),
+             aes(x=CO2_umol.L,y=CH4_umol.L,color=New.Name),size=3) +
+  scale_y_log10() + scale_x_log10() + scale_color_discrete(name = "Site") +
+  theme_bw(base_size = 16) 
+
+```
+#gavi wetland sampling
+
+```{r gavi wetland, echo=FALSE}
+gavi_df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%filter(Site=="Wetland12")%>%select(Site, Date, CH4_umol.L, CO2_umol.L, Watertemp_c)
+gavi_df$Date <- as.Date(gavi_df$Date,format = "%Y-%m-%d")
+gavi_df$Location <- "center"
+gavi_df$Site2 <- NA
+
+drone_GHG <- read.csv(here::here("ProcessedData/Drone_Gavi_sampling_GHG.csv"))%>%select(Site, Site2, Date, CH4_umol.L, CO2_umol.L, Watertemp_c)
+
+drone_GHG <- drone_GHG%>%group_by(Site,Date,Site2)%>%summarise(
+  CH4_umol.L = mean(CH4_umol.L,rm.na=TRUE),
+  CO2_umol.L = mean(CO2_umol.L,rm.na=TRUE),
+  Watertemp_c = mean(Watertemp_c,rm.na=TRUE)
+)
+drone_GHG$Date <- as.Date(drone_GHG$Date,format = "%m/%d/%y")
+drone_GHG$Location <- "margins"
+
+df <- rbind(gavi_df,drone_GHG)
+df_melt <- df %>%select(Location,Date,Site2,CH4_umol.L,CO2_umol.L)%>%
+    pivot_longer(
+      cols = -c(Location,Date,Site2),  # Columns to be melted
+      names_to = "gas",      # Name of the new key column
+      values_to = "umol.L"         # Name of the new value column
+    )
+ 
+
+
+p2 <- ggplot(df_melt,aes(x=gas, y=umol.L,fill=Location)) + #facet_wrap(~gas) +
+  geom_boxplot() +
+  geom_point(pch = 21, position = position_jitterdodge(jitter.width = .25, jitter.height = 0, dodge.width = 0.75)) + 
+  scale_y_log10() + theme_bw(base_size = 16)
+
+```
 
