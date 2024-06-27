@@ -106,7 +106,7 @@ p1 <- ggplot(df) + geom_point(aes(x=CO2_umol.L,y=CH4_umol.L,color=DateTime)) + s
 p2 <- ggplot(df) + geom_point(aes(x=CO2_ppm,y=k_m_d,color=DateTime)) + scale_x_log10()
 
 
-write.csv(df,here::here("ProcessedData/Drone_Gavi_sampling_GHG.csv"))
+#write.csv(df,here::here("ProcessedData/Drone_Gavi_sampling_GHG.csv"))
 
 
 ```
