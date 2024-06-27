@@ -67,9 +67,15 @@ WL_df$name.code <- factor(WL_df$name.code, levels = c("W1","W2","W3","W4","W5","
 
 
 
-p1 <- ggplot(data = WL_df%>%filter(Station=="WL_Wetland01")) + 
+p1 <- ggplot(data = WL_df%>%filter(Station=="WL_Wetland07")) + 
   geom_point(aes(x = DateTime, y = depth_ave_m),size=1)
 p1
+
+
+fig <- plot_ly(data = WL_df%>%filter(Station=="WL_Wetland07"),
+               x = ~DateTime, y = ~depth_ave_m)
+
+
 p1 + facet_wrap(~Station)+theme(text=element_text(size=21))
 
 
