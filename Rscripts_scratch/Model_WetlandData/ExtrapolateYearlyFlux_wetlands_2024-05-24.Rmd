@@ -15,6 +15,7 @@ library(lmerTest)
 library(jtools)
 library(reshape2)
 library(ggplot2)
+library(tidyr)
 ```
 
 ## modeling CO2 and CH4 flux
@@ -39,59 +40,10 @@ https://aslopubs.onlinelibrary.wiley.com/doi/full/10.1215/21573689-1597669
 k(gas1)/k(gas2) = (sc(gas1)/sc(gas2))^-n
 because we are doing ponds, n = 2/3
 Sc: Schmidt number temperature dependencies -- using Wanninkhof(1992) as reported in linked citation above
-    CO2: 1911 + -118.11* T + 3.453 * T^2 + -0.0413 * T^3
-    CH4: 1898 + -114.28* T + 3.29* T^2 + -.0391 * T^3
+*Update*
+We are now using numbers reported in Wanninkhof (2014)
     
   T is in degree celcius
-
-#model results
-
-> without wetland 12
-
-#(Intercept), scale(waterTemp_c_yearly), scale(log(SA_to_Vol_ratio)), scale(percent_DTW), scale(Elevation_m)
-
-M_AICc_CH4 <- lmer(log(CH4_umol.L) ~ 
-                  scale(waterTemp_c_yearly)+ 
-                  scale(log(SA_to_Vol_ratio)) +
-                scale(percent_DTW) +
-                scale(Elevation_m) +
-                  (1 |Site), data =df_1,REML = FALSE)
-sum_AICc_CH4 <- summary(M_AICc_CH4)
-sum_AICc_CH4_coefficients <- sum_AICc_CH4$coefficients
-modelPerformance(M_AICc_CH4)
-
-#without wetland 12
-#(Intercept), (Intercept), scale(log(SA_to_Vol_ratio)), scale(Elevation_m)
-M_BIC_CH4 <- lmer(log(CH4_umol.L) ~ 
-                scale(log(SA_to_Vol_ratio)) + 
-                scale(Elevation_m)+
-                  (1 |Site), data =df_1,REML = FALSE)
-sum_BIC_CH4 <- summary(M_BIC_CH4)
-sum_BIC_CH4_coefficients <- sum_BIC_CH4$coefficients
-modelPerformance(M_BIC_CH4)
-
-#CO2 AICc 
-#AICc: (Intercept), scale(Watertemp_c), scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m)
-M_AICc_CO2 <- lmer(log(CO2_umol.L) ~ 
-                  scale(Watertemp_c)+ 
-                  scale(waterTemp_c_yearly) +
-                  scale(percent_DTW) +
-                  scale(Elevation_m) +
-                  (1 |Site), data =df_1,REML = FALSE)
-sum_AICc_CO2 <- summary(M_AICc_CO2)
-sum_AICc_CO2_coefficients <- sum_AICc_CO2$coefficients
-modelPerformance(M_AICc_CO2)
-
-#CO2 BIC
-M_BIC_CO2 <- lmer(log(CO2_umol.L) ~ 
-                scale(percent_DTW) +
-                scale(Elevation_m) +
-                  (1 |Site), data =df_1,REML = FALSE)
-sum_BIC_CO2 <- summary(M_BIC_CO2)
-sum_BIC_CO2_coefficients <- sum_BIC_CO2$coefficients
-modelPerformance(M_BIC_CO2)
-
-
 
 
 
@@ -102,9 +54,10 @@ modelPerformance(M_BIC_CO2)
 #here are the factors that were selected as predictors of CO2 and CH4
 #1. Watertemp_c 
 #2. waterTemp_c_yearly
+#3. log(WS_area_minus_pond)
 #4. percent_DTW
 #5. Elevation_m
-#6. log(SA_to_Vol_ratio)
+
 
 
 WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv"))%>%select(DateTime,Station,Baro_kpa,BaroTemp_c,WLTemp_c,depth_ave_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio)%>%rename(Site=Station)%>%rename(WaterTemp_c=WLTemp_c)
@@ -112,30 +65,33 @@ WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 WL_df$Site <- gsub(".*_","",WL_df$Site)
 WL_df$Date <- as.Date(WL_df$DateTime)
 
-
-#Read in data that is consistant per site
 df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
 
-df_1 <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%select(Site,waterTemp_c_yearly,Elevation_m,percent_DTW)
+#Read in data that is consistant per site
+df_1 <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%select(Site,waterTemp_c_yearly,WS_area_minus_pond,Elevation_m,percent_DTW)
 df_1 <- unique(df_1)
 
 df_2 <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%select(Site,CO2_umol.L,CH4_umol.L,K600)
-df_2 <- df_2%>%group_by(Site)%>%summarise(
+
+df_3 <- df_2%>%group_by(Site)%>%summarise(
   CO2_umol.L_mean = mean(CO2_umol.L,na.rm=TRUE),
   CH4_umol.L_mean = mean(CH4_umol.L,na.rm=TRUE),
-  K600_m.day.median = median(K600,na.rm=TRUE)
 )
+
+K600_m.day.median = median(df$K600,na.rm=TRUE)
 
 #bind data 
 df_full <- full_join(WL_df,df_1,by="Site")
-df_full <- full_join(df_full,df_2,by="Site")
+df_full <- full_join(df_full,df_3,by="Site")
 ##add gas transfer velocity
+df_full$K600_m.day.median <- K600_m.day.median
 df_full$K600_m.sec <- df_full$K600_m.day.median / (60*60*24)
 
-#calculate schmidts number based on temperature
+#calculate schmidts number based on temperature Wanninkhof 2014
+df_full$Sc_ch4 <- 1909.4 + -120.78*df_full$WaterTemp_c - .0805681*(df_full$WaterTemp_c)^2 + .00065777*(df_full$WaterTemp_c)^3
+
 df_full$Sc_co2 <- 1923.6 - 125.06*df_full$WaterTemp_c + 4.3773*(df_full$WaterTemp_c)^2 - 0.085681*(df_full$WaterTemp_c)^3 + 0.00070284 * (df_full$WaterTemp_c)^4
-#Matthews et al. 2003 Environ. Sci. Technol.
-df_full$Sc_ch4 <- 1897.8 + -114.28*df_full$WaterTemp_c + 32902*(df_full$WaterTemp_c)^2 + .039061*(df_full$WaterTemp_c)^3
+
 
 
 ## convert to k for co2 and k for ch4
@@ -192,22 +148,41 @@ df_full$CH4_sat_mol.m3 <- df_full$CH4_air_atm*df_full$KH_mol.m3.atm_CH4
 
 ## Write flux models AIc and BIC,  without wetland 12
 #time to extrapolate
+#model results
+df_1 <- df%>%filter(Site!="Wetland12")
 
-#(Intercept), (Intercept), scale(log(SA_to_Vol_ratio)), scale(Elevation_m)
+#(Intercept), scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m)
+
+
+M_AICc_CH4 <- lmer(log(CH4_umol.L) ~ 
+                  scale(waterTemp_c_yearly)+
+                scale(percent_DTW) +
+                scale(Elevation_m) +
+                  (1 |Site), data =df_1,REML = FALSE)
+sum_AICc_CH4 <- summary(M_AICc_CH4)
+sum_AICc_CH4_coefficients <- sum_AICc_CH4$coefficients
+modelPerformance(M_AICc_CH4)
+
+#without wetland 12
+#(Intercept), scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m)
+
 M_BIC_CH4 <- lmer(log(CH4_umol.L) ~ 
-                scale(log(SA_to_Vol_ratio)) + 
-                scale(Elevation_m)+
+                 scale(waterTemp_c_yearly)+
+                scale(percent_DTW) +
+                scale(Elevation_m) +
                   (1 |Site), data =df_1,REML = FALSE)
 sum_BIC_CH4 <- summary(M_BIC_CH4)
 sum_BIC_CH4_coefficients <- sum_BIC_CH4$coefficients
 modelPerformance(M_BIC_CH4)
 
 #CO2 AICc 
-#AICc: (Intercept), scale(Watertemp_c), scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m)
+#AICc: (Intercept), scale(Watertemp_c), scale(waterTemp_c_yearly), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
+
 M_AICc_CO2 <- lmer(log(CO2_umol.L) ~ 
                   scale(Watertemp_c)+ 
                   scale(waterTemp_c_yearly) +
-                  scale(percent_DTW) +
+                 scale(log(WS_area_minus_pond)) +
+                    scale(percent_DTW) +
                   scale(Elevation_m) +
                   (1 |Site), data =df_1,REML = FALSE)
 sum_AICc_CO2 <- summary(M_AICc_CO2)
@@ -215,7 +190,12 @@ sum_AICc_CO2_coefficients <- sum_AICc_CO2$coefficients
 modelPerformance(M_AICc_CO2)
 
 #CO2 BIC
-M_BIC_CO2 <-lme4::lmer(log(CO2_umol.L) ~ 
+#(Intercept), scale(waterTemp_c_yearly), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
+
+
+M_BIC_CO2 <- lmer(log(CO2_umol.L) ~ 
+                scale(waterTemp_c_yearly) +
+                scale(log(WS_area_minus_pond)) +
                 scale(percent_DTW) +
                 scale(Elevation_m) +
                   (1 |Site), data =df_1,REML = FALSE)
@@ -224,18 +204,17 @@ sum_BIC_CO2_coefficients <- sum_BIC_CO2$coefficients
 modelPerformance(M_BIC_CO2)
 
 
+
 ```{r models, echo=FALSE}
 
 ##
 #cH4 WITHOUT wetland 12
-
 df_model <- df%>%filter(Site!="Wetland12")
 
-#(Intercept), scale(waterTemp_c_yearly), scale(log(SA_to_Vol_ratio)), scale(percent_DTW), scale(Elevation_m)
+#(Intercept),   scale(waterTemp_c_yearly)+ scale(percent_DTW) + scale(Elevation_m) +
 
 M_AICc_CH4 <- lmer(log(CH4_umol.L) ~ 
-                  waterTemp_c_yearly+ 
-                  log(SA_to_Vol_ratio) +
+                   waterTemp_c_yearly+
                 percent_DTW +
                 Elevation_m +
                   (1 |Site), data =df_model,REML = FALSE)
@@ -251,19 +230,20 @@ df_full <- left_join(df_full,intercept_df,by="Site")
 df_full$M_AICc_CH4 <- exp(
   df_full$intercept +
    df_full$waterTemp_c_yearly * coeff_df[2,"Estimate"] +
-  log(df_full$SA_to_Vol_ratio) * coeff_df[3,"Estimate"] +
-    df_full$percent_DTW * coeff_df[4,"Estimate"] +
-    df_full$Elevation_m * coeff_df[5,"Estimate"] 
+    df_full$percent_DTW * coeff_df[3,"Estimate"] +
+    df_full$Elevation_m * coeff_df[4,"Estimate"] 
   )
 
 df_full$intercept <- NULL
 
 
 #without wetland 12
-#(Intercept), (Intercept), scale(log(SA_to_Vol_ratio)), scale(Elevation_m)
+#(same as CH4 AICc)
+#(Intercept),   scale(waterTemp_c_yearly)+ scale(percent_DTW) + scale(Elevation_m) +
 M_BIC_CH4 <- lmer(log(CH4_umol.L) ~ 
-                log(SA_to_Vol_ratio) + 
-                Elevation_m+
+                 waterTemp_c_yearly+
+                percent_DTW +
+                Elevation_m +
                   (1 |Site), data =df_model,REML = FALSE)
 
 sum_df <- summary(M_BIC_CH4)
@@ -277,18 +257,21 @@ df_full <- left_join(df_full,intercept_df,by="Site")
 
 df_full$M_BIC_CH4 <- exp(
   df_full$intercept +
-  log(df_full$SA_to_Vol_ratio) * coeff_df[2,"Estimate"] +
-    df_full$Elevation_m * coeff_df[3,"Estimate"]
+  df_full$waterTemp_c_yearly * coeff_df[2,"Estimate"] +
+    df_full$percent_DTW * coeff_df[3,"Estimate"] +
+    df_full$Elevation_m * coeff_df[4,"Estimate"]
   )
 
 df_full$intercept <- NULL
 
 #CO2 AICc 
-#AICc: (Intercept), scale(Watertemp_c), scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m)
+#AICc: (Intercept),  scale(Watertemp_c)+ scale(waterTemp_c_yearly) +scale(log(WS_area_minus_pond)) +scale(percent_DTW) + scale(Elevation_m) 
+
 M_AICc_CO2 <- lmer(log(CO2_umol.L) ~ 
-                  Watertemp_c+ 
+                  Watertemp_c + 
                   waterTemp_c_yearly +
-                  percent_DTW +
+                 log(WS_area_minus_pond) +
+                    percent_DTW +
                   Elevation_m +
                   (1 |Site), data =df_model,REML = FALSE)
 
@@ -305,14 +288,18 @@ df_full$M_AICc_CO2 <- exp(
   df_full$intercept +
    df_full$WaterTemp_c * coeff_df[2,"Estimate"] +
     df_full$waterTemp_c_yearly * coeff_df[3,"Estimate"] +
-        df_full$percent_DTW * coeff_df[4,"Estimate"] +
-    df_full$Elevation_m * coeff_df[5,"Estimate"]
+    log(df_full$WS_area_minus_pond) * coeff_df[4,"Estimate"] +
+        df_full$percent_DTW * coeff_df[5,"Estimate"] +
+    df_full$Elevation_m * coeff_df[6,"Estimate"]
   )
 
 df_full$intercept <- NULL
 
-#BIC, without elevation: (Intercept), scale(log(surface_area_m2))
+#BIC, without elevation: (Intercept),  waterTemp_c_yearly + log(WS_area_minus_pond) + percent_DTW + Elevation_m
+
 M_BIC_CO2 <-lmer(log(CO2_umol.L) ~ 
+                waterTemp_c_yearly +
+                log(WS_area_minus_pond) +
                 percent_DTW +
                 Elevation_m +
                   (1 |Site), data =df_model,REML = FALSE)
@@ -328,8 +315,10 @@ df_full <- left_join(df_full,intercept_df,by="Site")
 
 df_full$M_BIC_CO2 <- exp(
   df_full$intercept +
-      df_full$percent_DTW * coeff_df[2,"Estimate"] +
-    df_full$Elevation_m * coeff_df[3,"Estimate"]
+    df_full$waterTemp_c_yearly * coeff_df[2,"Estimate"] +
+    log(df_full$WS_area_minus_pond) * coeff_df[3,"Estimate"] +
+      df_full$percent_DTW * coeff_df[4,"Estimate"] +
+    df_full$Elevation_m * coeff_df[5,"Estimate"]
   )
 
 df_full$intercept <- NULL
