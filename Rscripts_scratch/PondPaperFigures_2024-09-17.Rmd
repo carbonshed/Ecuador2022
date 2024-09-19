@@ -194,8 +194,13 @@ WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv
 WL_df[WL_df$Station=="WL_Wetland12",]$depth_ave_m <- WL_df[WL_df$Station=="WL_Wetland12",]$WaterLevel_m
 WL_df <- WL_df[c("DateTime","Station","Baro_kpa","BaroTemp_c","WLTemp_c","depth_ave_m","surface_area_m2","Volumn_m3","SA_to_Vol_ratio")]
 WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
-WL_df$Station <- paste("W",as.numeric(gsub("\\D", "", WL_df$Station)))
-WL_df$Station <- stringr::str_replace_all(WL_df$Station, " ", "")
+#WL_df$Station_2 <- paste("Wetland",as.numeric(gsub("\\D", "", WL_df$Station)))
+WL_df$Station <- str_sub(WL_df$Station,4)
+#WL_df$Station <- stringr::str_replace_all(WL_df$Station, " ", "")
+
+#read in elevation data to merge with WL
+df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%select(Site,Elevation_m)
+df <- unique(df)
 
 #med deli plot
 
@@ -209,23 +214,25 @@ Summary_df <- WL_df%>%
     depth_max = max(depth_ave_m, na.rm = TRUE),
     depth_min = min(depth_ave_m, na.rm = TRUE),
     depth_mean = mean(depth_ave_m, na.rm = TRUE)
-  )
+  )%>%rename(Site=Station)
 
-Summary_df$New.Name <- Summary_df$Station
-Summary_df <- Summary_df%>%
+Summary_df <- full_join(Summary_df,df,by="Site")
+
+#Summary_df$New.Name <- Summary_df$Site
+#Summary_df <- Summary_df%>%
   mutate(New.Name = case_match(New.Name,'WL_Wetland01' ~ 'S1', 'WL_Wetland02' ~ 'S2', 'WL_Wetland03' ~ 'S3', 'WL_Wetland04' ~ 'S4', 'WL_Wetland05' ~ 'S8', 'WL_Wetland06' ~ 'S5', 'WL_Wetland07' ~ 'S7', 'WL_Wetland08' ~ 'S12', 'WL_Wetland09' ~ 'S10', 'WL_Wetland10' ~ 'S11', 'WL_Wetland11' ~ 'S6', 'WL_Wetland12' ~ 'wetland'))
 
 
-Summary_df$New.Name <- factor(Summary_df$New.Name, levels = c("S1","S2","S3","S4","S5","S6","S7","S8","wetland","S10","S11","S12"))
+#Summary_df$New.Name <- factor(Summary_df$New.Name, levels = c("S1","S2","S3","S4","S5","S6","S7","S8","wetland","S10","S11","S12"))
 
 
-p2 <- ggplot(data=Summary_df,aes(x=SA_mean,y=depth_mean, color=New.Name)) +
-  geom_point(shape=7,size=5) +
-  geom_segment(aes(x = SA_min, y = depth_mean, xend = SA_max, yend = depth_mean, color=New.Name),linewidth=1) +
-  geom_segment(aes(x = SA_mean, y = depth_min, xend = SA_mean, yend = depth_max, color=New.Name),linewidth=1) +
+p2 <- ggplot(data=Summary_df,aes(x=SA_mean,y=depth_mean, fill=Elevation_m)) +
+  geom_point(shape=22,size=5) +
+  geom_segment(aes(x = SA_min, y = depth_mean, xend = SA_max, yend = depth_mean), color="grey25",linewidth=.5) +
+  geom_segment(aes(x = SA_mean, y = depth_min, xend = SA_mean, yend = depth_max), color="grey25",linewidth=.5) +
   scale_y_log10() + scale_x_log10() +
   theme_classic() +
-  theme(text=element_text(size=20)) + theme(legend.title= element_blank()) +
+  theme(text=element_text(size=20)) + guides(fill=guide_legend(title="Elevation (m)")) +
   theme(
     axis.text.x = element_text(color="black"),
     axis.ticks = element_line(color = "black")) +
@@ -379,7 +386,7 @@ summarize(
 now we test for variance between sites
 
 ```{r site variance, echo=FALSE}
-
+ 
 df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
 df$New.Name <- df$Site
 
@@ -402,7 +409,7 @@ df <- df%>%
 
 options(scipen = 100)
 #methane
-CH4_model <- aov(log1p(CH4_umol.L) ~ New.Name , data = df)
+CH4_model <- aov(log1p(pCH4_ppm) ~ New.Name , data = df)
 summary(CH4_model)
 
 # Check normality of residuals
@@ -410,28 +417,29 @@ res <- residuals(CH4_model)
 qqnorm(res) 
 qqline(res)
 shapiro.test(res) #normality
-bartlett.test(log(CH4_umol.L)  ~ Site, data = df) 
+bartlett.test(log(pCH4_ppm)  ~ Site, data = df) 
 
 #non-parametric
-kruskal.test(log1p(CH4_umol.L) ~ Site , data = df)
+kruskal.test(log1p(pCH4_ppm) ~ Site , data = df)
 #this on is good
-conver_results_CH4<- kwAllPairsConoverTest(log1p(CH4_umol.L) ~ as.factor(New.Name), data = df, p.adjust="bonferroni")
+conver_results_CH4<- kwAllPairsConoverTest(log1p(pCH4_ppm) ~ as.factor(New.Name), data = df, p.adjust="bonferroni")
 conver_results_CH4 <- conver_results_CH4$p.value
-conver_results_CH4[conver_results_CH4>.05]<-NA
+#conver_results_CH4[conver_results_CH4>.05]<-NA
 
 
 ##co2
 
-CO2_model <- aov(log1p(CO2_umol.L) ~ New.Name , data = df)
+CO2_model <- aov(log(pCO2_ppm) ~ New.Name , data = df)
 summary(CO2_model)
 # Check assumptions
 res <- residuals(CO2_model)
 qqnorm(res) 
 qqline(res)
 shapiro.test(res) #normality
-bartlett.test(log1p(CO2_umol.L)  ~ Site, data = df) 
+bartlett.test(log(pCO2_ppm)  ~ Site, data = df) 
 
-conver_results_CO2<- kwAllPairsConoverTest(log(CO2_umol.L) ~ as.factor(Site), data = df, p.adjust="bonferroni")
+df <- df[order(df$New.Name),]
+conver_results_CO2<- kwAllPairsConoverTest(log(pCO2_ppm) ~ as.factor(New.Name), data = df, p.adjust="bonferroni")
 conver_results_CO2 <- conver_results_CO2$p.value
 
 #co2 passes assumptions, but CH4 does not
@@ -440,63 +448,63 @@ tuk_df <- data.frame(tuk$New.Name)
 tuk_df <- tuk_df%>%filter(p.adj<.05)
 
 co2_sum <- df%>%group_by(New.Name)%>%summarise(
-  mean_cO2 =mean(CO2_umol.L),
+  mean_pCO2 =mean(pCO2_ppm),
   mean_size = mean(surface_area_m2)
 )
 
-ggplot(df,aes(x=reorder(New.Name,surface_area_m2,median),y=log(CH4_umol.L),color=Site)) + geom_point(size=3) 
+ggplot(df,aes(x=reorder(New.Name,surface_area_m2,median),y=log(pCH4_ppm),color=Site)) + geom_point(size=3) 
 
-ggplot(df,aes(x=as.factor(Site),y=log(CH4_umol.L),color=Site)) + geom_point(size=3) 
-ggplot(df,aes(x=as.factor(Site),y=log(CO2_umol.L),color=Site)) + geom_point(size=3) 
+ggplot(df,aes(x=as.factor(Site),y=log(pCH4_ppm),color=Site)) + geom_point(size=3) 
+ggplot(df,aes(x=as.factor(Site),y=log(pCO2_ppm),color=Site)) + geom_point(size=3) 
 
 elev_df <- df%>%select(Site,Elevation_m)
 
 
 #now you can do the figure
-p.ch4 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),y=CH4_umol.L)) +
+p.ch4 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),y=pCH4_ppm)) +
    geom_point(size=2) +
     geom_boxplot(fill="grey"#outlier.colour="red", outlier.shape=8,outlier.size=2
      ) +
   stat_summary(geom = "point", fun = "mean", col = "black", size = 3, shape = 24, fill = "red") +
   scale_y_log10() +
-   ylab(expression(CH[4] ~'('~mu*'mol' ~ l^-1~')')) + xlab("") +
+   ylab(expression(italic(p)~CH[4] ~'(ppm)')) + xlab("") +
   theme_bw(base_size = 16) +
   theme(axis.text.x=element_blank()) +
-  annotate("text", x = "S1", y = 20, label = "A") +
-  annotate("text", x = "S2", y = 20, label = "A") +
-  annotate("text", x = "S3", y = 20, label = "AB") +
-  annotate("text", x = "S4", y = 20, label = "CD") +
-  annotate("text", x = "S5", y = 20, label = "BCEFG") +
-  annotate("text", x = "S6", y = 20, label = "BCEFG") +
-  annotate("text", x = "S7", y = 20, label = "AG") +
-  annotate("text", x = "S8", y = 20, label = "DE") +
-  annotate("text", x = "Wetland", y = 20, label = "ACEFG") +
-  annotate("text", x = "S10", y = 20, label = "D") +
-  annotate("text", x = "S11", y = 20, label = "D") +
-  annotate("text", x = "S12", y = 20, label = "DF")
+  annotate("text", x = "S1", y = 15000, label = "A") +
+  annotate("text", x = "S2", y = 15000, label = "A") +
+  annotate("text", x = "S3", y = 15000, label = "AB") +
+  annotate("text", x = "S4", y = 15000, label = "C") +
+  annotate("text", x = "S5", y = 15000, label = "BCD") +
+  annotate("text", x = "S6", y = 15000, label = "BCE") +
+  annotate("text", x = "S7", y = 15000, label = "ADE") +
+  annotate("text", x = "S8", y = 15000, label = "C") +
+  annotate("text", x = "Wetland", y = 15000, label = "AF") +
+  annotate("text", x = "S10", y = 15000, label = "C") +
+  annotate("text", x = "S11", y = 15000, label = "C") +
+  annotate("text", x = "S12", y = 15000, label = "CF")
 
 
 
-p.co2 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),y=CO2_umol.L)) +
+p.co2 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),y=pCO2_ppm)) +
+#  ggplot(df,aes(x=Elevation_m,,y=pCO2_ppm)) +
    geom_point(size=2) +
-  geom_boxplot(fill="grey"#outlier.colour="red", outlier.shape=8,outlier.size=2
-     ) +
+  geom_boxplot(fill="grey") +
   stat_summary(geom = "point", fun = "mean", col = "black", size = 3, shape = 24, fill = "red") +
   scale_y_log10() +
-  ylab(expression(CO[2] ~'('~mu*'mol' ~ l^-1~')')) + xlab("Site") +
+  ylab(expression(italic(p)~CO[2] ~'(ppm)')) + xlab("Site") +
 theme_bw(base_size = 16) +
-  annotate("text", x = "S1", y = 900, label = "AB") + 
-  annotate("text", x = "S2", y = 900, label = "B") +
-  annotate("text", x = "S3", y = 900, label = "AB") +
-  annotate("text", x = "S4", y = 900, label = "A") +
-  annotate("text", x = "S5", y = 900, label = "AB") +
-  annotate("text", x = "S6", y = 900, label = "AB") +
-  annotate("text", x = "S7", y = 900, label = "AB") +
-  annotate("text", x = "S8", y = 900, label = "AB") +
-  annotate("text", x = "Wetland", y = 900, label = "CD") +
-  annotate("text", x = "S10", y = 900, label = "CDE") +
-  annotate("text", x = "S11", y = 900, label = "D") +
-  annotate("text", x = "S12", y = 900, label = "E")
+  annotate("text", x = "S1", y = 15000, label = "AB") + 
+  annotate("text", x = "S2", y = 15000, label = "B") +
+  annotate("text", x = "S3", y = 15000, label = "ABC") +
+  annotate("text", x = "S4", y = 15000, label = "CD") +
+  annotate("text", x = "S5", y = 15000, label = "ABC") +
+  annotate("text", x = "S6", y = 15000, label = "ABC") +
+  annotate("text", x = "S7", y = 15000, label = "ABC") +
+  annotate("text", x = "S8", y = 15000, label = "AC") +
+  annotate("text", x = "Wetland", y = 15000, label = "D") +
+  annotate("text", x = "S10", y = 15000, label = "D") +
+  annotate("text", x = "S11", y = 15000, label = "CD") +
+  annotate("text", x = "S12", y = 15000, label = "D")
 
 
 ###now do it ordering by elevation, not surface area
@@ -543,11 +551,11 @@ sum_BIC_CH4_coefficients <- sum_BIC_CH4$coefficients
 modelPerformance(M_BIC_CH4)
 
 #CO2 AICc 
-#AICc: (Intercept), scale(Watertemp_c), scale(waterTemp_c_yearly), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
+#AICc: (Intercept), scale(Watertemp_c), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
+
 
 M_AICc_CO2 <- lmer(log(CO2_umol.L) ~ 
                   scale(Watertemp_c)+ 
-                  scale(waterTemp_c_yearly) +
                  scale(log(WS_area_minus_pond)) +
                     scale(percent_DTW) +
                   scale(Elevation_m) +
@@ -557,11 +565,11 @@ sum_AICc_CO2_coefficients <- sum_AICc_CO2$coefficients
 modelPerformance(M_AICc_CO2)
 
 #CO2 BIC
-#(Intercept), scale(waterTemp_c_yearly), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
+#(Intercept), scale(Watertemp_c), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
 
 
 M_BIC_CO2 <- lmer(log(CO2_umol.L) ~ 
-                scale(waterTemp_c_yearly) +
+                scale(Watertemp_c) +
                 scale(log(WS_area_minus_pond)) +
                 scale(percent_DTW) +
                 scale(Elevation_m) +

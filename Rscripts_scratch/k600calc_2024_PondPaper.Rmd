@@ -38,7 +38,7 @@ df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))%>%
          Elevation_m,depth_ave_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio,
          surface_area_day,Volumn_m3_day,
          WS_area_minus_pond,percentpond,percent_DTW,
-         PrecipAccuDay_mm,PrecipAccu_mm_PreviousDay,precip_mm_ave2,Precip_mm_ave7, solarrad_W_m2,solarrad_Wm2_daymean,windspeed_m_s, winddirecion)
+         PrecipAccuDay_mm,PrecipAccu_mm_PreviousDay,precip_mm_ave2,Precip_mm_ave7, solarrad_W_m2,solarrad_Wm2_daymean,windspeed_m_s, winddirecion)%>%rename(pCO2_ppm=CO2_ppm)
 
 df$DateTime <- as.POSIXct(df$DateTime)
 
@@ -83,7 +83,7 @@ df$water_pressure_atm <- df$AirPress_kpa / 101.3 + 0.000967841
 df$pCO2_air_atm <-  df$pCO2_air_ppm / 10^6  * df$air_pressure_atm
 
 
-df$pCO2_w_atm <- df$CO2_ppm / 10^6 * df$water_pressure_atm 
+df$pCO2_w_atm <- df$pCO2_ppm / 10^6 * df$water_pressure_atm 
 
 #henry's constant adjust for temp
 df$KH_mol.l.atm <- kH_STP_mol.l.atm * exp(D_K*(1/(df$Watertemp_c+273.15) - 1/T_STP_K))
@@ -122,6 +122,11 @@ df$CH4_air_atm <- df$air_pressure_atm * CH4_air_ppb * 10^-9
 df$CH4_sat_umol.L <- df$CH4_air_atm*df$KH_CH4_mol.L.atm * 10^6
 
 df$CH4_pSat <- df$CH4_umol.L/df$CH4_sat_umol.L *100
+
+#calculate the partial pressure of ch4
+
+df$pCH4_w_atm <- df$CH4_umol.L /10^6/df$KH_CH4_mol.L.atm
+df$pCH4_ppm <- df$pCH4_w_atm * 10^6 /df$water_pressure_atm 
 
 #One can calculate the gas transfer velocity of one gas (gas1) from another (gas2) using kgas1/kgas2 = (Scgas1/Scgas2)^-n. where Sc is the Schmidt number and n is the Schmidt number exponent, which is generally assigned a value of 1/2 to 2/3 depending on the surface state of the water (Jahne et al. 1987), - Raymond et al 2012
 

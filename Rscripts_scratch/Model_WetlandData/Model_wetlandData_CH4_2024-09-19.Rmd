@@ -1,5 +1,5 @@
 ---
-title: "CO2 wetland model"
+title: "CH4 wetland model"
 author: "Kriddie"
 date: "2023-11-10"
 output: html_document
@@ -34,9 +34,7 @@ library("Hmisc")
 library(car)
 library(GGally)
 library(MCMCglmm)
-library(effects)
 library(MuMIn)
-
 
 ```
 
@@ -59,10 +57,6 @@ library(MuMIn)
  
  > Faq about mixed models 
  http://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
- 
-> about model selection including AIC and BIC
- https://machinelearningmastery.com/probabilistic-model-selection-measures/
-
 #notes from stats consultant:
 
 #need a thery befor applying transformations
@@ -117,40 +111,36 @@ with this notation we assume an intercept that’s different for each subject”
 ```{r load data}
 #read in data
 df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
-
 df$num <- 1:44
 df_saved <- df
-
 ```
 
 
 ###Predicted drivers of CO2
 
-CO2 increases with Air temperature (increased respiration) - (ave day, ave year)
+CH4 increases with Air temperature (increased respiration) - (ave day, ave year)
     > AirTemp_c
     > BaroTemp_c_yearly
 
-CO2 increases with Water temperature (increased respiration) - (ave day, ave year)
+CH4 increases with Water temperature (increased respiration) - (ave day, ave year)
     > WaterTemp_c
     > WaterTemp_c_day
     > waterTemp_c_yearly
 
-CO2 increases with depth vol ratio (more contact with sediments) 
+CH4 increases with depth vol ratio (more contact with sediments) 
     > SA_to_Vol_ratio_day --- not all wetlands
 
-CO2 decreases with surface area
+CH4 decreases with surface area
     > Surface_area_m2
 
-CO2 increases with watershed size 
-    > WS_size_minusSA --- not all wetlands
-    > WS_ratio --- 
+CH4 increases with watershed size 
+    > WS_size_minusSA
 
-precipitation effects CO2 concentration because it dilutes the water (ave of sum day and previous day)
+precipitation effects CH4 concentration because it dilutes the water (ave of sum day and previous day)
     > Precio_mm_ave2
 
 Solar radiation because stimulates gpp (ave day)
     > Solarrad_Wm2_daymean
-
 
 
 ##CHecking Assumptions
@@ -161,89 +151,18 @@ Solar radiation because stimulates gpp (ave day)
   > Ultimately, it is up to the ecologist to decide what to do with outliers.
 
 
-```{r  assumptions step 1, echo=FALSE}
-#Step 1: Are there outliers in Y and X?
-
-#remove Wetland 12?
-df <- df_saved%>%filter(Site!="Wetland12")
-
-#boxplots galore
-boxplot(log(df$CO2_umol.L)) ##transformed
-hist(log(df$CO2_umol.L))
-ggplot(df, aes(log(CO2_umol.L), num)) + geom_point()
-
-boxplot(df$AirTemp_c)  # one?? - checked, it is as legit as the data collected can be. 
-hist(df$AirTemp_c)
-ggplot(df, aes(AirTemp_c, num)) + geom_point() #this looks pretty good
-
-boxplot(df$BaroTemp_c_day) #maybe use this data because no big outliers?
-hist(df$BaroTemp_c_day)
-ggplot(df, aes(BaroTemp_c_day, num)) + geom_point()
-
-boxplot(df$BaroTemp_c_yearly) 
-hist(df$BaroTemp_c_yearly)
-
-boxplot(df$Watertemp_c)
-hist(df$Watertemp_c)
-ggplot(df, aes(Watertemp_c, num)) + geom_point()
-
-boxplot(df$waterTemp_c_day) #one? - checked, it is legit
-hist(df$waterTemp_c_day)
-ggplot(df, aes(waterTemp_c_day, num)) + geom_point()
-
-boxplot(df$waterTemp_c_yearly) #one?,- wetland 5 yes, legit
-hist(df$waterTemp_c_yearly)
-ggplot(df, aes(waterTemp_c_yearly, num)) + geom_point() # this looks good
-
-#boxplot(df$Water_minus_air_Temp) #one outlier
-#hist(df$Water_minus_air_Temp) 
-#ggplot(df, aes(Water_minus_air_Temp, num)) + geom_point()# this looks good
-
-#boxplot(df$SA_to_Vol_ratio) #transform? I don't know! The extreme outliers are legit
-boxplot(log(df$SA_to_Vol_ratio)) #lots?
-hist(log(df$SA_to_Vol_ratio))
-ggplot(df, aes(log(SA_to_Vol_ratio), num)) + geom_point()
-
-boxplot(log(df$surface_area_m2)) #seems like log transform is the way to go here. looks good after log transform
-hist(log(df$surface_area_m2))
-ggplot(df, aes(log(surface_area_m2), num)) + geom_point()
-
-#boxplot(df$WS_size_minusSA) # this is wetland 12, wich, yes is very large watershed
-#hist(df$WS_size_minusSA)
-#ggplot(df, aes(WS_size_minusSA, num)) + geom_point()
-
-boxplot(df$precip_mm_ave2) 
-hist(df$precip_mm_ave2)
-ggplot(df, aes(precip_mm_ave2, num)) + geom_point()
-
-boxplot(df$solarrad_Wm2_daymean) 
-hist(df$solarrad_Wm2_daymean)
-ggplot(df, aes(solarrad_Wm2_daymean, num)) + geom_point()
-
-
-boxplot(log(df$WS_area_minus_pond))
-hist(log(df$WS_area_minus_pond))
-ggplot(df, aes(log(WS_area_minus_pond), num)) + geom_point()
-
-boxplot(log(df$percentpond))
-hist(log(df$percentpond))
-ggplot(df, aes(log(percentpond), num)) + geom_point()
-
-boxplot(df$percent_DTW)
-hist(df$percent_DTW)
-ggplot(df, aes(percent_DTW, num)) + geom_point()
-```
-
 #Finding from step 1.
   > there are outliers but I checked, and these measurments are legit (I did change a few AirTemp_c measurments)
-  > I transformed a few things - the response variable, CO2, SA_to_vol_ratio and surface area.
+  > I transformed a few things - the response variable, CO2 and surface area.
   > I think I will just leave the rest as-is. I denfinatly don't want to delete data since it is so precious. But perhapes I should just keep this in mind for analysis...
   >waterTemp_c_day - one outlier
   > waterTemp_c_yearly- wetland 5 is outlier
   > Water_minus_air_Temp - one outlier (wetland05), but dotplot looks ok
   > SA_to_Vol_ratio transform maybe? idk it is messy (i think drop this explainer value)
   > surface_area_m2 - transform
-  > WS_size_minusSA - wetland14 WS is very big
+  > WS_size_minusSA - log this s
+  > percent pond - transform
+  > percent DTW - do not transform
 
   
 ##checking Assumptions
@@ -275,23 +194,21 @@ ggplot(df, aes(percent_DTW, num)) + geom_point()
 
 ```{r  assumptions step 5.1, echo=FALSE}
 #make correlation matrix
-df$Water_minus_air_Temp <- df$Watertemp_c-df$AirTemp_c
 
 df_2 <- df [,c("Watertemp_c",
                "waterTemp_c_yearly",
               "Elevation_m",
-            "BaroTemp_c_day_eleAdjust",
-           #   "AirTemp_c",
+              "AirTemp_c",
              # "BaroTemp_c_day",
              # "BaroTemp_c_yearly",
              # "waterTemp_c_day",
-              "SA_to_Vol_ratio",
+              "depth_ave_m",
               "surface_area_m2",
-         #     "Watershed_m2",
-              "precip_mm_ave2",
-            "WS_area_minus_pond",
+              "WS_area_minus_pond",
              "percentpond",
-             "percent_DTW"
+             "percent_DTW",
+              "precip_mm_ave2"
+         #,
          #     "solarrad_Wm2_daymean"
               )]
 
@@ -306,12 +223,14 @@ correlation_coefficiant <- res2$r
 
 
 
+
 ```
 
 ##findings:
-  > remove Watertemp_day because it is correlates strongly with WaterTemp_c -- I think this might be more useful for future studies if you don't have a looger installed, you can just take a point measurments of water temp
-  > instead of baro yearly data wich coorelate strongly with elevation (since that's how it's calculated), I think I'll straight up use elevation. Same idea with BaroTemp_c_day
-  > I don't have a good theoretical reaseon to include solar radiation, so delete that too
+  > remove AirTemp_c (I don't really trust this data.. just that the sensor might have been heated up by the sun.. or accidently stored next to our bodies. We have this data because we wanted barometric pressure, so we wern't careful about potential airtemp data) Also it coovariates strongly with other variable
+  > remove Watertemp_c because it is correlates strongly with WaterTemp_day and I like using water temp day more
+  > BaroTemp_c_yearly and BaroTemp_c_day are correlated. Which to use? 
+          > I'm going to BaroTemp_c_day because it correlated more strongly with WaterTemp_c_day, and I am trying to test the idea that higher elevation had lower respiration rates, in the long term
     *now that we've removed factors, all correlation matrices between raw explanatory variables have values < 0.7*
 
 ```{r  assumptions step 5.2, echo=FALSE}
@@ -322,29 +241,44 @@ correlation_coefficiant <- res2$r
         #A value between 1 and 5 indicates moderate correlation between a given predictor variable and other predictor variables in the model, but this is often not severe enough to require attention.
         #A value greater than 5 indicates potentially severe correlation between a given predictor variable and other predictor variables in the model. In this case, the coefficient estimates and p-values in the regression output are likely unreliable.
 
+df_1 <- df%>%filter(Site!="Wetland12")
+                      
+df_2 <- df_1%>%filter(Site=="Wetland04"|Site=="Wetland05"|Site=="Wetland06"|Site=="Wetland07"|Site=="Wetland11")
 
-M1 <- lmer(log(CO2_umol.L) ~ 
+df_3 <- df_1%>%filter(Site=="Wetland01"|Site=="Wetland02"|Site=="Wetland03")
+
+df_4 <- df_1%>%filter(Site=="Wetland08"|Site=="Wetland09"|Site=="Wetland10")
+
+M1 <- lmer(log(CH4_umol.L) ~ 
              scale(Watertemp_c)+ 
              scale(waterTemp_c_yearly) +
-           #  scale(BaroTemp_c_day_eleAdjust) +
              scale(Elevation_m) +
-           #  scale(log(SA_to_Vol_ratio)) + 
-           #  scale(log(surface_area_m2)) +
+             scale(AirTemp_c) + 
+         #    scale(log(SA_to_Vol_ratio)) + 
+            scale(log(surface_area_m2)) +
              scale(log(WS_area_minus_pond)) +
-           #  scale(log(surface_area_m2)) +
              scale(percent_DTW) +
-             scale(precip_mm_ave2) + 
-             scale(depth_ave_m) + 
-             (1 |Site), data =df_1 )
+             scale(log1p(precip_mm_ave2)) + 
+           scale(log(depth_ave_m)) +
+              (1 |Site), data=df)
 
 vif(M1)
-  
+
+
+
+#summary for global models
+summary(M1)
+modelPerformance(M1)
+summary_M1 <- summary(M1)
+summary_M1$AICtab
+summary(M1)$AIC[1]
+
+ggplot(df_1, aes(x=Elevation_m,y=log(CH4_umol.L),color=log(SA_to_Vol_ratio))) + geom_point()
 ```
 
 #findings from step 5.2
-  > Elevation and surface area are more coorelated than I'd realized. I suppose if I use the rule of anything under 10 is ok, than I am good, but it I want to use the more conservative <3, then I need to get rid of one or the other. Poop!!
-  If I included wetland 12, this would not be a problem... AUG!
-  > lets include elevation and SA to vol ratio and oit surface area for now...
+  > BaroTemp_c_yearly had the highest VIF values, but once I got rid of Watershed_m2 the VIF droped for all variables. I need to get rid of this varliable because I don't have it for all wetlands.
+  > this is also the case for SA_to_Vol_ratio, but I am only missing wetland 12 in this case, so I'm tempted to keep it and do 2 analysis
 
 
 #checking Assumptions
@@ -380,7 +314,7 @@ qqline(res1)
 #Findings from  assumptions step 2
 > the residual plots look good!
 > the q plots don't look as good
-> model 2 (no SA_to_Vol_ratio) is better than model 1 --- > but I think now that I have omitted wetland 12 AND log rransformed, it is better
+> model 2 (no SA_to_Vol_ratio) is better than model 1
 
 ##checking Assumptions
 #Step 3: Are the data normally distributed?
@@ -395,28 +329,177 @@ qqline(res1)
 ```{r  assumptions step 3, echo=FALSE}
 #Create density plot of residuals
 plot(density(res1))
+plot(density(res2))
+
 #histagram
 hist(res1)
-# create pairs plot 
-#ggpairs( df_2 )
+hist(res2)
+
 
 ```
 
 #Findings from  assumptions step 3
 > looks good ro me!
+> model 2 (no SA_to_Vol_ratio) is better than model 1
 
 
-> so this is interesting --- we have a bit of an issue in wich surface area and elevation are coorelated. But maybe this helps support keeping elevation and excluding surface area: When elevation AND SA are included, elevation is significant, SA is not. When Elevation is included and SA is excluded, r2 = .80. When SA is included and Elevation omited, R2 = .40
+ scale(Watertemp_c)+ 
+             scale(waterTemp_c_yearly) +
+             scale(Elevation_m) +
+             scale(WaterTemp_c) + 
+         #    scale(log(SA_to_Vol_ratio)) + 
+            scale(log(surface_area_m2)) +
+             scale(log(WS_area_minus_pond)) +
+             scale(percent_DTW) +
+             scale(log1p(precip_mm_ave2)) + 
+           scale(log(depth_ave_m)) +
 
-#simplify maybe?
-> just the 
 
-```{r  model building3, echo=FALSE}
+```{r  model building3 ch4 umol/l, echo=FALSE}
 
 Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric(),"AICc" = as.numeric())
 
-#df_1 <-df
-df_1 <-df_saved%>%filter(Site!="Wetland12")
+#remove Wetland 12 for this analysis?
+df_1 <- df%>%filter(Site!="Wetland12")
+
+n = 7
+grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
+grid_df <- as.data.frame(grid$Var1)
+colnames(grid_df) <- "Var1"
+grid_df$Var2 <- grid$Var2
+grid_df$Var3 <- grid$Var3
+grid_df$Var4 <- grid$Var4
+grid_df$Var5 <- grid$Var5
+grid_df$Var6 <- grid$Var6
+grid_df$Var7 <- grid$Var7
+#grid_df$Var8 <- grid$Var8
+
+grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
+grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
+#grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
+grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(WS_area_minus_pond)"
+grid_df$Var4[which(grid_df$Var4 == 1)] <- "percent_DTW"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "log1p(precip_mm_ave2)"
+grid_df$Var6[which(grid_df$Var6 == 1)] <- "Elevation_m"
+grid_df$Var7[which(grid_df$Var7 == 1)] <- "depth_ave_m"
+
+
+
+
+
+
+grid_df[grid_df == 0] <- NA
+
+for (row in 2:nrow(grid_df)){
+  f <- grid_df[row, ]
+  f_2 <- f[!is.na(f)]
+  
+  if(length(f_2)==1){
+    model <- lmer(
+    as.formula(paste0("log(pCH4_ppm) ~ ","scale(",f_2[1],") + (1 |Site)")),
+    data = df_1,REML = FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+  
+      } else if(length(f_2)==2) { 
+    model <- lmer(
+      as.formula(paste0("log(pCH4_ppm) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==3) { 
+    model <- lmer(
+      as.formula(paste0("log(pCH4_ppm) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==4) { 
+    model <- lmer(
+      as.formula(paste0("log(pCH4_ppm) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==5) { 
+    model <- lmer(
+      as.formula(paste0("log(pCH4_ppm) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==6) { 
+    model <- lmer(
+      as.formula(paste0("log(pCH4_ppm) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==7) { 
+    model <- lmer(
+      as.formula(paste0("log(pCH4_ppm) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else if(length(f_2)==8) { 
+    model <- lmer(
+      as.formula(paste0("log(pCH4_ppm) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + scale(",f_2[8],") + (1 |Site)")),data=df_1,REML=FALSE)
+    summary <- summary(model)
+    
+    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
+       
+      } else {
+         print("too many")
+      }
+}
+```
+
+#run best models according to AIC and BIC
+```{r  model building, echo=FALSE}
+
+df_1 <- df#%>%filter(Site!="Wetland12")
+
+
+#without wetland 12 
+#(Intercept), scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m)
+
+
+
+
+M_AICc <- lmer(log(pCH4_ppm) ~ 
+                 scale(waterTemp_c_yearly)+
+                scale(percent_DTW) +
+                scale(Elevation_m) +
+                  (1 |Site), data =df_1,REML = FALSE)
+summary(M_AICc)
+modelPerformance(M_AICc)
+
+#without wetland 12
+#scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m)
+
+
+M_BIC <- lmer(log(CH4_umol.L) ~ 
+                scale(waterTemp_c_yearly)+
+                scale(percent_DTW)+
+                scale(Elevation_m) +
+                  (1 |Site), data =df_1,REML = FALSE)
+summary(M_BIC)
+modelPerformance(M_BIC)
+
+```
+
+# %CH4 saturation 
+
+```{r  model building3 ch4 umol/l, echo=FALSE}
+
+Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as.numeric(),"AICc" = as.numeric())
+
+#remove Wetland 12 for this analysis?
+df_1 <- df %>%filter(Site!="Wetland12")
+
 
 n = 6
 grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
@@ -440,8 +523,9 @@ grid_df$Var6[which(grid_df$Var6 == 1)] <- "Elevation_m"
 grid_df$Var2[which(grid_df$Var2 == 1)] <- "depth_ave_m"
 
 
-grid_df[grid_df == 0] <- NA
 
+
+grid_df[grid_df == 0] <- NA
 
 for (row in 2:nrow(grid_df)){
   f <- grid_df[row, ]
@@ -449,7 +533,7 @@ for (row in 2:nrow(grid_df)){
   
   if(length(f_2)==1){
     model <- lmer(
-    as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") + (1 |Site)")),
+    as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") + (1 |Site)")),
     data = df_1,REML = FALSE)
     summary <- summary(model)
     
@@ -457,98 +541,55 @@ for (row in 2:nrow(grid_df)){
   
       } else if(length(f_2)==2) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Site)")),data=df_1,REML=FALSE)
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==3) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Site)")),data=df_1,REML=FALSE)
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==4) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Site)")),data=df_1,REML=FALSE)
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==5) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Site)")),data=df_1,REML=FALSE)
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==6) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Site)")),data=df_1,REML=FALSE)
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
       } else if(length(f_2)==7) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Site)")),data=df_1,REML=FALSE)
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
-      }  else if(length(f_2)==8) { 
+      } else if(length(f_2)==8) { 
     model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + scale(",f_2[8],") + (1 |Site)")),data=df_1,REML=FALSE)
+      as.formula(paste0("log(CH4_sat) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + scale(",f_2[8],") + (1 |Site)")),data=df_1,REML=FALSE)
     summary <- summary(model)
     
     Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
        
-      } else if(length(f_2)==9) { 
-    model <- lmer(
-      as.formula(paste0("log(CO2_umol.L) ~ ","scale(",f_2[1],") +scale(",f_2[2],") + scale(",f_2[3],") + scale(",f_2[4],") + scale(",f_2[5],") + scale(",f_2[6],") + scale(",f_2[7],") + scale(",f_2[8],") + (1 |Site)")),data=df_1,REML=FALSE)
-    summary <- summary(model)
-    
-    Dataframe[nrow(Dataframe) + 1,] <- list(toString(rownames(summary$coefficients)), summary$AIC[1], summary$AIC[2], AICc(model))
-       
-      } else  {
+      } else {
          print("too many")
       }
 }
 ```
-
-#run best models according to AIC and BIC
-```{r  model building, echo=FALSE}
-
-#Without Wetland 12
-
-#AICc: (Intercept), scale(Watertemp_c), scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m), scale(log(surface_area_m2))
-
-#	(Intercept), scale(Watertemp_c), scale(waterTemp_c_yearly), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
-
-
-M_AICc <- lmer(log(CO2_umol.L) ~ 
-                  scale(Watertemp_c)+ 
-                  scale(waterTemp_c_yearly) +
-                 scale(log(WS_area_minus_pond)) +
-                    scale(percent_DTW) +
-                  scale(Elevation_m) +
-                  (1 |Site), data =df_1,REML = FALSE)
-summary(M_AICc)
-modelPerformance(M_AICc)
-
-##BIC
-#(Intercept), scale(waterTemp_c_yearly), scale(log(WS_area_minus_pond)), scale(percent_DTW), scale(Elevation_m)
-
-
-M_BIC <- lmer(log(CO2_umol.L) ~ 
-                scale(waterTemp_c_yearly) +
-                scale(log(WS_area_minus_pond)) +
-                scale(percent_DTW) +
-                scale(Elevation_m) +
-                  (1 |Site), data =df_1,REML = FALSE)
-summary(M_BIC)
-modelPerformance(M_BIC)
-
-```
-
