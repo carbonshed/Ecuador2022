@@ -92,7 +92,9 @@ below I have some code as a starting point
 #this script takes the methane data and summarizes it 
 #now this is included in Merge_WetlandDATA.R
 
-CH4_summer_df <- read.csv(here::here("Methane/Methane_df_2023-07-20.csv"))%>% select("Site","Location","Date_collected","CH4_umol_L.1","CH4_.sat")%>%
+#I need to convert ch4 to pch4
+
+CH4_summer_df <- read.csv(here::here("Methane/Methane_df_2023-07-20.csv"))%>% select("Site","Location","Date_collected","CH4_umol_L.1","CH4_.sat","Watertemp_c")%>%
   filter(Site!="Colmillo")%>%filter(Site!="Gavi-main")%>%filter(Site!="Gavi-trib") %>% 
   rename(Date = Date_collected, CH4_umol.L = CH4_umol_L.1, CH4_sat = CH4_.sat)
 CH4_summer_df$Date <- as.Date.character(CH4_summer_df$Date,format="%m/%d/%y")
@@ -100,8 +102,8 @@ CH4_summer_df$Date <- as.Date.character(CH4_summer_df$Date,format="%m/%d/%y")
 
 #fall samples
 CH4_fall_df <- read.csv(here::here("Methane/Methane_fall2022_update.csv"))%>%
-  select("Site","Location","Date_collected","CH4_umol.L","CH4_sat")%>%
-  rename(Date = Date_collected)%>%
+  select("Site","Location","Date_collected","CH4_umol.L","CH4_sat","Watertemp_Field_c")%>%
+  rename(Date = Date_collected)%>%rename(Watertemp_c=Watertemp_Field_c)
   filter(Site!="Chakanas")%>%filter(Site!="Gavilan")
 CH4_fall_df$Date <- as.Date.character(CH4_fall_df$Date,format="%m/%d/%y")
 
@@ -111,9 +113,9 @@ CH4_df <- rbind(CH4_summer_df,CH4_fall_df)
 
 CH4_reps <- CH4_df%>%group_by(Site,Location,Date)%>%
 dplyr::summarize(
-  min = min(CH4_umol.L), max = max(CH4_umol.L),
-  mean = mean(CH4_umol.L),
-  sd = sd(CH4_umol.L),
+  min = min(CH4_sat), max = max(CH4_sat),
+  mean = mean(CH4_sat),
+  sd = sd(CH4_sat),
   n = n())%>%
   filter(n>1)
 CH4_reps$se <-  CH4_reps$sd / sqrt(2)
@@ -121,9 +123,9 @@ CH4_reps$type <- "reps"
 
 CH4_se <- CH4_df%>%group_by(Site,Date)%>%
 dplyr::summarize(
-  min = min(CH4_umol.L), max = max(CH4_umol.L),
-  mean = mean(CH4_umol.L),
-  sd = sd(CH4_umol.L),
+  min = min(CH4_sat), max = max(CH4_sat),
+  mean = mean(CH4_sat),
+  sd = sd(CH4_sat),
   n = n())
 CH4_se$se <-  CH4_se$sd / sqrt(2)
 CH4_se$type <- "allsamples"
@@ -139,8 +141,8 @@ ggplot(CH4_summary, aes(x=Site, y=log(se),color=type)) +
 
 ##now look at differences between wetland positon (this can only be done for spring samples)
 
-ggplot(CH4_summer_df,aes(x=as.factor(Location),y=log(CH4_umol.L))) + geom_point()
-ggplot(CH4_fall_df,aes(x=as.factor(Location),y=log(CH4_umol.L))) + geom_point()
+ggplot(CH4_summer_df,aes(x=as.factor(Location),y=log(CH4_sat))) + geom_point()
+ggplot(CH4_fall_df,aes(x=as.factor(Location),y=log(CH4_sat))) + geom_point()
 
 ## we also have the data to do this for CO2
 df_CO2 <- read.csv(here::here("Wetlands/CO2_intrapondvariance.csv"))
@@ -217,14 +219,6 @@ Summary_df <- WL_df%>%
   )%>%rename(Site=Station)
 
 Summary_df <- full_join(Summary_df,df,by="Site")
-
-#Summary_df$New.Name <- Summary_df$Site
-#Summary_df <- Summary_df%>%
-  mutate(New.Name = case_match(New.Name,'WL_Wetland01' ~ 'S1', 'WL_Wetland02' ~ 'S2', 'WL_Wetland03' ~ 'S3', 'WL_Wetland04' ~ 'S4', 'WL_Wetland05' ~ 'S8', 'WL_Wetland06' ~ 'S5', 'WL_Wetland07' ~ 'S7', 'WL_Wetland08' ~ 'S12', 'WL_Wetland09' ~ 'S10', 'WL_Wetland10' ~ 'S11', 'WL_Wetland11' ~ 'S6', 'WL_Wetland12' ~ 'wetland'))
-
-
-#Summary_df$New.Name <- factor(Summary_df$New.Name, levels = c("S1","S2","S3","S4","S5","S6","S7","S8","wetland","S10","S11","S12"))
-
 
 p2 <- ggplot(data=Summary_df,aes(x=SA_mean,y=depth_mean, fill=Elevation_m)) +
   geom_point(shape=22,size=5) +
@@ -495,16 +489,16 @@ p.co2 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),
 theme_bw(base_size = 16) +
   annotate("text", x = "S1", y = 15000, label = "AB") + 
   annotate("text", x = "S2", y = 15000, label = "B") +
-  annotate("text", x = "S3", y = 15000, label = "ABC") +
-  annotate("text", x = "S4", y = 15000, label = "CD") +
-  annotate("text", x = "S5", y = 15000, label = "ABC") +
-  annotate("text", x = "S6", y = 15000, label = "ABC") +
-  annotate("text", x = "S7", y = 15000, label = "ABC") +
-  annotate("text", x = "S8", y = 15000, label = "AC") +
-  annotate("text", x = "Wetland", y = 15000, label = "D") +
+  annotate("text", x = "S3", y = 15000, label = "AB") +
+  annotate("text", x = "S4", y = 15000, label = "AC") +
+  annotate("text", x = "S5", y = 15000, label = "AB") +
+  annotate("text", x = "S6", y = 15000, label = "AB") +
+  annotate("text", x = "S7", y = 15000, label = "AB") +
+  annotate("text", x = "S8", y = 15000, label = "ABC") +
+  annotate("text", x = "Wetland", y = 15000, label = "CD") +
   annotate("text", x = "S10", y = 15000, label = "D") +
-  annotate("text", x = "S11", y = 15000, label = "CD") +
-  annotate("text", x = "S12", y = 15000, label = "D")
+  annotate("text", x = "S11", y = 15000, label = "D") +
+  annotate("text", x = "S12", y = 15000, label = "E")
 
 
 ###now do it ordering by elevation, not surface area
@@ -669,7 +663,7 @@ k_df <- k_df%>%filter(DateTime < "2022-10-01 00:00:00")
 
 M1 <- lmer(log(Flux_umol_m2_s) ~ 
              scale(k_m_d)+ 
-             scale(log(CO2_umol.L))+
+             scale(log(pCO2_ppm))+
    #         scale(Watertemp_c) +
              (1 |Site), data =k_df)
 summary(M1)
@@ -677,25 +671,18 @@ modelPerformance(M1)
 
 M1 <- lm(log(Flux_umol_m2_s) ~ 
          #    scale(k_m_d)+ 
-             scale(log(CO2_umol.L)),
+             scale(log(pCO2_ppm)),
    #         scale(Watertemp_c) +
              data =k_df)
 
 k_df$New.Name <- factor(k_df$New.Name, levels = c("S1", "S2", "S3","S4","S5","S6","S7","S8","wetland","S10","S11","S12"))
 
-p1 <- ggplot(k_df,aes(x=CO2_umol.L,y=Flux_umol_m2_s,color=New.Name)) + geom_point(aes(),size=3) +  
+p1 <- ggplot(k_df,aes(x=pCO2_ppm,y=Flux_umol_m2_s,color=New.Name)) + geom_point(aes(),size=3) +  
    geom_smooth(method='lm', color='black') + guides(color=guide_legend(title="Site"))+
       ylab(expression(paste("CO"[2] ," Evasion (",mu,"mol ", m^-2," ", s^-1,")"))) +
-  xlab(expression(paste("CO"[2] ," (",mu,"mol ", L^-1,")"))) +
+   xlab(expression(italic(p)~CH[4] ~'(ppm)')) + 
   theme_bw(base_size = 16) +
   scale_x_log10() + scale_y_log10()
-
-p2 <- ggplot(k_df,aes(x=CO2_umol.L,y=K600,color=New.Name)) + geom_point(aes(),size=3) +  guides(color=guide_legend(title="Site")) +
-  theme_bw(base_size = 16) +
-  scale_x_log10()
-
-
-fig <- ggarrange(p1, p2, common.legend = TRUE, legend="bottom")
 
 
 ```
@@ -721,7 +708,7 @@ k_df$BelowSat <- ifelse(k_df$CO2_mol.L < k_df$CO2_sat_mol.L, "*", NA)
 
 
 p2 <- ggplot(k_df) + geom_point(
-  aes(x=surface_area_m2,y=K600,fill=log10(CO2_umol.L)), shape=21,size=3)  + geom_text(aes(x=surface_area_m2,y=K600,label=BelowSat),vjust=-0.1,hjust=-.5,color="red",size=7) +
+  aes(x=surface_area_m2,y=K600,fill=log10(pCO2_ppm)), shape=21,size=3)  + geom_text(aes(x=surface_area_m2,y=K600,label=BelowSat),vjust=-0.1,hjust=-.5,color="red",size=7) +
   geom_hline(aes(yintercept = median(K600)), color="blue", linetype="dashed") +
   theme_bw(base_size = 16) +
   scale_x_log10() +

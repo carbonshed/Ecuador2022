@@ -170,17 +170,20 @@ ggplot() +
 p <- ggplot() +
   geom_point(data=df_Holg%>%filter(Reference!="This Study"),
              aes(x=CO2_umol.L,y=CH4_umol.L,color=Reference2),size=5) +
-  geom_point(data=df_Holg%>%filter(Reference=="This Study"),
-             aes(x=CO2_umol.L,y=CH4_umol.L,shape=Reference2),size=5)+ 
+ #geom_point(data=df_Holg%>%filter(Reference=="This Study"),
+#             aes(x=CO2_umol.L,y=CH4_umol.L,shape=Reference2),size=5)+ 
   scale_colour_discrete(name  ="Referance",
                        ) +
-  scale_shape_discrete(name  = NULL,
-                       labels="This Study") +
+#  scale_shape_discrete(name  = NULL,
+#                       labels="This Study") +
    
-  theme_bw(base_size = 20) +
+  theme_bw(base_size = 12) +
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=16)
+        ) +
   xlab(expression(CO[2] ~'('~mu*'mol' ~ l^-1~')')) +
   ylab(expression(CH[4] ~'('~mu*'mol' ~ l^-1~')')) +
-  scale_y_log10() + scale_x_log10() +
+  scale_y_log10() + scale_x_log10(limits= c(1, 1000)) +
   guides(color=guide_legend(ncol =1))
 
 p + annotation_logticks() 
