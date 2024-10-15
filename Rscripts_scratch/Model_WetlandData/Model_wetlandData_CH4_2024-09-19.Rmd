@@ -242,13 +242,7 @@ correlation_coefficiant <- res2$r
         #A value greater than 5 indicates potentially severe correlation between a given predictor variable and other predictor variables in the model. In this case, the coefficient estimates and p-values in the regression output are likely unreliable.
 
 df_1 <- df%>%filter(Site!="Wetland12")
-                      
-df_2 <- df_1%>%filter(Site=="Wetland04"|Site=="Wetland05"|Site=="Wetland06"|Site=="Wetland07"|Site=="Wetland11")
-
-df_3 <- df_1%>%filter(Site=="Wetland01"|Site=="Wetland02"|Site=="Wetland03")
-
-df_4 <- df_1%>%filter(Site=="Wetland08"|Site=="Wetland09"|Site=="Wetland10")
-
+              
 M1 <- lmer(log(CH4_umol.L) ~ 
              scale(Watertemp_c)+ 
              scale(waterTemp_c_yearly) +
@@ -260,7 +254,7 @@ M1 <- lmer(log(CH4_umol.L) ~
              scale(percent_DTW) +
              scale(log1p(precip_mm_ave2)) + 
            scale(log(depth_ave_m)) +
-              (1 |Site), data=df)
+              (1 |Site), data=df_1)
 
 vif(M1)
 
@@ -376,10 +370,10 @@ grid_df$Var7 <- grid$Var7
 
 grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
 grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
-#grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
-grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(WS_area_minus_pond)"
-grid_df$Var4[which(grid_df$Var4 == 1)] <- "percent_DTW"
-grid_df$Var5[which(grid_df$Var5 == 1)] <- "log1p(precip_mm_ave2)"
+grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
+grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(WS_area_minus_pond)"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "percent_DTW"
+#grid_df$Var6[which(grid_df$Var6 == 1)] <- "log1p(precip_mm_ave2)"
 grid_df$Var6[which(grid_df$Var6 == 1)] <- "Elevation_m"
 grid_df$Var7[which(grid_df$Var7 == 1)] <- "depth_ave_m"
 
@@ -464,30 +458,24 @@ df_1 <- df#%>%filter(Site!="Wetland12")
 
 
 #without wetland 12 
-#(Intercept), scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m)
-
-
+#(Intercept), scale(waterTemp_c_yearly), scale(log(surface_area_m2)), scale(percent_DTW), scale(Elevation_m), scale(depth_ave_m)
 
 
 M_AICc <- lmer(log(pCH4_ppm) ~ 
-                 scale(waterTemp_c_yearly)+
-                scale(percent_DTW) +
-                scale(Elevation_m) +
+                scale(waterTemp_c_yearly) +
+                scale(log(surface_area_m2)) + 
+                 scale(percent_DTW) +
+                 scale(Elevation_m) +
+                 scale(depth_ave_m) +
                   (1 |Site), data =df_1,REML = FALSE)
 summary(M_AICc)
 modelPerformance(M_AICc)
 
-#without wetland 12
-#scale(waterTemp_c_yearly), scale(percent_DTW), scale(Elevation_m)
+vif(M_AICc)
 
+#% saturation
+#(Intercept), scale(waterTemp_c_yearly), scale(log(surface_area_m2)), scale(percent_DTW), scale(Elevation_m), scale(depth_ave_m)
 
-M_BIC <- lmer(log(CH4_umol.L) ~ 
-                scale(waterTemp_c_yearly)+
-                scale(percent_DTW)+
-                scale(Elevation_m) +
-                  (1 |Site), data =df_1,REML = FALSE)
-summary(M_BIC)
-modelPerformance(M_BIC)
 
 ```
 
@@ -501,7 +489,7 @@ Dataframe <- data.frame("Model"= as.character(), "AIC" = as.numeric(),"BIC" = as
 df_1 <- df %>%filter(Site!="Wetland12")
 
 
-n = 6
+n = 7
 grid <- expand.grid(replicate(n, 0:1, simplify = FALSE))
 grid_df <- as.data.frame(grid$Var1)
 colnames(grid_df) <- "Var1"
@@ -510,17 +498,17 @@ grid_df$Var3 <- grid$Var3
 grid_df$Var4 <- grid$Var4
 grid_df$Var5 <- grid$Var5
 grid_df$Var6 <- grid$Var6
-#grid_df$Var7 <- grid$Var7
+grid_df$Var7 <- grid$Var7
 #grid_df$Var8 <- grid$Var8
 
 grid_df$Var1[which(grid_df$Var1 == 1)] <- "Watertemp_c"
-#grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
-#grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
-grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(WS_area_minus_pond)"
-grid_df$Var4[which(grid_df$Var4 == 1)] <- "percent_DTW"
-grid_df$Var5[which(grid_df$Var5 == 1)] <- "log1p(precip_mm_ave2)"
+grid_df$Var2[which(grid_df$Var2 == 1)] <- "waterTemp_c_yearly"
+grid_df$Var3[which(grid_df$Var3 == 1)] <- "log(surface_area_m2)"
+grid_df$Var4[which(grid_df$Var4 == 1)] <- "log(WS_area_minus_pond)"
+grid_df$Var5[which(grid_df$Var5 == 1)] <- "percent_DTW"
+#grid_df$Var5[which(grid_df$Var5 == 1)] <- "log1p(precip_mm_ave2)"
 grid_df$Var6[which(grid_df$Var6 == 1)] <- "Elevation_m"
-grid_df$Var2[which(grid_df$Var2 == 1)] <- "depth_ave_m"
+grid_df$Var7[which(grid_df$Var7 == 1)] <- "depth_ave_m"
 
 
 
