@@ -508,110 +508,45 @@ p.all <- ggarrange(p.ch4, p.co2, labels = c("A", "B"),ncol = 1, nrow = 2)
 
 ```
 
-# model results
 
-I'm not sure how to report these. But I think a table of selected models could work
-
-
-```{r model tables, echo=FALSE}
+```{r site variance, echo=FALSE}
+#plot water temp as driver of CO2
 
 df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
 
-#without wetland 12 
-df_1 <- df%>%filter(Site!="Wetland12")
-
-#log(pCH4_ppm) ~ scale(log(surface_area_m2)) + scale(percent_DTW) + scale(Elevation_m) + scale(depth_ave_m)
-
-M_AICc_CH4 <- lmer(log(pCH4_ppm) ~ 
-               #   scale(waterTemp_c_yearly)+
-                    scale(log(surface_area_m2)) +
-                scale(percent_DTW) +
-                scale(Elevation_m) +
-                  scale(1/depth_ave_m) +
-                  (1 |Site), data =df_1,REML = FALSE)
-sum_AICc_CH4 <- summary(M_AICc_CH4)
-sum_AICc_CH4_coefficients <- sum_AICc_CH4$coefficients
-modelPerformance(M_AICc_CH4)
-vif(M_AICc_CH4)
-
-forward_model <- step(M_AICc_CH4, direction = "forward", scope = formula(~ .))
-backward_model <- step(M_AICc_CH4, direction = "backward")
-both_model <- step(M_AICc_CH4, direction = "both")
+#What is the relationship between water temp and pco2?
+M_CO2_temp <- lmer(log(pCO2_ppm) ~ 
+                    Watertemp_c+ 
+                     (1 |Site), data =df,REML = FALSE)
+summary(M_CO2_temp)
+modelPerformance(M_CO2_temp)
 
 
-#CO2 AICc 
-#log(pCO2_ppm) ~ scale(log(WS_area_minus_pond)) + scale(percent_DTW) + scale(Elevation_m)
+ggplot(df,aes(x=Watertemp_c,y=pCO2_ppm,color=Site) ) + 
+  geom_point()+
+  geom_smooth(method='lm',formula = "y ~ x",se=FALSE) +
+  scale_y_continuous(transform="log") +scale_x_continuous(transform="log") +
+  theme_bw(base_size = 16)
+
+#What is the relationship between water temp and pch4?
+M_CH4_temp <- lmer(log(pCH4_ppm) ~ 
+                    Watertemp_c+ 
+                     (1 |Site), data =df,REML = FALSE)
+summary(M_CH4_temp)
+modelPerformance(M_CH4_temp)
+
+p <- ggplot(df,aes(x=Watertemp_c,y=pCH4_ppm,color=Site) ) + 
+  geom_point()+
+  geom_smooth(method='lm',formula = "y ~ x",se=FALSE) +
+  scale_y_continuous(transform="log",breaks = c(1,3,10,30,100,300,1000,3000,10000)) +scale_x_continuous(transform="log") +
+  theme_bw(base_size = 16)
 
 
-M_AICc_CO2 <- lmer(log(pCO2_ppm) ~ 
-                  scale(Watertemp_c)+ 
-               #  scale(waterTemp_c_yearly) +
-              #    scale(log(surface_area_m2)) +
-              #  scale(log(WS_area_minus_pond)) +
-               #     scale(percent_DTW) +
-                #  scale(Elevation_m) +
-               #   scale(depth_ave_m) +
-                  (1 |Site), data =df_1,REML = FALSE)
-sum_AICc_CO2 <- summary(M_AICc_CO2)
-sum_AICc_CO2_coefficients <- sum_AICc_CO2$coefficients
-modelPerformance(M_AICc_CO2)
-vif(M_AICc_CO2)
 
-forward_model <- step(M_AICc_CO2, direction = "forward", scope = formula(~ .))
-backward_model <- step(M_AICc_CO2, direction = "backward")
-both_model <- step(M_AICc_CO2, direction = "both")
-
-
-write.csv(sum_AICc_CH4_coefficients,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/AICc_CH4_coefficients.csv")
-write.csv(sum_AICc_CO2_coefficients,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/AICc_CO2_coefficients.csv")
-
-sum_AICc_CH4_coefficients <- read.csv("~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/AICc_CH4_coefficients.csv")%>%rename(
-  variable=X,std_err=Std..Error,pvalue=Pr...t..)
-
-sum_AICc_CO2_coefficients <- read.csv("~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/AICc_CO2_coefficients.csv")%>%rename(
-  variable=X,std_err=Std..Error,pvalue=Pr...t..)
-
-sum_AICc_CH4_coefficients$Model <- "AICc"
-sum_AICc_CH4_coefficients$gas <- "CH4"
-
-sum_AICc_CO2_coefficients$Model <- "AICc"
-sum_AICc_CO2_coefficients$gas <- "CO2"
-
-
-model_df <- rbind(sum_AICc_CH4_coefficients,sum_AICc_CO2_coefficients)
-
-model_df <- model_df%>% filter(variable!="(Intercept)")%>% 
-  mutate(Low=Estimate-std_err,High=Estimate+std_err)%>%
-  mutate(across(c(gas, Model), factor))
-
-
-ann_text <- data.frame(Model=as.factor(c(replicate(5,"AICc"),replicate(5,"AICc"))),
-gas=as.factor(c(replicate(5,"CH4"),replicate(5,"CO2"))),
-Estimate = c(NA,0.5365, .7025,NA,-1.6719,#ch4 AIC
-             0.12097,-0.17423,.28578,0.16991,-1.12682 #CO2 AIC)
-),
-variable = as.factor(replicate(4, c("scale(Watertemp_c)","scale(waterTemp_c_yearly)","scale(percent_DTW)","scale(log(WS_area_minus_pond))","scale(Elevation_m)"))),
-sig = c(NA,"*","*",NA,"***", #ch4 AIC
-
-               ".","*","**","*","***", #CO2 AIC
-              ) #CO2 BIC
-)
-
-my_labeller <- as_labeller(c(CH4="CH[4]", CO2="CO[2]", AICc="AICc"), default = label_parsed)
-
-p.model <- ggplot(data=model_df, aes(x=variable, y=Estimate)) +
-  facet_grid(as.factor(Model)~as.factor(gas),
-             
-   labeller = my_labeller) +
-  
-  geom_text(aes(variable,Estimate, label=sig), data = ann_text,vjust=-.75 ) + 
-  geom_point() + geom_errorbar(aes(ymin=Low,ymax=High),width=0)+
-    geom_hline(yintercept = 0, linetype="dashed",color="red",linewidth=1) +
-  coord_flip() + theme_bw(base_size = 16) +
-  theme(axis.title.y=element_blank()) +
-    scale_x_discrete(labels = c("scale(elevation)","scale(catchment area)","scale(% DTW < 1)","scale(yearly water temp.)", "scale(water temp.)")) 
 
 ```
+
+
 
 #plot k and co2 as drivers of flux
 
