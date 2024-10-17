@@ -105,6 +105,7 @@ df$Flux_mol_m2_d <- df$Flux_umol_m2_s / 10^6 * 86400
 #now calculate k in m/d
 df$k_m_d <- df$Flux_mol_m2_d / (df$KH_mol.m3.atm * (df$pCO2_w_atm -  df$pCO2_air_atm )) 
 
+# Wanninkhof et al. (2014)
 df$Sc_co2 <- 1923.6 - 125.06*df$Watertemp_c + 4.3773*(df$Watertemp_c)^2 - 0.085681*(df$Watertemp_c)^3 + 0.00070284 * (df$Watertemp_c)^4
 
 
@@ -125,13 +126,12 @@ df$CH4_pSat <- df$CH4_umol.L/df$CH4_sat_umol.L *100
 
 #calculate the partial pressure of ch4
 
-df$pCH4_w_atm <- df$CH4_umol.L /10^6/df$KH_CH4_mol.L.atm
-df$pCH4_ppm <- df$pCH4_w_atm * 10^6 /df$water_pressure_atm 
+df$pCH4_ppm <- df$CH4_umol.L /df$KH_CH4_mol.L.atm
 
 #One can calculate the gas transfer velocity of one gas (gas1) from another (gas2) using kgas1/kgas2 = (Scgas1/Scgas2)^-n. where Sc is the Schmidt number and n is the Schmidt number exponent, which is generally assigned a value of 1/2 to 2/3 depending on the surface state of the water (Jahne et al. 1987), - Raymond et al 2012
 
-#Matthews et al. 2003 Environ. Sci. Technol.
-df$Sc_ch4 <- 1897.8 + -114.28*df$Watertemp_c + 32902*(df$Watertemp_c)^2 + .039061*(df$Watertemp_c)^3
+# Wanninkhof et al. (2014)
+df$Sc_ch4 <- 1909.4 - 120.78*df$Watertemp_c + 4.1555*(df$Watertemp_c)^2 - 0.080578*(df$Watertemp_c)^3 + 0.00065777**(df$Watertemp_c)^4
 
 df$k_ch4 <- (df$Sc_ch4/df$Sc_co2)^(-2/3) * df$k_m_d
 
