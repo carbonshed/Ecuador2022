@@ -3,6 +3,9 @@ title: "Pond Paper Figures"
 author: "Kriddie"
 date: "2024-04-15"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -31,22 +34,15 @@ library(scales)
 
 ```
 
-#site descriptors
-this includes:
-> ave SA
-> ave depth
-> ave vol
-> cathment size
-> elevation
-> percent change in SA
-> percent change in vol
-> percent veg
-> DOC/TDN
+#site descriptors this includes: \> ave SA \> ave depth \> ave vol \>
+cathment size \> elevation \> percent change in SA \> percent change in
+vol \> percent veg \> DOC/TDN
 
 ```{r table 1}
 WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv"))%>%select(DateTime,Station,WLTemp_c,depth_ave_m,surface_area_m2,Volumn_m3)%>%
   rename(Site=Station)%>%rename(WaterTemp_c=WLTemp_c)
 WL_df$Site <- gsub(".*_","",WL_df$Site)
+WL_df$WaterTemp_c <- ifelse(WL_df$WaterTemp_c < 0, 0, WL_df$WaterTemp_c)
 
 
 WL_df_sum <- WL_df%>%group_by(Site)%>%
@@ -78,9 +74,7 @@ table1 <- full_join(sum_table,WL_df_sum,by="Site")
 #write.csv(table1,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/table1.csv")
 ```
 
-
-#med-deli plot
-this graph shows the hydrology of the system
+#med-deli plot this graph shows the hydrology of the system
 
 ```{r med deli plot,echo=FALSE}
 
@@ -147,18 +141,50 @@ p3 <- p2 + annotation_logticks(
   color = "grey40"
 ) + coord_cartesian(clip = "off")
 
-
-
-
 ```
+
+# i want to make a plot the shows water temp over time for all sites
+
+probably delete this because it doesn't look the way I want
+
+```{r water temp plot}
+df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
+df$New.Name <- df$Site
+GHGsummary_df<-df %>%group_by(New.Name,Site,Elevation_m,percent_DTW,WS_area_minus_pond,waterTemp_c_yearly)%>%
+  summarise(mean_ch4 = mean(pCH4_ppm),
+            mean_co2 = mean(pCO2_ppm),
+            mean_watertemp = mean(Watertemp_c),
+            mean_airtemp = mean(AirTemp_c),
+            mean_SA = mean(surface_area_m2),
+            mean_vol = mean(Volumn_m3),
+            mean_vol_to_SA = mean(SA_to_Vol_ratio),
+            mean_depth = mean(depth_ave_m))
+
+
+df_watertemp <- left_join(WL_df%>%rename(Site=Station),GHGsummary_df%>%select(Site,Elevation_m,mean_ch4,mean_co2),by="Site")
+
+ggplot() + geom_line(data=df_watertemp,aes(x=WLTemp_c,y=mean_ch4,color=Site)) + geom_point(data=df,aes(x=Watertemp_c,y=mean(pCH4_ppm),shape=Site),color="blue")
+  scale_y_continuous(trans="log")
+  
+  ggplot() + geom_point(data=WL_df,aes(x=WLTemp_c,y=surface_area_m2,color=Station)) +
+  scale_y_continuous(trans="log")
+  
+    ggplot() + geom_point(data=WL_df%>%filter(Station=="Wetland03"),aes(x=DateTime,y=WLTemp_c,color=Station)) +
+  scale_y_continuous(trans="log")
+    
+library(plotly)
+plot_ly(data=WL_df%>%filter(Station=="Wetland02"),x=~DateTime,y=~WLTemp_c)
+    
+```
+
 ## Variance within wetlands
 
-First - how do I report the variance found in ponds? we have reps and we have 3 sample location (and then 2 sample locations)
+First - how do I report the variance found in ponds? we have reps and we
+have 3 sample location (and then 2 sample locations)
 
-do i use standard error? how do I report standard error? 
+do i use standard error? how do I report standard error?
 
 below I have some code as a starting point
-
 
 ```{r analysis 1}
 #this script takes the methane data and summarizes it 
@@ -221,17 +247,16 @@ CH4_summary <- rbind(CH4_reps,CH4_se)
 
 CH4_summary$dif_prec <- (CH4_summary$max-CH4_summary$min)/CH4_summary$mean * 100
 
-
-ggplot(CH4_summary, aes(x=Site, y=log(se),color=type)) + 
-  geom_boxplot()
-
-##now look at differences between wetland positon (this can only be done for spring samples)
-
-ggplot(CH4_summer_df,aes(x=as.factor(Location),y=log(pCH4_ppm))) + geom_point()
-ggplot(CH4_fall_df,aes(x=as.factor(Location),y=log(pCH4_ppm))) + geom_point()
-
-## we also have the data to do this for CO2
+## we also have the data to do this for CO2 - I made a mistake and didn't include the corrected co2 values, so I'll need to calculate here
 df_CO2 <- read.csv(here::here("Wetlands/CO2_intrapondvariance.csv"))
+df_CO2$Date <- as.Date(df_CO2$Date,format="%m/%d/%y")
+df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
+df$Date <- as.Date(df$Date,format="%Y-%m-%d")
+df_merge <- df%>%select(Site,Date,Watertemp_c,AirPress_kpa)%>%rename(Wetland=Site)
+df_CO2 <- left_join(df_CO2,df_merge,by=c("Wetland","Date"))
+
+df_CO2$ppm_Corrected <- df_CO2$ppm_NOTcorrected * (1 + (1013 - (df_CO2$AirPress_kpa+2*0.0980665)*10) * 0.0015) * (1 - (25 - df_CO2$Watertemp_c) * 0.003)
+
 df_CO2 <- df_CO2%>%rename(Site="Wetland")%>%
   mutate(Location = case_when(Location == 1 ~ "edge",
                               Location == 2 ~ "middle",
@@ -241,9 +266,6 @@ df_CO2$Site <- as.factor(df_CO2$Site)
 df_CO2$Date <- as.Date.character(df_CO2$Date,format="%m/%d/%y")
 
 C02_middle <- df_CO2%>%filter(Location=="middle")%>%select(Site,Location,Date,ppm_Corrected)
-C02_edge <-  df_CO2%>%filter(Location!="middle") %>%group_by(Site,Date,Location)%>% 
-   summarize(mean= if(n() == 1) ppm_Corrected else mean(ppm_Corrected), .groups = 'drop',
-             sd= if(n() == 1) ppm_Corrected else sd(ppm_Corrected), .groups = 'drop')
 
 C02_edge <- df_CO2 %>%group_by(Site,Date,Location)%>%filter(Location!="middle")%>%
 dplyr::summarise(
@@ -277,17 +299,17 @@ dplyr::summarise(
 #write.csv(CO2_table,here::here("Kriddie/CO2_summarytable_ppm.csv"))
 ```
 
-## Variance between sites
+## Variance between sample locations within a pond
 
-1. are locations at the edge of pond significantly different from locations in the middle?
+1.  are locations at the edge of pond significantly different from
+    locations in the middle?
 
-> findings:
-  1. 9 waterbodies fit parametric model assumptions, so we ran 1-way anova
-  2. Site 2, 7, 11 do not, so we ran kusker-Wallis
-  3. effect of location was insignificnat EXCEPT for W07
-  
-We will report mean and standard deviation for each wetland by day 
-for wetland 7, we report both center and edge
+> findings: 1. 9 waterbodies fit parametric model assumptions, so we ran
+> 1-way anova 2. Site 2, 7, 11 do not, so we ran kusker-Wallis 3. effect
+> of location was insignificnat EXCEPT for W07
+
+We will report mean and standard deviation for each wetland by day for
+wetland 7, we report both center and edge
 
 ```{r location variance, echo=FALSE}
 
@@ -348,8 +370,7 @@ summarize(
 
 #within pond variance for CO2
 
-normal & non significan
-12
+normal & non significan 12
 
 ```{r location variance CO2, echo=FALSE}
 
@@ -361,7 +382,7 @@ res <- residuals(result)
 qqnorm(res) 
 qqline(res)
 shapiro.test(res) #normality
-bartlett.test(log(ppm_Corrected)  ~ Location, data = CO2_df2%>%filter(Site=="12"))  #monovariance
+bartlett.test(log(ppm_Corrected)  ~ Location, data = CO2_df2%>%filter(Site=="1"))  #monovariance
 
 summary(result)
 #results:
@@ -381,13 +402,24 @@ summarise(
 
 ```
 
-#variance between sites
+# variance between sites 
+
 now we test for variance between sites
 
 ```{r site variance, echo=FALSE}
  
 df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
 df$New.Name <- df$Site
+GHGsummary_df<-df %>%group_by(New.Name,Site,Elevation_m,percent_DTW,WS_area_minus_pond,waterTemp_c_yearly)%>%
+  summarise(mean_ch4 = mean(pCH4_ppm),
+            mean_co2 = mean(pCO2_ppm),
+            mean_watertemp = mean(Watertemp_c),
+            mean_airtemp = mean(AirTemp_c),
+            mean_SA = mean(surface_area_m2),
+            mean_vol = mean(Volumn_m3),
+            mean_vol_to_SA = mean(SA_to_Vol_ratio),
+            mean_depth = mean(depth_ave_m))
+
 
 #make column with new name to reflect elevation. S stands for "site"
 df <- df%>%
@@ -513,54 +545,160 @@ p.all <- ggarrange(p.ch4, p.co2, labels = c("A", "B"),ncol = 1, nrow = 2)
 
 ```
 
+# Water temp as a driver of GHG
 
 ```{r site variance, echo=FALSE}
 #plot water temp as driver of CO2
 
 df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
+df$New.Name <- df$Site
+#make column with new name to reflect elevation. S stands for "site"
+df <- df%>%mutate(New.Name = case_match(New.Name, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8','Wetland06' ~ 'S5','Wetland07' ~ 'S7','Wetland08' ~ 'S12','Wetland09' ~ 'S10','Wetland10' ~ 'S11','Wetland11' ~ 'S6','Wetland12' ~ 'Wetland'))
 
+ch4_sum<-df%>%group_by(New.Name,Elevation_m)%>%
+  summarise(mean_co2 = mean(pCO2_ppm),mean_ch4 = mean(pCH4_ppm),mean_temp = mean(Watertemp_c),median_ch4 = median(pCH4_ppm))
 #What is the relationship between water temp and pco2?
+
 M_CO2_temp <- lmer(log(pCO2_ppm) ~ 
                     Watertemp_c+ 
                      (1 |Site), data =df,REML = FALSE)
 summary(M_CO2_temp)
 modelPerformance(M_CO2_temp)
 
+M_CO2_temp <- lm(log(mean_co2) ~ 
+                    log(mean_temp), data =ch4_sum)
+summary(M_CO2_temp)
 
-ggplot(df,aes(x=Watertemp_c,y=pCO2_ppm,color=Site) ) + 
-  geom_point()+
+xlab <- "Water Temperature (°C)"
+p.co2 <- ggplot(df,aes(x=Watertemp_c,y=pCO2_ppm,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)) ) + 
+  geom_point(size=2)+
   geom_smooth(method='lm',formula = "y ~ x",se=FALSE) +
-  scale_y_continuous(transform="log") +scale_x_continuous(transform="log") +
-  theme_bw(base_size = 16)
+    ylab(expression(italic(p)~CO[2] ~'(ppm)')) + xlab(xlab) +
+  scale_color_discrete(name="Site") +
+  scale_y_continuous(transform="log",breaks=c(300,1000,3000,10000)) +
+  scale_x_continuous(transform="log") +
+  theme_bw(base_size = 18)
 
 #What is the relationship between water temp and pch4?
 M_CH4_temp <- lmer(log(pCH4_ppm) ~ 
-                    Watertemp_c+ 
-                     (1 |Site), data =df,REML = FALSE)
+                    log(Watertemp_c) + 
+                     (1 |Site), data =df)
 summary(M_CH4_temp)
 modelPerformance(M_CH4_temp)
 
-p <- ggplot(df,aes(x=Watertemp_c,y=pCH4_ppm,color=Site) ) + 
-  geom_point()+
+
+M_CH4_temp <- lm(log(mean_ch4) ~ 
+                    log(mean_temp), data =ch4_sum)
+summary(M_CH4_temp)
+
+p.ch4 <- ggplot(df,aes(x=Watertemp_c,y=pCH4_ppm,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)) ) + 
+  geom_point(size=2)+
   geom_smooth(method='lm',formula = "y ~ x",se=FALSE) +
-  scale_y_continuous(transform="log",breaks = c(1,3,10,30,100,300,1000,3000,10000)) +scale_x_continuous(transform="log") +
-  theme_bw(base_size = 16)
+    ylab(expression(italic(p)~CH[4] ~'(ppm)')) + xlab(xlab) +
+  scale_color_discrete(name="Site") +
+    scale_y_continuous(transform="log",breaks = c(1,3,10,30,100,300,1000,3000)) +scale_x_continuous(transform="log") +
+  theme_bw(base_size = 18)
+
+p.ch4 <- ggplot(ch4_sum,aes(x=mean_temp,y=mean_ch4,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)) ) + 
+  geom_point(size=2)+
+ # geom_smooth(method='lm',formula = "y ~ x",se=FALSE) +
+    ylab(expression(italic(p)~CH[4] ~'(ppm)')) + xlab(xlab) +
+  scale_color_discrete(name="Site") +
+    scale_y_continuous(transform="log",breaks = c(1,3,10,30,100,300,1000,3000)) +scale_x_continuous(transform="log") +
+  theme_bw(base_size = 18)
 
 
 
 
 ```
 
+# What other things might drive GHG concntrations? Here are our options:
+
+> -   Elevation
+>
+> -   %DTW
+>
+> -   Catchment size
+>
+> -   surface area
+>
+> -   volume
+>
+> -   volume to surface area ratio
+>
+> -   depth
+>
+> -   air temp
+>
+> -   water temp
+
+```{r GHG drviers, echo=FALSE}
+df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
+df$New.Name <- df$Site
+GHGsummary_df<-df %>%group_by(New.Name,Site,Elevation_m,percent_DTW,WS_area_minus_pond,waterTemp_c_yearly)%>%
+  summarise(mean_ch4 = mean(pCH4_ppm),
+            mean_co2 = mean(pCO2_ppm),
+            mean_watertemp = mean(Watertemp_c),
+            mean_airtemp = mean(AirTemp_c),
+            mean_SA = mean(surface_area_m2),
+            mean_vol = mean(Volumn_m3),
+            mean_vol_to_SA = mean(SA_to_Vol_ratio),
+            mean_depth = mean(depth_ave_m))
 
 
-#plot k and co2 as drivers of flux
+m1 <- lmer(log(pCO2_ppm) ~ 
+             scale(Watertemp_c) +
+             scale(AirTemp_c) +
+             scale(log(surface_area_m2)) +
+             scale(log(Volumn_m3)) +
+             scale(SA_to_Vol_ratio) +
+             scale(depth_ave_m) +
+            scale(Elevation_m)+
+             scale(percent_DTW) +
+            scale(WS_area_minus_pond)+
+                     (1 |Site), data =df)
 
+m2 <- lm(log(mean_co2) ~ 
+          scale(mean_watertemp) +
+       #   scale(mean_airtemp) +
+      #     scale(log(mean_SA)) +
+      #    scale(log(mean_vol)) +
+      #    scale(mean_vol_to_SA) + 
+      #    scale(mean_depth) +
+      #     scale(Elevation_m)+
+          scale(percent_DTW) #+
+      #    scale(WS_area_minus_pond)
+        ,
+         data =GHGsummary_df)
+
+summary(m1)
+summary(m2)
+
+m2 <- lm(log(mean_ch4) ~
+         mean_watertemp +
+           percent_DTW,
+         data =GHGsummary_df)
+
+m2 <- lm(percent_DTW ~ 
+         mean_watertemp,
+         data =GHGsummary_df)
+
+
+
+ggplot(summary,aes(x=Elevation_m,y=mean_ch4,color=Site))+geom_point()
+ggplot(summary,aes(x=Elevation_m,y=waterTemp_c_yearly,color=Site))+geom_point()
+
+```
+
+# plot k and co2 as drivers of flux
 
 ```{r co2 v flux and co2 v k600, echo=FALSE}
 
 k_df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
 
 k_df$New.Name <- k_df$Site
+
+k_df$pCO2_air_uatm <- k_df$pCO2_air_atm*10^6
 
 #,ake column with new name to reflect elevation. S stands for "site"
 k_df <- k_df%>%
@@ -585,7 +723,7 @@ k_df <- k_df%>%filter(DateTime < "2022-10-01 00:00:00")
 
 M1 <- lm(log(Flux_umol_m2_s) ~ 
          #    scale(k_m_d)+ 
-             scale(log(pCO2_ppm)),
+             scale(log1p(pCO2_ppm)),
    #         scale(Watertemp_c) +
              data =k_df)
 summary(M1)
@@ -593,46 +731,63 @@ modelPerformance(M1)
 
 k_df$New.Name <- factor(k_df$New.Name, levels = c("S1", "S2", "S3","S4","S5","S6","S7","S8","wetland","S10","S11","S12"))
 
-p1 <- ggplot(k_df,aes(x=pCO2_ppm,y=Flux_umol_m2_s)) + geom_point(aes(fill=New.Name),shape=21,size=3) +  
+CO2_air_max <- max(k_df$pCO2_air_uatm,na.rm = TRUE)
+CO2_air_min <- min(k_df$pCO2_air_uatm,na.rm = TRUE)
+CO2_air_ave <- mean(k_df$pCO2_air_uatm,na.rm = TRUE)
+
+p1 <- ggplot(k_df,aes(x=pCO2_ppm,y=Flux_umol_m2_s*10^-6*60*60*24)) + geom_point(aes(fill=New.Name),shape=21,size=3) +  
    geom_smooth(method='lm', color='black') + guides(fill=guide_legend(title="Site name"))+
-      ylab(expression(paste("CO"[2] ,"  Evasion (",mu,"mol ", m^-2," ", s^-1,")"))) +
+  geom_rect(aes(xmin=CO2_air_min, xmax=CO2_air_max, ymin=0, ymax=Inf),fill="red",alpha=.5) +
+      ylab(expression(paste("CO"[2] ,"  Evasion (mol ", m^-2," ", d^-1,")"))) +
   xlab(substitute(paste(italic('p'),CO[2], " (ppm)"))) +
   scale_x_continuous(transform = "log10") + scale_y_continuous(transform = "log10") +
-  theme_bw(base_size = 16) 
+  theme_bw(base_size = 18) 
 
 
 ```
-#modeling k or k600
 
-surface are and solar radiation where both chosen for being significant in lmer model. Solar radiation is the more significant variable, and if removed, surface area is no longer selected
+# Modeling k or k600
+
+surface area and solar radiation where both chosen for being significant
+in lmer model. Solar radiation is the more significant variable, and if
+removed, surface area is no longer selected
 
 ```{r co2 v flux and co2 v k600, echo=FALSE}
 
 
 M1 <- lmer(K600 ~ 
                   scale(log(surface_area_m2)) +
+             scale(log(pCO2_ppm)) +
    # scale(windspeed_m_s) +
               #    scale(solarrad_W_m2) +
              (1|Site), data =k_df ,REML=FALSE)
 
-
-k_df$BelowSat <- NA
-k_df$BelowSat <- ifelse(k_df$CO2_mol.L < k_df$CO2_sat_mol.L, "*", NA)
-
-
-p2 <- ggplot(k_df) + geom_point(
-  aes(x=surface_area_m2,y=K600),fill="#31a354", shape=21,size=3)  + geom_text(aes(x=surface_area_m2,y=K600,label=BelowSat),vjust=-0.1,hjust=-.5,color="red",size=7) +
+#mean(k_df$K600)
+p2.1 <- ggplot(k_df) + geom_point(
+  aes(x=surface_area_m2,y=K600),fill="#31a354",
+  shape=21,size=3)  + 
   geom_hline(aes(yintercept = median(K600)), color="blue", linetype="dashed") +
   theme_bw(base_size = 16) +
   scale_x_log10() +
   xlab(expression(paste("Surface Area (",m^2, ")"))) +
     ylab(expression(paste(italic('k')[600]," (m ", d^-1,")"))) 
 
+p2.2 <- ggplot(k_df) + geom_point(
+  aes(x=pCO2_ppm,y=K600),fill="#31a354",
+  shape=21,size=3)  + 
+  geom_hline(aes(yintercept = median(K600)), color="blue", linetype="dashed") +
+  theme_bw(base_size = 16) +
+  scale_x_log10() +
+ xlab(substitute(paste(italic('p'),CO[2], " (ppm)"))) +    ylab(expression(paste(italic('k')[600]," (m ", d^-1,")"))) 
+
+p2.full <- ggarrange(p2.1,p2.2)
+
 ```
 
+# Flux over time 
 
-#flux over time 
-now that we have our models of CO2 and CH4, lets try ploting them over time 
+now that we have our models of CO2 and CH4, lets try plotting them over
+time
 
 ```{r co2 and ch4 flux over time, echo=FALSE}
 modeled_GHG_df <- read.csv(here::here("ProcessedData/modeled_GHG_df.csv"))%>%
@@ -741,9 +896,10 @@ theme_bw(base_size = 12)+
 full_1 <- ggarrange(p.F.ch4, p.F.CO2, ncol = 2, nrow = 1,common.legend = TRUE)
 ```
 
-#high temp ch4 flux
+# High temp ch4 flux
 
 this is script to figure our how to talk about ch4 flux at S2 and S3
+
 ```{r high temp flux, echo=FALSE}
 test <- modeled_GHG_df%>%#filter(WaterTemp_c>15)%>%
 filter(Site=="Wetland02")%>%drop_na(WaterTemp_c)
@@ -751,7 +907,7 @@ test <- modeled_GHG_df%>%filter(WaterTemp_c>15)%>%filter(Site=="Wetland04")%>%dr
 #wetland 2
 ```
 
-#extrapolated flux bargraph
+# Extrapolated flux bargraph
 
 ```{r sum flux, echo=FALSE}
 modeled_GHG_sum_df <- modeled_GHG_df%>%
@@ -928,31 +1084,56 @@ p <- ggplot() +
   theme_bw(base_size = 16) 
 
 ```
-#summary
-> most of our sites lower than in Hamilton et al. (1994)
-    The studyarea was locatedin the high boreal and low subarcticwetlandregionof the HudsonBay Lowland with the baseof operations at Moosonee, Ontario  TheHBL is comprised of approximately 85-90%wetlandareas[Pala and Boissonneau,1982] and the entire area is underlain with impermeable glacial moraineclays and silts
-    
-> our sites mostly lower in Kankaala et al. (2013)
-   Kokema¨ enjoki drainage basin, southern Finland (Fig. 1). The lakes are rather shallow (maximum depth [z m ] 5–32 m, mean depth 2.4–10 m. Coniferous forests with Norway spruce (Picea abies) and Scots pine (Pinus sylvestris) cover 55–80% while peatlands cover , 20% of the catchment areas of the lakes
+
+#summary \> most of our sites lower than in Hamilton et al. (1994) The
+studyarea was locatedin the high boreal and low subarcticwetlandregionof
+the HudsonBay Lowland with the baseof operations at Moosonee, Ontario
+TheHBL is comprised of approximately 85-90%wetlandareas[Pala and
+Boissonneau,1982] and the entire area is underlain with impermeable
+glacial moraineclays and silts
+
+> our sites mostly lower in Kankaala et al. (2013) Kokema¨ enjoki
+> drainage basin, southern Finland (Fig. 1). The lakes are rather
+> shallow (maximum depth [z m ] 5–32 m, mean depth 2.4–10 m. Coniferous
+> forests with Norway spruce (Picea abies) and Scots pine (Pinus
+> sylvestris) cover 55–80% while peatlands cover , 20% of the catchment
+> areas of the lakes
 
 > our sites, all lower than Holgerson (2015)
-    > research forest in Tolland and Windham Counties, Connecticut, USA. The ponds are located in mixed deciduous-coniferous forest with minimal human disturbance. The soil types are Charlton-Chatfield Complex (Blacksmith, E8, Quarry, Woodpile Ponds) and Hinckley gravelly sandy loam
-    
-> Higher or within range of Laurion et al. (2010)
-    subarctic discontinuous permafrost region, in the arctic continuous permafrost region. The subarctic thaw ponds are surrounded by dense shrubs (Betula glandulosa, Salix sp., Alnus sp., Myrica gale) and sparse trees (Picea mariana, Picea glauca, Larix laricina), with some areas colonized by Sphagnum spp. mosses. These thermokarst ponds are formed in depressions (1–3-m deep) left after the ice has melted below mineral mounds.
-    
-> Pelletier et al. (2014) where in the middle of our sites
-   boreal peatland
-   
->	Shirokova et al. 2013 ocupied a ery similar range to our sites
-    forest, forest-tundra, and tundra landscape that has been developed on discontinuous and sporadic permafrost; the discontinuous permafrost exists over Neocene sand and clay deposits, and is covered by a peat layer of 1–2 m. The ponds and lakes in this study originate from permafrost melt (soil subsidence)
-    
+
+```         
+> research forest in Tolland and Windham Counties, Connecticut, USA. The ponds are located in mixed deciduous-coniferous forest with minimal human disturbance. The soil types are Charlton-Chatfield Complex (Blacksmith, E8, Quarry, Woodpile Ponds) and Hinckley gravelly sandy loam
+```
+
+> Higher or within range of Laurion et al. (2010) subarctic
+> discontinuous permafrost region, in the arctic continuous permafrost
+> region. The subarctic thaw ponds are surrounded by dense shrubs
+> (Betula glandulosa, Salix sp., Alnus sp., Myrica gale) and sparse
+> trees (Picea mariana, Picea glauca, Larix laricina), with some areas
+> colonized by Sphagnum spp. mosses. These thermokarst ponds are formed
+> in depressions (1–3-m deep) left after the ice has melted below
+> mineral mounds.
+
+> Pelletier et al. (2014) where in the middle of our sites boreal
+> peatland
+
+> Shirokova et al. 2013 ocupied a ery similar range to our sites forest,
+> forest-tundra, and tundra landscape that has been developed on
+> discontinuous and sporadic permafrost; the discontinuous permafrost
+> exists over Neocene sand and clay deposits, and is covered by a peat
+> layer of 1–2 m. The ponds and lakes in this study originate from
+> permafrost melt (soil subsidence)
+
 > Bastviken et al. (2004)'s one sample is lower in methane
 
-> ours sites similar range to 3 points in Delveccia et al 2019 (co2 only)
-    > Mexican Cut Nature Preserve in the Elk Mountains of central Colorado, a pristine, subalpine wilderness area
+> ours sites similar range to 3 points in Delveccia et al 2019 (co2
+> only)
 
-#gavi wetland sampling
+```         
+> Mexican Cut Nature Preserve in the Elk Mountains of central Colorado, a pristine, subalpine wilderness area
+```
+
+# Wetland sampling
 
 ```{r gavi wetland, echo=FALSE}
 gavi_df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%filter(Site=="Wetland12")%>%select(Site, Date, CH4_umol.L, CO2_umol.L, Watertemp_c)
