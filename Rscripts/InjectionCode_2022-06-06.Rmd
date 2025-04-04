@@ -117,7 +117,7 @@ x50m = filter(x50m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
 x100m = filter(x100m, DateTime <= as.POSIXct("2022-06-06 17:00:00", tz = "UTC"))
 
 # Now join all sites into a singular data frame so it is easier to analyze 
-df_new <- rbind(xn10m, x10m, x50m)
+df_new <- rbind(xn10m, x10m, x50m,x100m)
 
 ```
 
@@ -202,7 +202,7 @@ xn10m is new, ignore x100m
 ```{r check CO2 data plot, echo=FALSE}
 # Make a new data frame from df_corr but just with new vaisalas
 df_newv <- df_corr %>% 
-      filter(Station =='xn10m')
+      filter(Station =='xn10m'|Station =='x100m')
 
 # Now correct the adjusted ppm 
 df_newv$adjusted_ppm <- (df_newv$ppm)* (1 + (1013 - df_newv$WL_Pressure) * 0.0015)
@@ -213,7 +213,15 @@ df_newv$adjusted_ppm <- (df_newv$ppm)* (1 + (1013 - df_newv$WL_Pressure) * 0.001
 df_xn10m <- df_newv %>% 
       filter(Station =='xn10m')
 
+#x100m might by new vaisala, though honestly I'm not sure
+df_x100m <- df_newv %>% 
+      filter(Station =='x100m')
+
 df_xn10m$adjusted_ppm <- (df_xn10m$adjusted_ppm * 1.00054) + 65.15813
+
+
+#not sure about the correction here so I'm using the same as above
+df_x100m$adjusted_ppm <- (df_x100m$adjusted_ppm * 1.00054) + 65.15813
 
 ```
 
@@ -247,13 +255,19 @@ plot_ly(df_x50m,
     x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
 ```
 
+## Plot CO2 for 100m Viasala
+```{r check CO2 data plot df_x50m, echo=FALSE}
+##check data
+plot_ly(df_x100m,
+    x = ~DateTime, y = ~adjusted_ppm, type = 'scatter', mode = 'markers') 
+```
 
 ## Plot all CO2 data together 
 ```{r check CO2 data plot, echo=FALSE}
 # join data frames to make plotting easier
 
-df_plot <- rbind(df_xn10m, df_x10m, df_x50m)
-
+df_plot <- rbind(df_xn10m, df_x10m, df_x50m,df_x100m)
+df_plot <- df_plot%>%filter(DateTime>as.POSIXct("2022-06-06 13:00:00",tz="UTC"))
 # use facet wrap to plot multiple stations
 
 together_plot <- ggplot(df_plot, aes(DateTime, adjusted_ppm, color = Station)) +
@@ -265,6 +279,9 @@ together_plot + facet_wrap(~Station, ncol= 3, scales = "free")
 
 
 together_plot
+
+#write out data 
+#write.csv(df_plot,here::here("ProcessedData/Inj_CO2_2022-06-06.csv"))
 
 ```
 

@@ -292,6 +292,8 @@ together_plot + facet_wrap(~Station, ncol= 3, scales = "free")
 
 together_plot
 
+#write.csv(df_plot,here::here("ProcessedData/Inj_CO2_2022-07-01.csv"))
+
 ```
 
 
