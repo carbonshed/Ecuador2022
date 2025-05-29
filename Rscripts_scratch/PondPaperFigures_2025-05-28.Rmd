@@ -563,7 +563,35 @@ df <- df%>%
                 ))
 
 options(scipen = 100)
+#methane
+CH4_model <- aov(log1p(pCH4_ppm) ~ New.Name , data = df)
+summary(CH4_model)
 
+# Check normality of residuals
+res <- residuals(CH4_model)
+qqnorm(res) 
+qqline(res)
+shapiro.test(res) #normality
+bartlett.test(log(pCH4_ppm)  ~ Site, data = df) 
+
+#non-parametric
+kruskal.test(log1p(pCH4_ppm) ~ Site , data = df)
+#this on is good
+conver_results_CH4<- kwAllPairsConoverTest(log1p(pCH4_ppm) ~ as.factor(New.Name), data = df, p.adjust="bonferroni")
+conver_results_CH4 <- conver_results_CH4$p.value
+#conver_results_CH4[conver_results_CH4>.05]<-NA
+
+
+##co2
+
+CO2_model <- aov(log(pCO2_ppm) ~ New.Name , data = df)
+summary(CO2_model)
+# Check assumptions
+res <- residuals(CO2_model)
+qqnorm(res) 
+qqline(res)
+shapiro.test(res) #normality
+bartlett.test(log(pCO2_ppm)  ~ Site, data = df) 
 
 df <- df[order(df$New.Name),]
 conver_results_CO2<- kwAllPairsConoverTest(log(pCO2_ppm) ~ as.factor(New.Name), data = df, p.adjust="bonferroni")
@@ -612,7 +640,9 @@ p.ch4 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),
 
 
 p.co2 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),y=pCO2_ppm)) +
+#  ggplot(df,aes(x=Elevation_m,,y=pCO2_ppm)) +
    geom_point(size=2) +
+#  geom_boxplot(fill="grey") +
   stat_summary(geom = "point", fun = "mean", col = "black", size = 3, shape = 24, fill = "red") +
   scale_y_log10() +
   ylab(expression(italic(p)~CO[2] ~'(ppm)')) + xlab("Site") +
@@ -702,23 +732,23 @@ modelsummary::modelsummary(list(gpmc_co2_mod1,gpmc_co2_mod2,gpmc_ch4_mod1,gpmc_c
 xlab <- "Water temperature (°C)"
 p.co2 <- ggplot(df,aes(x=Watertemp_c,y=pCO2_ppm,color = reorder(New.Name,Elevation_m,median,decreasing = TRUE))) +
   geom_point(size=2)+
-  geom_point(data=df,aes(x=Watertemp_c,y=pCO2_ppm),shape=1,size=2,color="black")+
+  geom_point(data=df,aes(x=Watertemp_c,y=pCO2_ppm,),shape=1,size=2,color="black")+
   geom_smooth(method='lm',formula = "y ~ x",se=FALSE) +
   geom_point(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCO2_ppm,fill=Elevation_m),color="black",shape=23,size=4)+
     geom_point(data=gmc,aes(x=gpm_Watertemp_c,mean_pCO2_ppm),shape=3,size=1,color="black") +
-    ylab(expression(italic(p)*CO[2] ~'(ppm)')) + xlab(xlab) +
-  scale_color_viridis(name="Site",discrete = TRUE,guide = "none") +
-  scale_y_continuous(transform="log",breaks=c(300,1000,3000,10000)) + 
-    theme_bw(base_size = 18) 
+    ylab(expression(italic(p)~CO[2] ~'(ppm)')) + xlab(xlab) +
+  scale_color_viridis(name="Site",discrete = TRUE) +
+  scale_y_continuous(transform="log",breaks=c(300,1000,3000,10000)) +
+    theme_bw(base_size = 24) 
 
 p.co2.ele <- ggplot() +
     geom_smooth(data=df,aes(x=Elevation_m,y=pCO2_ppm), method='lm',formula = "y ~ x",se=FALSE,color="black") +
   geom_point(data=df,aes(x=Elevation_m,y=pCO2_ppm,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)),size=2) +
   geom_point(data=df,aes(x=Elevation_m,y=pCO2_ppm),shape=1,size=2) +
-    ylab(expression(italic(p)*CO[2] ~'(ppm)')) + xlab('Elevation (m)') +
+    ylab(expression(italic(p)~CO[2] ~'(ppm)')) + xlab('Elevation (m)') +
   scale_color_viridis(name="Site",discrete = TRUE) +
   scale_y_continuous(transform="log",breaks=c(300,1000,3000,10000)) +
-  theme_bw(base_size = 18)
+  theme_bw(base_size = 24)
 
 
 #What is the relationship between water temp and pch4?
@@ -731,25 +761,25 @@ p.ch4 <- ggplot() +
   geom_point(data=df,aes(x=Watertemp_c,y=pCH4_ppm),color="black",shape=1, size=2) +
   geom_point(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCH4_ppm,fill=Elevation_m),shape=23,size=4)+
   geom_point(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCH4_ppm),color="black",shape=3,size=1)+
-  ylab(expression(italic(p)*CH[4] ~'(ppm)')) +
+  ylab(expression(italic(p)~CH[4] ~'(ppm)')) +
   xlab(xlab) +
-  scale_color_viridis(name="Site",discrete = TRUE,guide="none") +
+  scale_color_viridis(name="Site",discrete = TRUE) +
   scale_y_continuous(transform="log10",breaks = c(1,3,10,30,100,300,1000,3000)) + 
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = 24) +
   theme(legend.box = "horizontal") +
-  scale_fill_continuous(name = "Elevation (m)") #+ 
-#  guides(fill = guide_legend(order = 2),color = guide_legend(order = 1,ncol = 2)) + 
-#  guides(color = guide_legend(ncol = 4))
+  scale_fill_continuous(name = "Elevation (m)") + 
+  guides(fill = guide_legend(order = 2),color = guide_legend(order = 1,ncol = 2)) + 
+  guides(color = guide_legend(ncol = 4))
   
 
 p.ch4.ele <- ggplot() +
     geom_smooth(data=df,aes(x=Elevation_m,y=pCH4_ppm), method='lm',formula = "y ~ x",se=FALSE,color="black") +
   geom_point(data=df,aes(x=Elevation_m,y=pCH4_ppm,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)),size=2) +
   geom_point(data=df,aes(x=Elevation_m,y=pCH4_ppm),shape=1,size=2) +
-    ylab(expression(italic(p)*CH[4] ~'(ppm)')) + xlab('Elevation (m)') +
+    ylab(expression(italic(p)~CH[4] ~'(ppm)')) + xlab('Elevation (m)') +
   scale_color_viridis(name="Site",discrete = TRUE) +
   scale_y_continuous(transform="log",breaks=c(3,10,30,100,300,1000,3000,10000)) +
-  theme_bw(base_size = 18)
+  theme_bw(base_size = 24)
 
 
 leg <- ggpubr::get_legend(p.ch4)
@@ -869,8 +899,9 @@ p.dtw.co2 <-  ggplot() +
   geom_point(data=df,aes(x=percent_DTW,y=res),color="black",shape=1, size=2) +
   ylab('Residuals') + xlab('% DTW < 1-m') +
   scale_x_continuous(transform="log",breaks=c(1,3,10,30,100)) +
-  scale_color_viridis(name="Site",discrete = TRUE,guide="none") +
-  theme_bw(base_size = 18)
+  scale_color_viridis(name="Site",discrete = TRUE) +
+  theme_bw(base_size = 18)+ 
+guides(color = guide_legend(ncol = 2))
 
 #surface area v 
 
@@ -880,7 +911,7 @@ p.sa.co2 <- ggplot(gmc_co2%>%filter(Site!="Wetland12"),aes(x=surface_area_m2,y=p
   geom_smooth(method='lm',formula = "y ~ x",se=FALSE) +
     geom_point(data=gmc_co2%>%filter(Site!="Wetland01")%>%filter(Site!="Wetland03")%>%filter(Site!="Wetland12"),aes(x=surface_area_m2,y=pCO2_ppm),color="black",shape=1, size=2) +
     ylab(expression(italic(p)~CO[2] ~'(ppm)')) + xlab(expression(atop('Surface area'~ (m^2),'centered on group mean'))) +
-  scale_color_viridis(name="Site",discrete = TRUE,guide="none") +
+  scale_color_viridis(name="Site",discrete = TRUE) +
   scale_y_continuous(transform="log",breaks=c(300,1000,3000,10000)) +
   theme_bw(base_size = 18)
 
@@ -890,9 +921,11 @@ p.depth.ch4 <- ggplot(gmc_ch4%>%filter(pCH4_ppm > 4)%>%filter(Site!="Wetland12")
   geom_smooth(method='lm',formula = "y ~ x",se=FALSE) +
     geom_point(data=gmc_ch4%>%filter(pCH4_ppm > 4)%>%filter(Site!="Wetland12"),aes(x=depth_ave_m,y=pCO2_ppm),color="black",shape=1, size=2) +
     ylab(expression(italic(p)~CH[4] ~'(ppm)')) + xlab("Average depth (m)\ncentered on group mean") +
-  scale_color_viridis(name="Site",discrete = TRUE,guide="none") +
+  scale_color_viridis(name="Site",discrete = TRUE) +
   scale_y_continuous(transform="log",breaks=c(300,1000,3000,10000)) +
-  theme_bw(base_size = 18)
+  theme_bw(base_size = 18)+ 
+guides(color = guide_legend(ncol = 2))
+
 
 # Extract the legend. Returns a gtable
 leg <- get_legend(p.depth.ch4)
@@ -1015,8 +1048,8 @@ CO2_air_ave <- mean(k_df$pCO2_air_uatm,na.rm = TRUE)
 
 p1 <- ggplot(k_df,aes(x=pCO2_ppm,y=Flux_umol_m2_s*10^-6*60*60*24)) + geom_point(aes(fill=New.Name),shape=21,size=3) +  
    geom_smooth(method='lm', color='black') + guides(fill=guide_legend(title="Site name"))+
-  annotate("text",x=8000, y=.001, label=expression(paste(r^2 ," = 0.77")),size=5) +
-#  geom_rect(aes(xmin=CO2_air_min, xmax=CO2_air_max, ymin=0, ymax=Inf),fill="red",alpha=.5) +
+  annotate("text",x=8000, y=.001, label=expression(paste(r^2 ," = .77")),size=5) +
+  geom_rect(aes(xmin=CO2_air_min, xmax=CO2_air_max, ymin=0, ymax=Inf),fill="red",alpha=.5) +
       ylab(expression(paste("CO"[2] ,"  Evasion (mol ", m^-2," ", d^-1,")"))) +
   xlab(substitute(paste(italic('p'),CO[2], " (ppm)"))) +
   scale_x_continuous(transform = "log10") + scale_y_continuous(transform = "log10") +
@@ -1074,7 +1107,7 @@ now that we have our models of CO2 and CH4, lets try plotting them over
 time
 
 ```{r co2 and ch4 flux over time, echo=FALSE}
-modeled_GHG_df <- read.csv(here::here("ProcessedData/modeled_GHG_df.csv"))
+modeled_GHG_df <- read.csv(here::here("ProcessedData/modeled_GHG_df_nov6.csv"))
 modeled_GHG_df$DateTime <- as.POSIXct(modeled_GHG_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 modeled_GHG_df <- modeled_GHG_df%>%filter(DateTime > "2022-07-06 00:00:00" & DateTime < "2023-07-06 00:00:00")
 modeled_GHG_df$New.Name <- modeled_GHG_df$Site
@@ -1109,7 +1142,7 @@ modeled_GHG_df_2$month <- month(modeled_GHG_df_2$DateTime)
 ####
 
 p.F.co2 <- ggplot(modeled_GHG_df_2) + 
-  geom_line(aes(x=DateTime,y=flux_mol.sec.m2_co2_fluctuate*60*60*24), linetype="solid",color="#d95f02") + 
+  geom_line(aes(x=DateTime,y=flux_mol.sec.m2_co2_fluctuate*60*60*24),linetype="solid",color="#d95f02") + 
     geom_line(aes(x=DateTime,y=flux_mol.sec.m2_co2_fixed*60*60*24),linetype = "dashed", color="#1b9e77",linewidth=1) +
     facet_wrap(~New.Name, scales = "free") +
     ylab(CO[2]~evasion~(mol~m^-2~day^-1)) +
