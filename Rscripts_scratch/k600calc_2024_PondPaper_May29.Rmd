@@ -1,0 +1,423 @@
+---
+title: "k600_calculation_2024"
+author: "Kriddie"
+date: "2024-05-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(here)
+library(dplyr) 
+library(tidyr) 
+library(ggplot2)
+library(cowplot)
+library(tidyverse)
+library(rstatix)
+library(ggpubr)
+library(dplyr)
+library(lubridate)
+library(readr)
+```
+
+##gas transfer velocity calculation
+
+we need to figure this shit out
+
+# Read in data
+
+
+```{r read in data}
+
+df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))
+
+df$New.Name <- df$Site
+#make column with new name to reflect elevation. S stands for "site"
+df <- df%>%mutate(New.Name = case_match(New.Name, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8','Wetland06' ~ 'S5','Wetland07' ~ 'S7','Wetland08' ~ 'S12','Wetland09' ~ 'S10','Wetland10' ~ 'S11','Wetland11' ~ 'S6','Wetland12' ~ 'Wetland'))
+
+
+df <- df%>%
+  select(Site,New.Name,DateTime,Date,
+         CO2_ppm,CH4_umol.L,CH4_sat,Flux_umol_m2_s,DOC_mg.L,TDN_mg.L,
+         AirPress_kpa,AirTemp_c,Watertemp_c,waterTemp_c_day,WaterTemp_c_ave3,waterTemp_c_yearly,
+         Baro_kpa,BaroTemp_c,
+         Elevation_m,depth_ave_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio,
+         surface_area_day,Volumn_m3_day,
+         WS_area_minus_pond,percentpond,percent_DTW,
+         PrecipAccuDay_mm,PrecipAccu_mm_PreviousDay,precip_mm_ave2,Precip_mm_ave7, solarrad_W_m2,solarrad_Wm2_daymean,windspeed_m_s, winddirecion)%>%rename(pCO2_ppm=CO2_ppm)
+
+df$DateTime <- as.POSIXct(df$DateTime)
+
+
+#there was one sample for Wetland11 that needed to be removed. So I just want to replace the values for that.
+CH4_df<- read.csv(here::here("ProcessedData/All_CH4_samples_May29.csv"))
+
+CH4_df$uniqueID <- paste(CH4_df$Site,CH4_df$Location,CH4_df$Date,sep="_")
+CH4_df <- CH4_df%>%filter(uniqueID!="Wetland11_3_2022-07-19")
+CH4_df <- CH4_df%>%filter(uniqueID!="Wetland10_2_2022-07-08")
+
+ggplot(CH4_df,aes(x=New.Name,y=CH4_umol.L,color=Date))+geom_point() + scale_y_log10()
+
+#summer data
+CH4_reps <- CH4_df%>%group_by(Site,Location,Date)%>%
+dplyr::summarize(
+  min = min(pCH4_w_uatm), max = max(pCH4_w_uatm),
+  mean = mean(pCH4_w_uatm),
+  sd = sd(pCH4_w_uatm),
+  n = n())%>%
+  filter(n>1)
+CH4_reps$se <-  CH4_reps$sd / sqrt(2)
+CH4_reps$type <- "reps"
+
+CH4_se <- CH4_df%>%group_by(Site,Date)%>%
+dplyr::summarize(
+  min = min(pCH4_w_uatm), max = max(pCH4_w_uatm),
+  mean = mean(pCH4_w_uatm),
+  sd = sd(pCH4_w_uatm),
+  n = n())
+CH4_se$se <-  CH4_se$sd / sqrt(2)
+CH4_se$type <- "allsamples"
+
+
+CH4_summary <- rbind(CH4_reps,CH4_se)
+
+```
+
+#calibrate CO2 sensors
+I think I came up with an defense for not calibrating sensors (see text). I really don't want to because the old sensor had a low y-intercept and if I calibrate it then the sites are even lower in co2, wich would mean i'd have to do even more explaining, and I just don't think, science-wise there is a lot to be gained. So i'd like to avoid all that. Anyway, if we find that we need to do all this, look at the script - "CalibrationCode2.r" in the VaisalaCalibration folder. It's actually pretty well organized.
+
+## working with the final data set 
+
+output for viasala is:
+
+molecular density - so molecules/volume of gas. Here the volume of the gas is what is inside the cuvette. So, the sensor is basically giving out the number of molecules in the optical path.
+
+pubs that include Johnson as an author describes output as a Volume fraction 
+ppmv: parts per million (106) by volume; the fraction of volume of gas occupied by a component multiplied by 1,000,000. If there is 3 ppm of CO2 in a bottle filled with gas, then for every 1,000,000 molecules in the bottle, 3 of those molecules are CO2. 
+
+
+Atmosphere
+manoa lab data is: 
+mole fraction
+moles per mole (mol/mol or mol*mol−1)
+
+In Johnsen et al. (2010) they describe converting the output of the viasala which is ppmv or ppmV, and converting it to mg/l^-1
+
+*The mass equivalence of dissolved inorganic carbon in the dissolved CO2 form is typically reported as mg l^-1 of CO2-C, and is calculated via Henry’s Law (Plummer and Busenberg, 1982) based on the temperature of the water where the sensor is located and the partial pressure of CO2 in solution. For example, 1000 ppm is equivalent to 2.84 mg CO2-C l^-1 at 5 °C; 2.01 mg CO2-C l^-1 at 15 °C; and 1.50 mg CO2-C l^-1 at 25 °C.*
+
+
+
+
+```{r 2025 calculation in revison, echo=FALSE}
+#pV=nRT
+#p=nRT/V
+#R m3⋅Pa⋅K−1⋅mol−1
+#R=8.31446261815324 	
+
+#adjust henry to temp: KH = KH(STP) x exp(D(1/T-1/T(STP)))
+#use constants in  	Burkholder et al. (2019) and convert to desired units
+#  k°H (mol/(kg*bar) = mol/l/atm
+#d(ln(kH))/d(1/T) (K)
+kH_STP_mol.l.atm = .035*1/0.986923
+D_K = 2400 
+T_STP_K = 298.15
+
+df$pCO2_air_ppm <- 418.53 # 2022 average manoa
+
+
+#########
+#airpressure was collected at each site, so no need to adjust for elevation
+
+df$air_pressure_atm <- df$AirPress_kpa / 101.3
+
+df$water_pressure_atm <- df$AirPress_kpa / 101.3 + 0.000967841
+
+
+########
+
+df$pCO2_air_atm <-  df$pCO2_air_ppm / 10^6  * df$air_pressure_atm
+df$pCO2_air_uatm <-  df$pCO2_air_ppm * df$air_pressure_atm
+df$pCO2_w_atm <- df$pCO2_ppm / 10^6 * df$water_pressure_atm 
+df$pCO2_w_uatm <-  df$pCO2_ppm * df$water_pressure_atm 
+
+#henry's constant adjust for temp
+df$KH_mol.l.atm <- kH_STP_mol.l.atm * exp(D_K*(1/(df$Watertemp_c+273.15) - 1/T_STP_K))
+df$KH_mol.m3.atm <- df$KH_mol.l.atm * 1000
+
+df$CO2_sat_mol.L <- df$KH_mol.l.atm*df$pCO2_air_atm
+
+df$CO2_mol.L <- df$KH_mol.l.atm*df$pCO2_w_atm
+df$CO2_umol.L <- df$CO2_mol.L*10^6
+
+
+df$CO2_sat_precent <- df$CO2_mol.L/df$CO2_sat_mol.L*100
+
+
+#change units of flux (umol/m2/s - > mol/m2/d)
+#86400 seconds in a day
+df$Flux_mol_m2_d <- df$Flux_umol_m2_s / 10^6 * 86400
+
+#now calculate k in m/d
+df$k_m_d <- df$Flux_mol_m2_d / (df$KH_mol.m3.atm * (df$pCO2_w_atm -  df$pCO2_air_atm )) 
+
+# Wanninkhof et al. (2014)
+df$Sc_co2 <- 1923.6 - 125.06*df$Watertemp_c + 4.3773*(df$Watertemp_c)^2 - 0.085681*(df$Watertemp_c)^3 + 0.00070284 * (df$Watertemp_c)^4
+
+
+#add henry's constant CH4
+kH_STP_mol.L.atm = .0014182
+dlnHcppersperK = 1600
+df$KH_CH4_mol.L.atm <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(df$Watertemp_c+273.15)-1/T_STP_K))
+
+#Ambient CH4 concentration ppb	1910.97 	
+#average 2021 from Moaa
+CH4_air_ppb <- 1910.97 
+
+df$CH4_air_atm <- df$air_pressure_atm * CH4_air_ppb * 10^-9
+
+df$CH4_sat_umol.L <- df$CH4_air_atm*df$KH_CH4_mol.L.atm * 10^6
+
+df$CH4_pSat <- df$CH4_umol.L/df$CH4_sat_umol.L *100
+
+#calculate the partial pressure of ch4
+
+df$CH4_mol.L <- df$CH4_umol.L / 10^6
+df$pCH4_w_atm <- df$CH4_mol.L/df$KH_CH4_mol.L.atm
+df$pCH4_w_uatm <- df$pCH4_w_atm * 10^6
+df$pCH4_ppm <- df$pCH4_w_atm * 10^6 / df$water_pressure_atm
+
+#One can calculate the gas transfer velocity of one gas (gas1) from another (gas2) using kgas1/kgas2 = (Scgas1/Scgas2)^-n. where Sc is the Schmidt number and n is the Schmidt number exponent, which is generally assigned a value of 1/2 to 2/3 depending on the surface state of the water (Jahne et al. 1987), - Raymond et al 2012
+
+# Wanninkhof et al. (2014)
+df$Sc_ch4 <- 1909.4 - 120.78*df$Watertemp_c + 4.1555*(df$Watertemp_c)^2 - 0.080578*(df$Watertemp_c)^3 + 0.00065777**(df$Watertemp_c)^4
+
+df$k_ch4 <- (df$Sc_ch4/df$Sc_co2)^(-2/3) * df$k_m_d
+
+df$K600 <- df$k_m_d * (600/df$Sc_co2)^(-.57)
+
+p1 <- ggplot(df) + geom_point(aes(x=pCO2_ppm,y=K600,color=DateTime)) + scale_x_log10()
+p2 <- ggplot(df) + geom_point(aes(x=pCO2_ppm,y=k_m_d,color=DateTime)) + scale_x_log10()
+
+
+#write.csv(df,here::here("ProcessedData/PondPaper_k600_May29.csv"))
+
+```
+
+#All samples
+the previous data set is the average. This data set is an analysis of variation.
+
+```{r the kriddie way for final, echo=FALSE}
+summer_df <- read.csv(here::here("Methane/Methane_df_2023-07-20.csv"))%>% select("Site","Location","Date_collected","CH4_umol_L.1","CH4_.sat","Watertemp_c","AirPress_Field_kPa")%>%
+  filter(Site!="Colmillo")%>%filter(Site!="Gavi-main")%>%filter(Site!="Gavi-trib") %>% 
+  rename(Date = Date_collected, CH4_umol.L = CH4_umol_L.1, CH4_sat = CH4_.sat,AirPress_kpa = AirPress_Field_kPa)
+summer_df$Date <- as.Date.character(summer_df$Date,format="%m/%d/%y")
+#convert to pCH4
+#add henry's constant CH4
+kH_STP_mol.L.atm = .0014182
+dlnHcppersperK = 1600
+T_STP_K = 298.15
+summer_df$KH_CH4_mol.L.atm <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(summer_df$Watertemp_c+273.15)-1/T_STP_K))
+
+#Ambient CH4 concentration ppb	1910.97 	
+#average 2021 from Moaa
+CH4_air_ppb <- 1910.97 
+
+summer_df$air_pressure_atm <- summer_df$AirPress_kpa / 101.3
+
+summer_df$water_pressure_atm <- summer_df$AirPress_kpa / 101.3 + 0.000967841
+
+summer_df$CH4_air_atm <- summer_df$air_pressure_atm * CH4_air_ppb * 10^-9
+
+summer_df$CH4_sat_umol.L <- summer_df$CH4_air_atm*summer_df$KH_CH4_mol.L.atm * 10^6
+
+summer_df$CH4_pSat <- summer_df$CH4_umol.L/summer_df$CH4_sat_umol.L *100
+
+
+#calculate the partial pressure of ch4
+
+summer_df$CH4_mol.L <- summer_df$CH4_umol.L / 10^6
+summer_df$pCH4_w_atm <- summer_df$CH4_mol.L/summer_df$KH_CH4_mol.L.atm
+summer_df$pCH4_w_uatm <- summer_df$pCH4_w_atm * 10^6
+summer_df$pCH4_ppm <- summer_df$pCH4_w_atm * 10^6 / summer_df$water_pressure_atm
+
+
+#############
+#############
+#############
+
+
+#fall samples
+fall_df <- read.csv(here::here("Methane/Methane_fall2022_update.csv"))%>%
+  select("Site","Location","Date_collected","CH4_umol.L","CH4_sat","Watertemp_Field_c","AirPress_Field_kpa")%>%
+  rename(Date = Date_collected,Watertemp_c=Watertemp_Field_c,AirPress_kpa = AirPress_Field_kpa)%>%
+  filter(Site!="Chakanas")%>%filter(Site!="Gavilan")
+fall_df$Date <- as.Date.character(fall_df$Date,format="%m/%d/%y")
+#convert to pCH4
+#add henry's constant CH4
+kH_STP_mol.L.atm = .0014182
+dlnHcppersperK = 1600
+fall_df$KH_CH4_mol.L.atm <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(fall_df$Watertemp_c+273.15)-1/T_STP_K))
+
+fall_df$air_pressure_atm <- fall_df$AirPress_kpa / 101.3
+
+fall_df$water_pressure_atm <- fall_df$AirPress_kpa / 101.3 + 0.000967841
+
+fall_df$CH4_air_atm <- fall_df$air_pressure_atm * CH4_air_ppb * 10^-9
+
+fall_df$CH4_sat_umol.L <- fall_df$CH4_air_atm*fall_df$KH_CH4_mol.L.atm * 10^6
+
+fall_df$CH4_pSat <- fall_df$CH4_umol.L/fall_df$CH4_sat_umol.L *100
+
+
+#calculate the partial pressure of ch4
+
+fall_df$CH4_mol.L <- fall_df$CH4_umol.L / 10^6
+fall_df$pCH4_w_atm <- fall_df$CH4_mol.L/fall_df$KH_CH4_mol.L.atm
+fall_df$pCH4_w_uatm <- fall_df$pCH4_w_atm * 10^6
+fall_df$pCH4_ppm <- fall_df$pCH4_w_atm * 10^6 / fall_df$water_pressure_atm
+
+#bind 
+all_df <- rbind(summer_df,fall_df)
+
+all_df$Site <- gsub("_","",all_df$Site)
+
+all_df$New.Name <- all_df$Site
+#make column with new name to reflect elevation. S stands for "site"
+all_df <- all_df%>%mutate(New.Name = case_match(New.Name, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8','Wetland06' ~ 'S5','Wetland07' ~ 'S7','Wetland08' ~ 'S12','Wetland09' ~ 'S10','Wetland10' ~ 'S11','Wetland11' ~ 'S6','Wetland12' ~ 'Wetland'))
+
+#read out ch4 data
+
+#write.csv(all_df,here::here("ProcessedData/All_CH4_samples_May29.csv"))
+
+
+```
+
+#this is CO2 data
+
+
+```{r CO2 data, echo=FALSE}
+
+
+df_CO2 <- read.csv(here::here("Wetlands/CO2_intrapondvariance.csv"))
+df_CO2$Date <- as.Date(df_CO2$Date,format="%m/%d/%y")
+df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
+df$Date <- as.Date(df$Date,format="%Y-%m-%d")
+df_merge <- df%>%select(Site,Date,Watertemp_c,AirPress_kpa)%>%rename(Wetland=Site)
+df_CO2 <- left_join(df_CO2,df_merge,by=c("Wetland","Date"))
+rm(df,df_merge)
+
+df_CO2 <- df_CO2%>%rename(Site="Wetland")%>%
+  mutate(Location = case_when(Location == 1 ~ "edge",
+                              Location == 2 ~ "middle",
+                              Location == 3 ~ "edge",
+                                   TRUE ~ NA_character_))
+df_CO2$Site <- as.factor(df_CO2$Site)
+
+kH_STP_mol.l.atm = .035*1/0.986923
+D_K = 2400 
+T_STP_K = 298.15
+
+df_CO2$pCO2_air_ppm <- 418.53 # 2022 average manoa
+df_CO2$air_pressure_atm <- df_CO2$AirPress_kpa / 101.3
+df_CO2$water_pressure_atm <- df_CO2$AirPress_kpa / 101.3 + 0.000967841
+df_CO2$pCO2_air_atm <-  df_CO2$pCO2_air_ppm / 10^6  * df_CO2$air_pressure_atm
+df_CO2$pCO2_air_uatm <-  df_CO2$pCO2_air_ppm * df_CO2$air_pressure_atm
+
+df_CO2$ppm_Corrected <- df_CO2$ppm_NOTcorrected * (1 + (1013 - (df_CO2$AirPress_kpa+2*0.0980665)*10) * 0.0015) * (1 - (25 - df_CO2$Watertemp_c) * 0.003)
+df_CO2$pCO2_w_atm <- df_CO2$ppm_Corrected /10^6* df_CO2$water_pressure_atm 
+df_CO2$pCO2_w_uatm <- df_CO2$ppm_Corrected * df_CO2$water_pressure_atm 
+
+##we need to calculate CO2 in uatm
+
+#henry's constant adjust for temp
+df_CO2$KH_mol.l.atm <- kH_STP_mol.l.atm * exp(D_K*(1/(df_CO2$Watertemp_c+273.15) - 1/T_STP_K))
+df_CO2$KH_mol.m3.atm <- df_CO2$KH_mol.l.atm * 1000
+
+df_CO2$CO2_sat_mol.L <- df_CO2$KH_mol.l.atm*df_CO2$pCO2_air_atm
+
+df_CO2$CO2_mol.L <- df_CO2$KH_mol.l.atm*df_CO2$pCO2_w_atm
+df_CO2$CO2_umol.L <- df_CO2$CO2_mol.L*10^6
+
+
+df_CO2$CO2_sat_precent <- df_CO2$CO2_mol.L/df_CO2$CO2_sat_mol.L*100
+
+
+df_CO2$New.Name <- df_CO2$Site
+#make column with new name to reflect elevation. S stands for "site"
+df_CO2 <- df_CO2%>%mutate(New.Name = case_match(New.Name, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8','Wetland06' ~ 'S5','Wetland07' ~ 'S7','Wetland08' ~ 'S12','Wetland09' ~ 'S10','Wetland10' ~ 'S11','Wetland11' ~ 'S6','Wetland12' ~ 'Wetland'))
+
+#write.csv(df_CO2,here::here("ProcessedData/All_CO2_samples_May29.csv"))
+```
+
+#wetland data
+```{r wetland data, echo=FALSE}
+
+
+drone_GHG <- read.csv(here::here("ProcessedData/Drone_Gavi_sampling_GHG.csv"))%>%select(Lat,Lon,Site, Site2, Date, AirPress_kpa,Watertemp_c,CO2_ppm,CH4_umol.L, CO2_umol.L)%>%rename(pCO2_ppm=CO2_ppm)
+
+#cal uatm for both ch4 and co2
+#adjust henry to temp: KH = KH(STP) x exp(D(1/T-1/T(STP)))
+#use constants in  	Burkholder et al. (2019) and convert to desired units
+#  k°H (mol/(kg*bar) = mol/l/atm
+#d(ln(kH))/d(1/T) (K)
+kH_STP_mol.l.atm = .035*1/0.986923
+D_K = 2400 
+T_STP_K = 298.15
+
+drone_GHG$pCO2_air_ppm <- 418.53 # 2022 average manoa
+
+
+#########
+#airpressure was collected at each site, so no need to adjust for elevation
+
+drone_GHG$air_pressure_atm <- drone_GHG$AirPress_kpa / 101.3
+
+drone_GHG$water_pressure_atm <- drone_GHG$AirPress_kpa / 101.3 + 0.000967841
+
+
+########
+
+drone_GHG$pCO2_air_atm <-  drone_GHG$pCO2_air_ppm / 10^6  * drone_GHG$air_pressure_atm
+drone_GHG$pCO2_air_uatm <-  drone_GHG$pCO2_air_ppm * drone_GHG$air_pressure_atm
+drone_GHG$pCO2_w_atm <- drone_GHG$pCO2_ppm / 10^6 * drone_GHG$water_pressure_atm 
+drone_GHG$pCO2_w_uatm <-  drone_GHG$pCO2_ppm * drone_GHG$water_pressure_atm 
+
+#henry's constant adjust for temp
+drone_GHG$KH_mol.l.atm <- kH_STP_mol.l.atm * exp(D_K*(1/(drone_GHG$Watertemp_c+273.15) - 1/T_STP_K))
+drone_GHG$KH_mol.m3.atm <- drone_GHG$KH_mol.l.atm * 1000
+
+drone_GHG$CO2_sat_mol.L <- drone_GHG$KH_mol.l.atm*drone_GHG$pCO2_air_atm
+
+drone_GHG$CO2_mol.L <- drone_GHG$KH_mol.l.atm*drone_GHG$pCO2_w_atm
+drone_GHG$CO2_umol.L <- drone_GHG$CO2_mol.L*10^6
+
+
+drone_GHG$CO2_sat_precent <- drone_GHG$CO2_mol.L/drone_GHG$CO2_sat_mol.L*100
+
+
+#add henry's constant CH4
+kH_STP_mol.L.atm = .0014182
+dlnHcppersperK = 1600
+drone_GHG$KH_CH4_mol.L.atm <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(drone_GHG$Watertemp_c+273.15)-1/T_STP_K))
+
+#Ambient CH4 concentration ppb	1910.97 	
+#average 2021 from Moaa
+CH4_air_ppb <- 1910.97 
+
+drone_GHG$CH4_air_atm <- drone_GHG$air_pressure_atm * CH4_air_ppb * 10^-9
+
+drone_GHG$CH4_sat_umol.L <- drone_GHG$CH4_air_atm*drone_GHG$KH_CH4_mol.L.atm * 10^6
+
+drone_GHG$CH4_pSat <- drone_GHG$CH4_umol.L/drone_GHG$CH4_sat_umol.L *100
+
+#calculate the partial pressure of ch4
+
+drone_GHG$CH4_mol.L <- drone_GHG$CH4_umol.L / 10^6
+drone_GHG$pCH4_w_atm <- drone_GHG$CH4_mol.L/drone_GHG$KH_CH4_mol.L.atm
+drone_GHG$pCH4_w_uatm <- drone_GHG$pCH4_w_atm * 10^6
+drone_GHG$pCH4_ppm <- drone_GHG$pCH4_w_atm * 10^6 / drone_GHG$water_pressure_atm
+
+#write.csv(drone_GHG,here::here("ProcessedData/Drone_Gavi_sampling_GHG_june6.csv"),row.names = FALSE)
+
+```
