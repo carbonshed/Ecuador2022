@@ -39,4 +39,4 @@ df$CH4_pSat <- df$CH4_umol.L/df$CH4_sat_umol.L *100
 df$pCH4_ppm <- df$CH4_umol.L /df$KH_CH4_mol.L.atm
 
 #write out
-write.csv(df,here::here("ProcessedData/Drone_Gavi_sampling_GHG_2025.csv"))
+#write.csv(df,here::here("ProcessedData/Drone_Gavi_sampling_GHG_2025.csv"))

@@ -42,6 +42,12 @@ df <- read.csv(here::here("Wetlands/Wetland_df_MERGE_2024-04-14.csv"))%>%
 
 df$DateTime <- as.POSIXct(df$DateTime)
 
+CH4_df <- read.csv(here::here("ProcessedData/All_CH4_samples_May29.csv"))
+CH4_df$uniqueID <- paste(CH4_df$Site,CH4_df$Location,CH4_df$Date,sep="_")
+CH4_df <- CH4_df%>%filter(uniqueID!="Wetland11_3_2022-07-19")
+
+
+
 ```
 
 #calibrate CO2 sensors
@@ -83,7 +89,7 @@ df$water_pressure_atm <- df$AirPress_kpa / 101.3 + 0.000967841
 df$pCO2_air_atm <-  df$pCO2_air_ppm / 10^6  * df$air_pressure_atm
 
 
-df$pCO2_w_atm <- df$pCO2_ppm / 10^6 * df$water_pressure_atm 
+df$pCO2_w_atm <- df$pCO2_ppm / 10^6 #* df$water_pressure_atm 
 
 #henry's constant adjust for temp
 df$KH_mol.l.atm <- kH_STP_mol.l.atm * exp(D_K*(1/(df$Watertemp_c+273.15) - 1/T_STP_K))

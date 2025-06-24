@@ -50,28 +50,27 @@ cathment size \> elevation \> percent change in SA \> percent change in
 vol \> percent veg \> DOC/TDN
 
 ```{r table 1}
-WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv"))%>%select(DateTime,Station,WLTemp_c,depth_ave_m,surface_area_m2,Volumn_m3)%>%
+WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv"))
+WL_df[WL_df$Station=="WL_Wetland12",]$depth_ave_m <- WL_df[WL_df$Station=="WL_Wetland12",]$WaterLevel_m
+
+WL_df <- WL_df%>%select(DateTime,Station,WLTemp_c,depth_ave_m,surface_area_m2,Volumn_m3)%>%
   rename(Site=Station)%>%rename(WaterTemp_c=WLTemp_c)
 WL_df$Site <- gsub(".*_","",WL_df$Site)
 WL_df$WaterTemp_c <- ifelse(WL_df$WaterTemp_c < 0, 0, WL_df$WaterTemp_c)
-
+WL_df$depth_ave_cm <- WL_df$depth_ave_m *100
 
 WL_df_sum <- WL_df%>%group_by(Site)%>%
   dplyr::summarise(
-    SA_mean = mean(surface_area_m2,na.rm=TRUE),
-    SA_max = max(surface_area_m2,na.rm=TRUE),
-    SA_min = min(surface_area_m2,na.rm=TRUE),
-    depth_mean = mean(depth_ave_m,na.rm=TRUE),
-    vol_mean = mean(Volumn_m3,na.rm=TRUE),
-    vol_max = max(Volumn_m3,na.rm=TRUE),
-    vol_min = min(Volumn_m3,na.rm=TRUE),
+    SA_m2_mean = mean(surface_area_m2,na.rm=TRUE),
+    SA_sd = sd(surface_area_m2,na.rm=TRUE),
+    depth_cm_mean = mean(depth_ave_cm,na.rm=TRUE),
+    depth_sd = sd(depth_ave_cm,na.rm=TRUE),
+    vol_m3_mean = mean(Volumn_m3,na.rm=TRUE),
+    vol_sd = sd(Volumn_m3,na.rm=TRUE)
   )
-WL_df_sum$SA_diff <- (WL_df_sum$SA_max - WL_df_sum$SA_min)/(WL_df_sum$SA_max) * 100
-WL_df_sum$vol_diff <- (WL_df_sum$vol_max - WL_df_sum$vol_min)/(WL_df_sum$vol_max) * 100
 
-
-sum_table <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%select(Site,Elevation_m,WS_area_minus_pond,DOC_mg.L,TDN_mg.L)
-sum_table <- sum_table%>%group_by(Site)%>%
+sum_table <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))%>%select(Site,New.Name,Elevation_m,WS_area_minus_pond,DOC_mg.L,TDN_mg.L)
+sum_table <- sum_table%>%group_by(Site,New.Name)%>%
   dplyr::summarise(
     Elevation_m = mean(Elevation_m,na.rm=TRUE),
     Catchment_size = max(WS_area_minus_pond,na.rm=TRUE),
@@ -81,8 +80,9 @@ sum_table <- sum_table%>%group_by(Site)%>%
 
 
 table1 <- full_join(sum_table,WL_df_sum,by="Site")
+table1$Site <- NULL
 
-#write.csv(table1,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/table1.csv")
+#write.csv(table1,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/Tables/table1_june5.csv")
 ```
 
 #med-deli plot this graph shows the hydrology of the system
@@ -96,12 +96,10 @@ WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv
 WL_df[WL_df$Station=="WL_Wetland12",]$depth_ave_m <- WL_df[WL_df$Station=="WL_Wetland12",]$WaterLevel_m
 WL_df <- WL_df[c("DateTime","Station","Baro_kpa","BaroTemp_c","WLTemp_c","depth_ave_m","surface_area_m2","Volumn_m3","SA_to_Vol_ratio")]
 WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
-#WL_df$Station_2 <- paste("Wetland",as.numeric(gsub("\\D", "", WL_df$Station)))
 WL_df$Station <- str_sub(WL_df$Station,4)
-#WL_df$Station <- stringr::str_replace_all(WL_df$Station, " ", "")
 
 #read in elevation data to merge with WL
-df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%select(Site,Elevation_m)
+df <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))%>%select(Site,New.Name,Elevation_m)
 df <- unique(df)
 
 #med deli plot
@@ -174,10 +172,7 @@ WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 WL_df$Site <- str_sub(WL_df$Site,4)
 
 
-df1 <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
-df1$New.Name <- df1$Site
-#make column with new name to reflect elevation. S stands for "site"
-df1 <- df1%>%mutate(New.Name = case_match(New.Name, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8','Wetland06' ~ 'S5','Wetland07' ~ 'S7','Wetland08' ~ 'S12','Wetland09' ~ 'S10','Wetland10' ~ 'S11','Wetland11' ~ 'S6','Wetland12' ~ 'Wetland'))
+df1 <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))
 
 gmc <- df1 %>%
   group_by(New.Name,Site,Elevation_m) %>%
@@ -311,47 +306,16 @@ below I have some code as a starting point
 
 ```{r analysis 1}
 #this script takes the methane data and summarizes it 
-#now this is included in Merge_WetlandDATA.R
 
-#I need to convert ch4 to pch4
-
-CH4_summer_df <- read.csv(here::here("Methane/Methane_df_2023-07-20.csv"))%>% select("Site","Location","Date_collected","CH4_umol_L.1","CH4_.sat","Watertemp_c")%>%
-  filter(Site!="Colmillo")%>%filter(Site!="Gavi-main")%>%filter(Site!="Gavi-trib") %>% 
-  rename(Date = Date_collected, CH4_umol.L = CH4_umol_L.1, CH4_sat = CH4_.sat)
-CH4_summer_df$Date <- as.Date.character(CH4_summer_df$Date,format="%m/%d/%y")
-#convert to pCH4
-#add henry's constant CH4
-kH_STP_mol.L.atm = .0014182
-dlnHcppersperK = 1600
-T_STP_K = 298.15
-CH4_summer_df$KH_CH4_mol.L.atm <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(CH4_summer_df$Watertemp_c+273.15)-1/T_STP_K))
-CH4_summer_df$pCH4_ppm <- CH4_summer_df$CH4_umol.L /CH4_summer_df$KH_CH4_mol.L.atm
-
-
-#fall samples
-CH4_fall_df <- read.csv(here::here("Methane/Methane_fall2022_update.csv"))%>%
-  select("Site","Location","Date_collected","CH4_umol.L","CH4_sat","Watertemp_Field_c")%>%
-  rename(Date = Date_collected)%>%rename(Watertemp_c=Watertemp_Field_c)%>%
-  filter(Site!="Chakanas")%>%filter(Site!="Gavilan")
-CH4_fall_df$Date <- as.Date.character(CH4_fall_df$Date,format="%m/%d/%y")
-#convert to pCH4
-#add henry's constant CH4
-kH_STP_mol.L.atm = .0014182
-dlnHcppersperK = 1600
-CH4_fall_df$KH_CH4_mol.L.atm <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(CH4_fall_df$Watertemp_c+273.15)-1/T_STP_K))
-CH4_fall_df$pCH4_ppm <- CH4_fall_df$CH4_umol.L /CH4_fall_df$KH_CH4_mol.L.atm
-
-#for the fall we did not have the same sampling strategy of site #2 being in the middle (I think), but we did do reps. so lets see what the variance is in reps to see if its the same
-
-CH4_df <- rbind(CH4_summer_df,CH4_fall_df)
-
-
-
+CH4_df <- read.csv(here::here("ProcessedData/All_CH4_samples_May29.csv"))
+CH4_df$uniqueID <- paste(CH4_df$Site,CH4_df$Location,CH4_df$Date,sep="_")
+CH4_df <- CH4_df%>%filter(uniqueID!="Wetland11_3_2022-07-19")
+#summer data
 CH4_reps <- CH4_df%>%group_by(Site,Location,Date)%>%
 dplyr::summarize(
-  min = min(pCH4_ppm), max = max(pCH4_ppm),
-  mean = mean(pCH4_ppm),
-  sd = sd(pCH4_ppm),
+  min = min(pCH4_w_uatm), max = max(pCH4_w_uatm),
+  mean = mean(pCH4_w_uatm),
+  sd = sd(pCH4_w_uatm),
   n = n())%>%
   filter(n>1)
 CH4_reps$se <-  CH4_reps$sd / sqrt(2)
@@ -359,9 +323,9 @@ CH4_reps$type <- "reps"
 
 CH4_se <- CH4_df%>%group_by(Site,Date)%>%
 dplyr::summarize(
-  min = min(pCH4_ppm), max = max(pCH4_ppm),
-  mean = mean(pCH4_ppm),
-  sd = sd(pCH4_ppm),
+  min = min(pCH4_w_uatm), max = max(pCH4_w_uatm),
+  mean = mean(pCH4_w_uatm),
+  sd = sd(pCH4_w_uatm),
   n = n())
 CH4_se$se <-  CH4_se$sd / sqrt(2)
 CH4_se$type <- "allsamples"
@@ -371,55 +335,48 @@ CH4_summary <- rbind(CH4_reps,CH4_se)
 
 CH4_summary$dif_prec <- (CH4_summary$max-CH4_summary$min)/CH4_summary$mean * 100
 
-## we also have the data to do this for CO2 - I made a mistake and didn't include the corrected co2 values, so I'll need to calculate here
-df_CO2 <- read.csv(here::here("Wetlands/CO2_intrapondvariance.csv"))
-df_CO2$Date <- as.Date(df_CO2$Date,format="%m/%d/%y")
-df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
-df$Date <- as.Date(df$Date,format="%Y-%m-%d")
-df_merge <- df%>%select(Site,Date,Watertemp_c,AirPress_kpa)%>%rename(Wetland=Site)
-df_CO2 <- left_join(df_CO2,df_merge,by=c("Wetland","Date"))
+## we also have the data to do this for CO2 
+df_CO2 <- read.csv(here::here("ProcessedData/All_CO2_samples_May29.csv"))
 
-df_CO2$ppm_Corrected <- df_CO2$ppm_NOTcorrected * (1 + (1013 - (df_CO2$AirPress_kpa+2*0.0980665)*10) * 0.0015) * (1 - (25 - df_CO2$Watertemp_c) * 0.003)
-
-df_CO2 <- df_CO2%>%rename(Site="Wetland")%>%
-  mutate(Location = case_when(Location == 1 ~ "edge",
-                              Location == 2 ~ "middle",
-                              Location == 3 ~ "edge",
-                                   TRUE ~ NA_character_))
-df_CO2$Site <- as.factor(df_CO2$Site)
-df_CO2$Date <- as.Date.character(df_CO2$Date,format="%m/%d/%y")
-
-C02_middle <- df_CO2%>%filter(Location=="middle")%>%select(Site,Location,Date,ppm_Corrected)
+C02_middle <- df_CO2%>%filter(Location=="middle")%>%select(Site,Location,Date,pCO2_w_uatm)
 
 C02_edge <- df_CO2 %>%group_by(Site,Date,Location)%>%filter(Location!="middle")%>%
 dplyr::summarise(
-  ppm_Corrected = mean(ppm_Corrected,rm.na=TRUE))
+  pCO2_w_uatm = mean(pCO2_w_uatm,rm.na=TRUE))
 
 CO2_summary <- rbind(C02_middle,C02_edge)
 
 
-ggplot(CO2_summary, aes(x=as.factor(Site), y=log(ppm_Corrected),color=Location)) + 
+ggplot(CO2_summary, aes(x=as.factor(Site), y=log(pCO2_w_uatm),color=Location)) + 
   geom_point()
 
 
 ##make table 2
 CH4_table <- CH4_df%>%group_by(Site,Date)%>%
 dplyr::summarize(
-  mean = mean(pCH4_ppm),
-  sd = sd(pCH4_ppm),
-  n = n())
+  mean_uatm = mean(pCH4_w_uatm),
+  sd_uatm = sd(pCH4_w_uatm),
+  n_uatm = n())
 
-#write.csv(CH4_table,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/ch4_summarytable.csv")
-#write.csv(CH4_table,here::here("Kriddie/ch4_summarytable_ppm.csv"))
+CH4_table <- CH4_df %>%group_by(Site,Date)%>%
+dplyr::summarize(
+  mean_umol.L = mean(CH4_umol.L),
+  sd_umol.L = sd(CH4_umol.L),
+  n_uatm = n())
+
+#write.csv(CH4_table,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/ch4_summarytable_uatm.csv")
+
+#write.csv(CH4_table,here::here("Kriddie/ch4_summarytable_uatm.csv"))
 
 
-CO2_table <- CO2_summary %>%group_by(Site,Date)%>%
+CO2_table <- CO2_summary%>%drop_na(pCO2_w_uatm) %>%group_by(Site,Date)%>%
 dplyr::summarise(
-  mean = mean(ppm_Corrected, rm.na=TRUE),
-  sd = sd(ppm_Corrected, rm.na=TRUE),
-  n = n())
+  mean_uatm = mean(pCO2_w_uatm),
+  sd_uatm = sd(pCO2_w_uatm),
+  n_uatm = n())
 
-#write.csv(CO2_table,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/co2_summarytable.csv")
+#write.csv(CO2_table,"~/OneDrive - University of North Carolina at Chapel Hill/Dissertation papers/Wetland GHG/co2_summarytable_uatm.csv")
+
 #write.csv(CO2_table,here::here("Kriddie/CO2_summarytable_ppm.csv"))
 ```
 
@@ -492,6 +449,7 @@ summarize(
 
 ```
 
+
 # Within pond variance for CO2
 
 normal & non significant 12
@@ -501,7 +459,7 @@ normal & non significant 12
 CO2_df2 <- CO2_summary
 
 # Check normality of residuals
-result <- aov(log(ppm_Corrected) ~ Location , data = CO2_df2 %>%filter(Site=="1"))
+result <- aov(log(pCO2_w_uatm) ~ Location , data = CO2_df2 %>%filter(Site=="1"))
 res <- residuals(result)
 qqnorm(res) 
 qqline(res)
@@ -532,11 +490,10 @@ now we test for variance between sites
 
 ```{r site variance, echo=FALSE}
  
-df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
-df$New.Name <- df$Site
-GHGsummary_df<-df %>%group_by(New.Name,Site,Elevation_m,percent_DTW,WS_area_minus_pond,waterTemp_c_yearly)%>%
-  summarise(mean_ch4 = mean(pCH4_ppm),
-            mean_co2 = mean(pCO2_ppm),
+df <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))
+GHGsummary_df <-df %>%group_by(New.Name,Site,pCH4_w_uatm,pCO2_w_uatm,Elevation_m,percent_DTW,WS_area_minus_pond,waterTemp_c_yearly)%>%
+  summarise(mean_ch4_uatm = mean(pCH4_w_uatm),
+            mean_co2_uatm = mean(pCO2_w_uatm),
             mean_watertemp = mean(Watertemp_c),
             mean_airtemp = mean(AirTemp_c),
             mean_SA = mean(surface_area_m2),
@@ -544,27 +501,9 @@ GHGsummary_df<-df %>%group_by(New.Name,Site,Elevation_m,percent_DTW,WS_area_minu
             mean_vol_to_SA = mean(SA_to_Vol_ratio),
             mean_depth = mean(depth_ave_m))
 
-
-#make column with new name to reflect elevation. S stands for "site"
-df <- df%>%
-  mutate(New.Name = case_match(New.Name, 
-                      'Wetland01' ~ 'S1', 
-                      'Wetland02' ~ 'S2',
-                      'Wetland03' ~ 'S3',
-                      'Wetland04' ~ 'S4',
-                      'Wetland05' ~ 'S8',
-                      'Wetland06' ~ 'S5',
-                      'Wetland07' ~ 'S7',
-                      'Wetland08' ~ 'S12',
-                      'Wetland09' ~ 'S10',
-                      'Wetland10' ~ 'S11',
-                      'Wetland11' ~ 'S6',
-                      'Wetland12' ~ 'Wetland'
-                ))
-
 options(scipen = 100)
 #methane
-CH4_model <- aov(log1p(pCH4_ppm) ~ New.Name , data = df)
+CH4_model <- aov(log1p(pCH4_w_uatm) ~ New.Name , data = df)
 summary(CH4_model)
 
 # Check normality of residuals
@@ -572,29 +511,29 @@ res <- residuals(CH4_model)
 qqnorm(res) 
 qqline(res)
 shapiro.test(res) #normality
-bartlett.test(log(pCH4_ppm)  ~ Site, data = df) 
+bartlett.test(log(pCH4_w_uatm)  ~ Site, data = df) 
 
 #non-parametric
-kruskal.test(log1p(pCH4_ppm) ~ Site , data = df)
+kruskal.test(log(pCH4_w_uatm) ~ Site , data = df)
 #this on is good
-conver_results_CH4<- kwAllPairsConoverTest(log1p(pCH4_ppm) ~ as.factor(New.Name), data = df, p.adjust="bonferroni")
+conver_results_CH4<- kwAllPairsConoverTest(log(pCH4_w_uatm) ~ as.factor(New.Name), data = df, p.adjust="bonferroni")
 conver_results_CH4 <- conver_results_CH4$p.value
 #conver_results_CH4[conver_results_CH4>.05]<-NA
 
 
 ##co2
 
-CO2_model <- aov(log(pCO2_ppm) ~ New.Name , data = df)
+CO2_model <- aov(log(pCO2_w_uatm) ~ New.Name , data = df)
 summary(CO2_model)
 # Check assumptions
 res <- residuals(CO2_model)
 qqnorm(res) 
 qqline(res)
 shapiro.test(res) #normality
-bartlett.test(log(pCO2_ppm)  ~ Site, data = df) 
+bartlett.test(log(pCO2_w_uatm)  ~ Site, data = df) 
 
 df <- df[order(df$New.Name),]
-conver_results_CO2<- kwAllPairsConoverTest(log(pCO2_ppm) ~ as.factor(New.Name), data = df, p.adjust="bonferroni")
+conver_results_CO2<- kwAllPairsConoverTest(log(pCO2_w_uatm) ~ as.factor(New.Name), data = df, p.adjust="bonferroni")
 conver_results_CO2 <- conver_results_CO2$p.value
 
 #co2 passes assumptions, but CH4 does not
@@ -603,26 +542,25 @@ tuk_df <- data.frame(tuk$New.Name)
 tuk_df <- tuk_df%>%filter(p.adj<.05)
 
 co2_sum <- df%>%group_by(New.Name)%>%summarise(
-  mean_pCO2 =mean(pCO2_ppm),
+  mean_pCO2 =mean(pCO2_w_uatm),
   mean_size = mean(surface_area_m2)
 )
 
 ggplot(df,aes(x=reorder(New.Name,surface_area_m2,median),y=log(pCH4_ppm),color=Site)) + geom_point(size=3) 
 
-ggplot(df,aes(x=as.factor(Site),y=log(pCH4_ppm),color=Site)) + geom_point(size=3) 
-ggplot(df,aes(x=as.factor(Site),y=log(pCO2_ppm),color=Site)) + geom_point(size=3) 
+ggplot(df,aes(x=as.factor(Site),y=log(pCH4_w_uatm),color=Site)) + geom_point(size=3) 
+ggplot(df,aes(x=as.factor(Site),y=log(pCO2_w_uatm),color=Site)) + geom_point(size=3) 
 
 elev_df <- df%>%select(Site,Elevation_m)
 
 
 #now you can do the figure
-p.ch4 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),y=pCH4_ppm)) +
+p.ch4 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),y=pCH4_w_uatm)) +
    geom_point(size=2) +
-#    geom_boxplot(fill="grey") +
   stat_summary(geom = "point", fun = "mean", col = "black", size = 3, shape = 24, fill = "red") +
   scale_y_log10() +
-   ylab(expression(italic(p)~CH[4] ~'(ppm)')) + xlab("") +
-  theme_classic2(base_size = 18) +
+  ylab(expression(italic(p)*paste("CH"[4] ," (",mu,"atm)"))) +  xlab("") +
+  theme_classic2(base_size = 14) +
   theme(axis.text.x=element_blank()) +
   annotate("text", x = "S1", y = 15000, label = "A") +
   annotate("text", x = "S2", y = 15000, label = "A") +
@@ -639,14 +577,12 @@ p.ch4 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),
 
 
 
-p.co2 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),y=pCO2_ppm)) +
-#  ggplot(df,aes(x=Elevation_m,,y=pCO2_ppm)) +
+p.co2 <- ggplot(df,aes(x=reorder(New.Name,Elevation_m,median,decreasing = TRUE),y=pCO2_w_uatm)) +
    geom_point(size=2) +
-#  geom_boxplot(fill="grey") +
   stat_summary(geom = "point", fun = "mean", col = "black", size = 3, shape = 24, fill = "red") +
   scale_y_log10() +
-  ylab(expression(italic(p)~CO[2] ~'(ppm)')) + xlab("Site") +
-theme_classic2(base_size = 18) +
+  ylab(expression(italic(p)*paste("CO"[2] ," (",mu,"atm)"))) +  xlab("Site") +
+theme_classic2(base_size = 14) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
   annotate("text", x = "S1", y = 15000, label = "AB") + 
   annotate("text", x = "S2", y = 15000, label = "A") +
@@ -665,7 +601,7 @@ theme_classic2(base_size = 18) +
 ###now do it ordering by elevation, not surface area
 
 
-p.all <- ggarrange(p.ch4, p.co2, labels = c("A", "B"),ncol = 1, nrow = 2)
+p.all <- ggarrange(p.ch4, p.co2, labels = c("a", "b"),heights=c(1.5,2), ncol = 1, nrow = 2)
 
 ```
 
@@ -674,31 +610,27 @@ p.all <- ggarrange(p.ch4, p.co2, labels = c("A", "B"),ncol = 1, nrow = 2)
 ```{r site variance, echo=FALSE}
 #plot water temp as driver of CO2
 
-df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
-df$New.Name <- df$Site
-#make column with new name to reflect elevation. S stands for "site"
-df <- df%>%mutate(New.Name = case_match(New.Name, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8','Wetland06' ~ 'S5','Wetland07' ~ 'S7','Wetland08' ~ 'S12','Wetland09' ~ 'S10','Wetland10' ~ 'S11','Wetland11' ~ 'S6','Wetland12' ~ 'Wetland'))
-
+df <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))
 
 gmc <- df %>%
   group_by(New.Name,Site,Elevation_m,percent_DTW,
            WS_area_minus_pond,waterTemp_c_yearly) %>%
   mutate(gpm_Watertemp_c = mean(Watertemp_c),
-         mean_pCO2_ppm = mean(pCO2_ppm),
-         mean_pCH4_ppm = mean(pCH4_ppm),
+         mean_pCO2_uatm = mean(pCO2_w_uatm),
+         mean_pCH4_uatm = mean(pCH4_w_uatm),
          Watertemp_c = Watertemp_c - gpm_Watertemp_c) %>% 
   ungroup()# %>% 
   #select(pCH4_ppm,pCO2_ppm, Site, contains("Watertemp"), Elevation_m )
 
 
-gpmc_co2_mod1 <- lmer(log(pCO2_ppm) ~ 
+gpmc_co2_mod1 <- lmer(log(mean_pCO2_uatm) ~ 
                     #Level 1 (time) 
                     Watertemp_c+ #GROUP mean centered!
                     #Level 2 (pond-level)
                     scale(gpm_Watertemp_c, scale=F)+ #GROUP means
                     scale(Elevation_m)+
                     (1 |Site), data =gmc)
-gpmc_co2_mod2 <- lmer(log(pCO2_ppm) ~ 
+gpmc_co2_mod2 <- lmer(log1p(mean_pCO2_uatm) ~ 
                     #Level 1 (time) 
                     Watertemp_c+ #GROUP mean centered!
                     #Level 2 (pond-level)
@@ -709,14 +641,14 @@ summary(gpmc_co2_mod1)
 modelPerformance(gpmc_co2_mod1)
 
 
-gpmc_ch4_mod1 <- lmer(log(pCH4_ppm) ~ 
+gpmc_ch4_mod1 <- lmer(log1p(mean_pCH4_uatm) ~ 
                     #Level 1 (time) 
                     Watertemp_c+ #GROUP mean centered!
                     #Level 2 (pond-level)
                     scale(gpm_Watertemp_c, scale=F)+ #GROUP means
                     scale(Elevation_m)+
                     (1 |Site), data =gmc)
-gpmc_ch4_mod2 <- lmer(log(pCH4_ppm) ~ 
+gpmc_ch4_mod2 <- lmer(log(mean_pCH4_uatm) ~ 
                     #Level 1 (time) 
                     Watertemp_c+ #GROUP mean centered!
                     #Level 2 (pond-level)
@@ -726,77 +658,79 @@ gpmc_ch4_mod2 <- lmer(log(pCH4_ppm) ~
 
 
 modelsummary::modelsummary(list(gpmc_co2_mod1,gpmc_co2_mod2,gpmc_ch4_mod1,gpmc_ch4_mod2),stars=T)
-#What is the relationship between water temp and pco2?
 
 
 xlab <- "Water temperature (°C)"
-p.co2 <- ggplot(df,aes(x=Watertemp_c,y=pCO2_ppm,color = reorder(New.Name,Elevation_m,median,decreasing = TRUE))) +
+p.co2 <- ggplot(df,aes(x=Watertemp_c,y=pCO2_w_uatm,color = reorder(New.Name,Elevation_m,median,decreasing = TRUE))) +
   geom_point(size=2)+
-  geom_point(data=df,aes(x=Watertemp_c,y=pCO2_ppm,),shape=1,size=2,color="black")+
+  geom_point(data=df,aes(x=Watertemp_c,y=pCO2_w_uatm),shape=1,size=2,color="black")+
   geom_smooth(method='lm',formula = "y ~ x",se=FALSE) +
-  geom_point(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCO2_ppm,fill=Elevation_m),color="black",shape=23,size=4)+
-    geom_point(data=gmc,aes(x=gpm_Watertemp_c,mean_pCO2_ppm),shape=3,size=1,color="black") +
-    ylab(expression(italic(p)~CO[2] ~'(ppm)')) + xlab(xlab) +
-  scale_color_viridis(name="Site",discrete = TRUE) +
-  scale_y_continuous(transform="log",breaks=c(300,1000,3000,10000)) +
-    theme_bw(base_size = 24) 
+  geom_point(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCO2_uatm,fill=Elevation_m),color="black",shape=23,size=4)+
+    geom_point(data=gmc,aes(x=gpm_Watertemp_c,mean_pCO2_uatm),shape=3,size=1,color="black") +
+  ylab(expression(italic(p)*paste("CO"[2] ," (",mu,"atm)"))) + xlab(xlab) +
+  scale_color_viridis(name="Site",discrete = TRUE,guide = "none") +
+  scale_y_continuous(transform="log",breaks=c(300,1000,3000,10000)) + 
+    theme_bw(base_size = 16)
 
 p.co2.ele <- ggplot() +
-    geom_smooth(data=df,aes(x=Elevation_m,y=pCO2_ppm), method='lm',formula = "y ~ x",se=FALSE,color="black") +
-  geom_point(data=df,aes(x=Elevation_m,y=pCO2_ppm,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)),size=2) +
-  geom_point(data=df,aes(x=Elevation_m,y=pCO2_ppm),shape=1,size=2) +
-    ylab(expression(italic(p)~CO[2] ~'(ppm)')) + xlab('Elevation (m)') +
+    geom_smooth(data=df,aes(x=Elevation_m,y=pCO2_w_uatm), method='lm',formula = "y ~ x",se=FALSE,color="black") +
+  geom_point(data=df,aes(x=Elevation_m,y=pCO2_w_uatm,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)),size=2) +
+  geom_point(data=df,aes(x=Elevation_m,y=pCO2_w_uatm),shape=1,size=2) +
+  ylab("") +
+  #  ylab(expression(italic(p)*paste("CO"[2] ," (",mu,"atm)"))) + 
+  xlab('Elevation (m)') +
   scale_color_viridis(name="Site",discrete = TRUE) +
   scale_y_continuous(transform="log",breaks=c(300,1000,3000,10000)) +
-  theme_bw(base_size = 24)
+  theme_bw(base_size = 16)
 
-
-#What is the relationship between water temp and pch4?
-
-
+#CH4 plots
 
 p.ch4 <- ggplot() + 
-  geom_smooth(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCH4_ppm),method='lm',formula = "y ~ x",se=FALSE,color="black") +
-  geom_point(data=df,aes(x=Watertemp_c,y=pCH4_ppm,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)),size=2) +
-  geom_point(data=df,aes(x=Watertemp_c,y=pCH4_ppm),color="black",shape=1, size=2) +
-  geom_point(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCH4_ppm,fill=Elevation_m),shape=23,size=4)+
-  geom_point(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCH4_ppm),color="black",shape=3,size=1)+
-  ylab(expression(italic(p)~CH[4] ~'(ppm)')) +
+  geom_smooth(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCH4_uatm),method='lm',formula = "y ~ x",se=FALSE,color="black") +
+  geom_point(data=df,aes(x=Watertemp_c,y=pCH4_w_uatm,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)),size=2) +
+  geom_point(data=df,aes(x=Watertemp_c,y=pCH4_w_uatm),color="black",shape=1, size=2) +
+  geom_point(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCH4_uatm,fill=Elevation_m),shape=23,size=4)+
+  geom_point(data=gmc,aes(x=gpm_Watertemp_c,y=mean_pCH4_uatm),color="black",shape=3,size=1)+
+ylab(expression(italic(p)*paste("CH"[4] ," (",mu,"atm)"))) +
   xlab(xlab) +
   scale_color_viridis(name="Site",discrete = TRUE) +
-  scale_y_continuous(transform="log10",breaks = c(1,3,10,30,100,300,1000,3000)) + 
-  theme_bw(base_size = 24) +
-  theme(legend.box = "horizontal") +
-  scale_fill_continuous(name = "Elevation (m)") + 
+  scale_y_continuous(transform="log10",breaks = c(3,10,30,100,300,1000,3000)) + 
+  theme_bw(base_size = 16) +
+  scale_fill_continuous(name = "Elevation (m)") +
+    theme(legend.box = "horizontal") +
   guides(fill = guide_legend(order = 2),color = guide_legend(order = 1,ncol = 2)) + 
   guides(color = guide_legend(ncol = 4))
   
 
 p.ch4.ele <- ggplot() +
-    geom_smooth(data=df,aes(x=Elevation_m,y=pCH4_ppm), method='lm',formula = "y ~ x",se=FALSE,color="black") +
-  geom_point(data=df,aes(x=Elevation_m,y=pCH4_ppm,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)),size=2) +
-  geom_point(data=df,aes(x=Elevation_m,y=pCH4_ppm),shape=1,size=2) +
-    ylab(expression(italic(p)~CH[4] ~'(ppm)')) + xlab('Elevation (m)') +
+    geom_smooth(data=df,aes(x=Elevation_m,y=pCH4_w_uatm), method='lm',formula = "y ~ x",se=FALSE,color="black") +
+  geom_point(data=df,aes(x=Elevation_m,y=pCH4_w_uatm,color=reorder(New.Name,Elevation_m,median,decreasing = TRUE)),size=2) +
+  geom_point(data=df,aes(x=Elevation_m,y=pCH4_w_uatm),shape=1,size=2) +
+  ylab("") +
+ #   ylab(expression(italic(p)*paste("CH"[4] ," (",mu,"atm)"))) +
+  xlab('Elevation (m)') +
   scale_color_viridis(name="Site",discrete = TRUE) +
   scale_y_continuous(transform="log",breaks=c(3,10,30,100,300,1000,3000,10000)) +
-  theme_bw(base_size = 24)
+  theme_bw(base_size = 16)
 
 
 leg <- ggpubr::get_legend(p.ch4)
 
 library(cowplot)
-full_1 <- plot_grid(p.ch4 + rremove("x.title") + rremove("legend") , p.co2+ rremove("legend"), ncol = 1, align = "v")
+full_1 <- plot_grid(p.ch4 + rremove("x.title") + rremove("legend") , p.co2+ rremove("legend"), ncol = 1, align = "v",labels=c("a","b"))
 
 
-full_2 <- plot_grid(p.ch4.ele + rremove("x.title") + rremove("y.title") + rremove("legend") ,p.co2.ele+ rremove("y.title") + rremove("legend"),nrow=2)
+full_2 <- plot_grid(p.ch4.ele + rremove("x.title") +
+#rremove("y.title") + 
+  rremove("legend") ,p.co2.ele+ #rremove("y.title") +
+  rremove("legend"),nrow=2,labels=c("c","d"))
 
-full_3 <- plot_grid(full_1,full_2,nrow=1)
+full_3 <- ggarrange(full_1,full_2,heights=c(1,1.5), nrow=1)
   
 
 full_4 <- ggarrange(leg,nrow=1)
 
-
-
+full_5 <- ggarrange(full_3,NULL,full_4,heights = c(4,.02,1), nrow = 3)
 
 ```
 
@@ -822,11 +756,7 @@ What other things might drive GHG concentrations? Here are our options:
 > -   water temp
 
 ```{r GHG drviers, echo=FALSE}
-df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
-df$New.Name <- df$Site
-#make column with new name to reflect elevation. S stands for "site"
-df <- df%>%mutate(New.Name = case_match(New.Name, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8','Wetland06' ~ 'S5','Wetland07' ~ 'S7','Wetland08' ~ 'S12','Wetland09' ~ 'S10','Wetland10' ~ 'S11','Wetland11' ~ 'S6','Wetland12' ~ 'Wetland'))
-
+df <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))
 df$DateTime <- as.POSIXct(df$DateTime, format = "%Y-%m-%d %H:%M:%S")
 ##add elevation levels
 df$Watertemp_c_saved <- df$Watertemp_c
@@ -961,7 +891,7 @@ p3 <-plot_grid(p,p2,
 #I want to plot DOC!
 
 ```{r GHG drviers, echo=FALSE}
-df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
+df <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))
 #just the days when DOC was sample
 df$Date <- as.Date(df$Date)
 df1 <- df%>%filter(Date==as.Date("2022-07-27")|Date==as.Date("2022-07-25"))
@@ -999,61 +929,55 @@ summary(M1)
 
 ```{r co2 v flux and co2 v k600, echo=FALSE}
 
-k_df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
-
-k_df$New.Name <- k_df$Site
-
-k_df$pCO2_air_uatm <- k_df$pCO2_air_atm*10^6
-
-#,ake column with new name to reflect elevation. S stands for "site"
-k_df <- k_df%>%
-  mutate(New.Name = case_match(New.Name, 
-                      'Wetland01' ~ 'S1', 
-                      'Wetland02' ~ 'S2',
-                      'Wetland03' ~ 'S3',
-                      'Wetland04' ~ 'S4',
-                      'Wetland05' ~ 'S8',
-                      'Wetland06' ~ 'S5',
-                      'Wetland07' ~ 'S7',
-                      'Wetland08' ~ 'S12',
-                      'Wetland09' ~ 'S10',
-                      'Wetland10' ~ 'S11',
-                      'Wetland11' ~ 'S6',
-                      'Wetland12' ~ 'Wetland'
-                ))
+k_df <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))
 
 k_df$DateTime <- as.POSIXct(k_df$DateTime)
-k_df <- k_df%>%filter(DateTime < "2022-10-01 00:00:00")
+k_df_summer <- k_df%>%filter(Date<"2022-10-01")
+
 
 M1 <- lmer(log(Flux_umol_m2_s) ~ 
-                    log(pCO2_ppm)+
-                    (1 |Site), data =k_df)
+                    log(pCO2_w_uatm)+
+                    (1 |Site), data =k_df_summer)
 
 summary(M1)
 modelPerformance(M1)
 
 M1 <- lm(log(Flux_umol_m2_s) ~ 
          #    scale(k_m_d)+ 
-             scale(log(pCO2_ppm)),# +
+             scale(log(pCO2_w_uatm)),# +
         #    scale(Watertemp_c), 
-             data =k_df)
+             data =k_df_summer)
 summary(M1)
 modelPerformance(M1)
 
-k_df$New.Name <- factor(k_df$New.Name, levels = c("S1", "S2", "S3","S4","S5","S6","S7","S8","Wetland","S10","S11","S12"))
+M2 <- lm(log(Flux_umol_m2_s) ~ 
+             k_m_d,
+             data =k_df_summer)
+summary(M2)
+modelPerformance(M2)
 
-CO2_air_max <- max(k_df$pCO2_air_uatm,na.rm = TRUE)
-CO2_air_min <- min(k_df$pCO2_air_uatm,na.rm = TRUE)
-CO2_air_ave <- mean(k_df$pCO2_air_uatm,na.rm = TRUE)
+CO2_air_max <- max(k_df_summer$pCO2_air_uatm,na.rm = TRUE)
+CO2_air_min <- min(k_df_summer$pCO2_air_uatm,na.rm = TRUE)
+CO2_air_ave <- mean(k_df_summer$pCO2_air_uatm,na.rm = TRUE)
 
-p1 <- ggplot(k_df,aes(x=pCO2_ppm,y=Flux_umol_m2_s*10^-6*60*60*24)) + geom_point(aes(fill=New.Name),shape=21,size=3) +  
+k_df_summer$New.Name <- factor(k_df_summer$New.Name, levels=c("S1", "S2","S3","S4","S5","S6","S7","S8","Wetland","S10","S11","S12"))
+
+p1 <- ggplot(k_df_summer%>%drop_na(Flux_umol_m2_s),aes(x=pCO2_w_uatm,y=Flux_umol_m2_s*10^-6*60*60*24)) + geom_point(aes(fill=New.Name),shape=21,size=3) +  
    geom_smooth(method='lm', color='black') + guides(fill=guide_legend(title="Site name"))+
-  annotate("text",x=8000, y=.001, label=expression(paste(r^2 ," = .77")),size=5) +
+  annotate("text",x=3500, y=.001, label=expression(paste(r^2 ," = 0.77")),size=5) +
   geom_rect(aes(xmin=CO2_air_min, xmax=CO2_air_max, ymin=0, ymax=Inf),fill="red",alpha=.5) +
-      ylab(expression(paste("CO"[2] ,"  Evasion (mol ", m^-2," ", d^-1,")"))) +
-  xlab(substitute(paste(italic('p'),CO[2], " (ppm)"))) +
+      ylab(expression(italic(p)~paste("CO"[2] ,"  Evasion (mol ", m^-2," ", d^-1,")"))) +
+  xlab(expression(italic(p)*paste("CO"[2] ," (",mu,"atm)"))) +
   scale_x_continuous(transform = "log10") + scale_y_continuous(transform = "log10") +
-  theme_bw(base_size = 18) 
+  theme_bw(base_size = 14) 
+
+p2 <- ggplot(k_df_summer %>%drop_na(Flux_umol_m2_s),aes(x=k_m_d,y=Flux_umol_m2_s*10^-6*60*60*24)) + geom_point(aes(fill=New.Name),shape=21,size=3) +  
+   geom_smooth(method='lm', color='black') + guides(fill=guide_legend(title="Site name"))+
+  annotate("text",x=1, y=.001, label=expression(paste(r^2 ," = 0.77")),size=5) +
+      ylab(expression(italic(p)~paste("CO"[2] ,"  Evasion (mol ", m^-2," ", d^-1,")"))) +
+#  xlab(expression(italic(k)*paste(" m/d"))) +
+  scale_x_continuous(transform = "log10") + scale_y_continuous(transform = "log10") +
+  theme_bw(base_size = 14) 
 
 
 ```
@@ -1066,8 +990,20 @@ removed, surface area is no longer selected
 
 ```{r co2 v flux and co2 v k600, echo=FALSE}
 
-k_df$airtemp_diff <- k_df$AirTemp_c - k_df$Watertemp_c
-#if positive, the pond is warming, negative the pond is cooling
+k_df <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))
+k_df_summer <- k_df%>%filter(Date<"2022-10-01")
+k_df_summer_positvevalues <- k_df%>%filter(Date<"2022-10-01")%>%filter(k_m_d>0)
+median(k_df$K600,na.rm = TRUE)
+mean(k_df$K600,na.rm = TRUE)
+
+median(k_df_summer$K600)
+mean(k_df_summer$K600)
+
+median(k_df_summer_positvevalues$K600)
+mean(k_df_summer_positvevalues$K600)
+median(k_df_summer_positvevalues$k_m_d)
+mean(k_df_summer_positvevalues$k_m_d)
+
 
 M1 <- lmer(k_m_d ~ 
          #        scale(log(surface_area_m2)) +
@@ -1077,10 +1013,10 @@ M1 <- lmer(k_m_d ~
 #          Watertemp_c +
         #  scale(windspeed_m_s) +
               #    scale(solarrad_W_m2) +
-             (1|Site), data =k_df )
+             (1|Site), data =k_df_summer )
 
-median(k_df$K600)
-p2.1 <- ggplot(k_df) + geom_point(
+
+p2.1 <- ggplot(k_df_summer) + geom_point(
   aes(x=surface_area_m2,y=K600),fill="#31a354",
   shape=21,size=3)  + 
   geom_hline(aes(yintercept = median(K600)), color="blue", linetype="dashed") +
@@ -1325,7 +1261,7 @@ p.co2<- ggplot(melted_data_co2) + aes(x = New.Name, y = gCasCO2.year, fill=Model
 
 # calc % difference 
 ```{r precent diff, echo=FALSE}
-##calcuate % difference 
+##calculate % difference 
 co2_sum <- melted_data_co2%>%select(Model,Site,gCasCO2.year)%>%
   pivot_wider(names_from = c(Model), values_from = gCasCO2.year)
 co2_sum$meanFixedTemp <- (co2_sum$F_CO2_fixedTemp_mol.year - co2_sum$F_CO2_mol.year)/(co2_sum$F_CO2_fixedTemp_mol.year + co2_sum$F_CO2_mol.year)/2 * 100
@@ -1347,7 +1283,7 @@ ch4_sum$meanFixedTempFixedSA <- (ch4_sum$F_CH4_fixedTempfixedSA_mol.year - ch4_s
 
 ```{r holgerson and raymond, echo=FALSE}
 
-df_merge <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%rename("Site_Name"="Site")
+df_merge <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))%>%rename("Site_Name"="New.Name")
 df_merge$Area_ha <-  df_merge$surface_area_m2 / 10000
 df_merge$Reference <- "This Study"
 df_merge$Location <- "La Virgen"
@@ -1365,8 +1301,6 @@ df_Holg$CO2_umol.L <- as.numeric(df_Holg$CO2_umol.L)
 df_Holg$Watertemp_c <- as.numeric(df_Holg$Watertemp_c)
 
 df_Holg$New.Name <- df_Holg$Site_Name
-df_Holg <- df_Holg%>%
-  mutate(New.Name = case_match(New.Name, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8', 'Wetland06' ~ 'S5', 'Wetland07' ~ 'S7', 'Wetland08' ~ 'S12', 'Wetland09' ~ 'S10', 'Wetland10' ~ 'S11', 'Wetland11' ~ 'S6','Wetland12' ~ 'Wetland'))
 df_Holg$New.Name <- factor(df_Holg$New.Name, levels = c("S1", "S2", "S3","S4","S5","S6","S7","S8","Wetland","S10","S11","S12"))
 
 #summarize for discussion
@@ -1415,12 +1349,13 @@ p <- ggplot() +
 ```
 
 #summary \> most of our sites lower than in Hamilton et al. (1994) The
+```
 studyarea was locatedin the high boreal and low subarcticwetlandregionof
 the HudsonBay Lowland with the baseof operations at Moosonee, Ontario
 TheHBL is comprised of approximately 85-90%wetlandareas[Pala and
 Boissonneau,1982] and the entire area is underlain with impermeable
 glacial moraineclays and silts
-
+```
 > our sites mostly lower in Kankaala et al. (2013) Kokema¨ enjoki
 > drainage basin, southern Finland (Fig. 1). The lakes are rather
 > shallow (maximum depth [z m ] 5–32 m, mean depth 2.4–10 m. Coniferous
@@ -1431,7 +1366,7 @@ glacial moraineclays and silts
 > our sites, all lower than Holgerson (2015)
 
 ```         
-> research forest in Tolland and Windham Counties, Connecticut, USA. The ponds are located in mixed deciduous-coniferous forest with minimal human disturbance. The soil types are Charlton-Chatfield Complex (Blacksmith, E8, Quarry, Woodpile Ponds) and Hinckley gravelly sandy loam
+research forest in Tolland and Windham Counties, Connecticut, USA. The ponds are located in mixed deciduous-coniferous forest with minimal human disturbance. The soil types are Charlton-Chatfield Complex (Blacksmith, E8, Quarry, Woodpile Ponds) and Hinckley gravelly sandy loam
 ```
 
 > Higher or within range of Laurion et al. (2010) subarctic
@@ -1464,21 +1399,21 @@ glacial moraineclays and silts
 # Wetland sampling
 
 ```{r gavi wetland, echo=FALSE}
-gavi_df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%filter(Site=="Wetland12")%>%select(Site, Date,AirPress_kpa,Watertemp_c,pCO2_ppm, CH4_umol.L, CO2_umol.L)
+gavi_df <- read.csv(here::here("ProcessedData/PondPaper_k600_May29.csv"))%>%filter(Site=="Wetland12")%>%select(Site, Date,AirPress_kpa,Watertemp_c,pCO2_ppm, CH4_umol.L,CO2_umol.L,pCO2_w_uatm,pCH4_w_uatm)
 gavi_df$Date <- as.Date(gavi_df$Date,format = "%Y-%m-%d")
 gavi_df$Location <- "center"
 gavi_df$Site2 <- NA
 gavi_df$Lat <- -0.328064
 gavi_df$Lon <- -78.200203
- 
-drone_GHG <- read.csv(here::here("ProcessedData/Drone_Gavi_sampling_GHG.csv"))%>%select(Lat,Lon,Site, Site2, Date, AirPress_kpa,Watertemp_c,CO2_ppm,CH4_umol.L, CO2_umol.L)%>%rename(pCO2_ppm=CO2_ppm)
+
+drone_GHG <- read.csv(here::here("ProcessedData/Drone_Gavi_sampling_GHG_june6.csv"))%>%select(Lat,Lon,Site, Site2, Date, AirPress_kpa,Watertemp_c,pCH4_w_uatm,pCO2_w_uatm,pCO2_ppm,CH4_umol.L, CO2_umol.L)
 
 ###
 
 ##pecent diff of dups
 drone_GHG_summ2 <- drone_GHG%>%group_by(Site,Date,Site2)%>%summarise(
-  CH4_min = min(CH4_umol.L),
-  CH4_max = max(CH4_umol.L))
+  CH4_min = min(pCH4_w_uatm),
+  CH4_max = max(pCH4_w_uatm))
 drone_GHG_summ2$percent_diff <-  (drone_GHG_summ2$CH4_max-drone_GHG_summ2$CH4_min)/
 (drone_GHG_summ2$CH4_max+drone_GHG_summ2$CH4_min)/2 *100
 percent_diff_ave <- (sum(drone_GHG_summ2$percent_diff,na.rm=TRUE)+0) / 13
@@ -1486,6 +1421,8 @@ percent_diff_ave <- (sum(drone_GHG_summ2$percent_diff,na.rm=TRUE)+0) / 13
 ##pecent diff of dups
 
 drone_GHG_summ <- drone_GHG%>%group_by(Lat,Lon,Site,Date,Site2)%>%summarise(
+  pCH4_w_uatm = mean(pCH4_w_uatm,rm.na=TRUE),
+  pCO2_w_uatm = mean(pCO2_w_uatm,rm.na=TRUE),
   CH4_umol.L = mean(CH4_umol.L,rm.na=TRUE),
   CO2_umol.L = mean(CO2_umol.L,rm.na=TRUE),
   pCO2_ppm = mean(pCO2_ppm,rm.na=TRUE),
@@ -1498,45 +1435,32 @@ drone_GHG_summ$Location <- "margins"
 
 df <- rbind(gavi_df,drone_GHG_summ)
 
-#add henry's constant CH4
-kH_STP_mol.L.atm = .0014182
-dlnHcppersperK = 1600
-T_STP_K = 298.15
-df$KH_CH4_mol.L.atm <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(df$Watertemp_c+273.15)-1/T_STP_K))
-
-#Ambient CH4 concentration ppb	1910.97 	
-#average 2021 from Moaa
-CH4_air_ppb <- 1910.97 
-df$CH4_air_atm <- (df$AirPress_kpa/101.3) * CH4_air_ppb * 10^-9
-df$pCH4_ppm <- df$CH4_umol.L /df$KH_CH4_mol.L.atm
-
 #summerize
-df_summ <- df%>%group_by(Site)%>%drop_na(pCH4_ppm)%>%summarise(
-  pCH4_ave = mean(pCH4_ppm,rm.na=TRUE),
-  pCO2_ave = mean(pCO2_ppm,rm.na=TRUE))
+df_summ <- df%>%group_by(Site)%>%drop_na(pCH4_w_uatm)%>%summarise(
+  pCH4_uatm_ave = mean(pCH4_w_uatm,rm.na=TRUE),
+  pCO2_uatm_ave = mean(pCO2_w_uatm,rm.na=TRUE))
 
-df_melt <- df %>%select(Location,Date,Site2,pCH4_ppm,pCO2_ppm)%>%
+df_melt <- df %>%select(Location,Date,Site2,pCH4_w_uatm,pCO2_w_uatm)%>%
     pivot_longer(
       cols = -c(Location,Date,Site2),  # Columns to be melted
       names_to = "gas",      # Name of the new key column
-      values_to = "ppm"         # Name of the new value column
+      values_to = "uatm"         # Name of the new value column
     )
  
 
-p2 <- ggplot(df_melt,aes(x=gas, y=ppm,fill=Location)) +
+p2 <- ggplot(df_melt,aes(x=gas, y=uatm,fill=Location)) +
   geom_boxplot() +
   geom_point(shape=21,color="black",position = position_jitterdodge(jitter.width = .25, jitter.height = 0, dodge.width = 0.75)) + ylab("") + xlab("") +
   scale_fill_discrete(labels=c("open-water \ntransect","wetland \nmargins")) + 
     scale_x_discrete(labels=c("pCH4_ppm" = expression(paste("CH"[4]~"(ppm)" )), "pCO2_ppm" = expression(paste("CO"[2]~"(ppm)" )))) +
   scale_y_continuous(transform = "log1p",breaks=c(1,10,100,1000,10000)) + theme_bw(base_size = 24) + theme(legend.position="top")
 
-p3 <- ggplot(df,aes(x=pCO2_ppm, y=pCH4_ppm,color=Site)) + geom_point()  +
-  scale_x_continuous(transform = "log1p",breaks=c(1,10,100,1000,10000)) +
-  scale_y_continuous(transform = "log1p",breaks=c(1,10,100,1000,10000))
+p3 <- ggplot(df,aes(x=pCO2_w_uatm, y=pCH4_w_uatm,color=Site)) + geom_point()  #+
+#  scale_x_continuous(transform = "log1p") +
+#  scale_y_continuous(transform = "log1p")
 
 ###export to make fig in arcpro
 df_export <- df%>%filter(Date>=as.Date("2022-10-16"))%>%drop_na(CH4_umol.L)
-
 
 #write.csv(df_export,here::here("ProcessedData/GaviSample_toExport.csv"))
 ```
@@ -1545,8 +1469,7 @@ df_export <- df%>%filter(Date>=as.Date("2022-10-16"))%>%drop_na(CH4_umol.L)
 relationship between pressure and gas saturation
 
 ```{r saturation fig, echo=FALSE}
-df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))
-
+ 
 p.A <- ggplot(df ,aes(x=Elevation_m,y=CO2_sat_precent)) + geom_point() +
   xlab("Elevation (m)") + 
       ylab(expression(paste("% sat CO"[2] ,))) +
