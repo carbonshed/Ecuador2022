@@ -54,6 +54,7 @@ co2_m2 <- lmer(log(pCO2_w_uatm) ~
                #  scale(Elevation_m)+
                    (1 |New.Name), data =gmc_co2#%>%filter(New.Name!="Wetland")
 )
+
 summary(co2_m2)
 
 
@@ -82,3 +83,55 @@ summary(co2_dtw)
 performance::model_performance(co2_dtw)
 
 modelsummary::modelsummary(list(co2_m1,co2_m2,co2_m3,co2_res),stars=T)
+
+
+
+####DOC
+
+
+DOC_df <- read.csv(here::here("ProcessedData/predictor_variables_July2.csv"))
+#just the days when DOC was sample
+DOC_df$Date <- as.Date(DOC_df$Date)
+DOC_df1 <- DOC_df%>%filter(Date==as.Date("2022-07-27")|Date==as.Date("2022-07-25"))
+DOC_df2 <- DOC_df%>%filter(Date==as.Date("2022-07-22"))%>%filter(New.Name!="Wetland")
+DOC_df3 <- DOC_df%>%filter(Date==as.Date("2022-07-19"))%>%filter(New.Name!="Wetland06")%>%filter(New.Name!="Wetland08")
+DOC_df4 <- DOC_df%>%filter(Date==as.Date("2022-07-18"))
+
+DOC_df_all <- rbind(DOC_df1,DOC_df2,DOC_df3,DOC_df4)
+DOC_df_all <- left_join(DOC_df_all,CO2_summary,by=c("New.Name","Date"))
+
+# get list of residuals
+model <- lm(log(DOC_df_all$pCO2_w_uatm)~DOC_df_all$Elevation_m)
+DOC_df_all$res <- resid(model) 
+
+
+M1 <- lm(log(pCO2_w_uatm) ~ 
+           scale(DOC_mg.L), 
+         #    scale(Elevation_m),
+         data =DOC_df_all)
+summary(M1)
+
+
+M1 <- lm(log(pCO2_w_uatm) ~ 
+           log(DOC_mg.L)+ 
+           scale(Elevation_m), 
+         data =DOC_df_all)
+summary(M1)
+
+M1 <- lm(log(pCO2_w_uatm) ~ 
+           log(DOC_mg.L)+ 
+           scale(Elevation_m), 
+         data =DOC_df_all)
+summary(M1)
+
+M1 <- lm(log(pCO2_w_uatm) ~ 
+           log(TDN_mg.L),#+ 
+         #            scale(Elevation_m), 
+         data =DOC_df_all)
+summary(M1)
+
+M1 <- lm(DOC_mg.L ~ 
+           res,#+ 
+         #            scale(Elevation_m), 
+         data =DOC_df_all)
+summary(M1)
