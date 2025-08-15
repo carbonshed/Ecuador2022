@@ -56,7 +56,7 @@ These data sets includes all samples for ch4
 
 ```{r the kriddie way for final, echo=FALSE}
 
-summer_df <- read.csv(here::here("Methane/Methane_df_2023-07-20.csv"))%>% select("Site","Location","Date_collected","CH4_umol_L.1","CH4_.sat","Watertemp_c","AirPress_Field_kPa")%>%
+summer_df <- read.csv(here::here("Methane/Methane_df_2023-07-20.csv"))%>%dplyr::select("Site","Location","Date_collected","CH4_umol_L.1","CH4_.sat","Watertemp_c","AirPress_Field_kPa")%>%
   filter(Site!="Colmillo")%>%filter(Site!="Gavi-main")%>%filter(Site!="Gavi-trib") %>% 
   rename(Date = Date_collected, CH4_umol.L = CH4_umol_L.1, CH4_sat = CH4_.sat,AirPress_kpa = AirPress_Field_kPa)
 
@@ -106,8 +106,7 @@ summer_df$pCH4_ppm <- summer_df$pCH4_w_atm * 10^6 / summer_df$water_pressure_atm
 
 
 #fall samples
-fall_df <- read.csv(here::here("Methane/Methane_fall2022_update.csv"))%>%
-  select("Site","Location","Date_collected","CH4_umol.L","CH4_sat","Watertemp_Field_c","AirPress_Field_kpa")%>%
+fall_df <- read.csv(here::here("Methane/Methane_fall2022_update.csv"))%>%dplyr::select("Site","Location","Date_collected","CH4_umol.L","CH4_sat","Watertemp_Field_c","AirPress_Field_kpa")%>%
   rename(Date = Date_collected,Watertemp_c=Watertemp_Field_c,AirPress_kpa = AirPress_Field_kpa)%>%
   filter(Site!="Chakanas")%>%filter(Site!="Gavilan")
 fall_df$Date <- as.Date.character(fall_df$Date,format="%m/%d/%y")
@@ -137,7 +136,7 @@ fall_df$pCH4_ppm <- fall_df$pCH4_w_atm * 10^6 / fall_df$water_pressure_atm
 
 
 #bind 
-all_df <- rbind(summer_df%>%select(!uniqueID),fall_df)
+all_df <- rbind(summer_df%>%dplyr::select(!uniqueID),fall_df)
 
 all_df$Site <- gsub("_","",all_df$Site)
 
@@ -187,11 +186,11 @@ rm(fall_df,summer_df)
 
 ```{r CO2 data, echo=FALSE}
 
-df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%select(Site,Date,Watertemp_c,AirPress_kpa)%>%rename(Wetland=Site)
+df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%dplyr::select(Site,Date,Watertemp_c,AirPress_kpa)%>%rename(Wetland=Site)
 df$Date <- as.Date(df$Date,format="%Y-%m-%d")
 
 #### summer samples
-df_CO2 <- read.csv(here::here("Wetlands/CO2_intrapondvariance_reviewJune2025.csv"))%>%select(Wetland,Location,Date,Time,ppm_NOTcorrected_review)
+df_CO2 <- read.csv(here::here("Wetlands/CO2_intrapondvariance_reviewJune2025.csv"))%>%dplyr::select(Wetland,Location,Date,Time,ppm_NOTcorrected_review)
 df_CO2$Date <- as.Date(df_CO2$Date,format="%m/%d/%y")
 
 df_CO2 <- left_join(df_CO2,df,by=c("Wetland","Date"))
@@ -272,8 +271,7 @@ df_CO2 <- df_CO2%>%mutate(New.Name = case_match(New.Name, 'Wetland01' ~ 'S1', 'W
 ```{r fall co2, echo=FALSE}
 
 #### Fall samples
-df_CO2_2 <- read.csv(here::here("Methane/OctoberData_June24.csv"))%>%
-  select(Wetland,Location,Date,Time_CH4,ppm_NOTcorrected,AirPress_kpa,Watertemp_c)%>%
+df_CO2_2 <- read.csv(here::here("Methane/OctoberData_June24.csv"))%>%dplyr::select(Wetland,Location,Date,Time_CH4,ppm_NOTcorrected,AirPress_kpa,Watertemp_c)%>%
   rename(time=Time_CH4)
 df_CO2_2$Date <- as.Date(df_CO2_2$Date,format="%m/%d/%y")
 
@@ -358,7 +356,7 @@ dplyr::summarize(
 
 #add flux and calc k
 ```{r add flux, echo=FALSE}
-df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%select(Site,Date,Flux_umol_m2_s)%>%rename(Wetland=Site)
+df <- read.csv(here::here("ProcessedData/PondPaper_k600.csv"))%>%dplyr::select(Site,Date,Flux_umol_m2_s)%>%rename(Wetland=Site)
 df$Date <- as.Date(df$Date,format="%Y-%m-%d")
 
 df <- df%>%mutate(New.Name = case_match(Wetland, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8','Wetland06' ~ 'S5','Wetland07' ~ 'S7','Wetland08' ~ 'S12','Wetland09' ~ 'S10','Wetland10' ~ 'S11','Wetland11' ~ 'S6','Wetland12' ~ 'Wetland'))
@@ -378,7 +376,7 @@ CO2_summary_2$Sc_co2 <- 1923.6 - 125.06*CO2_summary_2$Watertemp_c + 4.3773*(CO2_
 
 #add CH4 summery
 
-df_summary_full <- full_join(CO2_summary_2,CH4_summary%>%select(!n)%>%select(!Watertemp_c)%>%select(!AirPress_kpa),by=c("New.Name","Date"))
+df_summary_full <- full_join(CO2_summary_2,CH4_summary%>%dplyr::select(!n)%>%dplyr::select(!Watertemp_c)%>%dplyr::select(!AirPress_kpa),by=c("New.Name","Date"))
 
 #add henry's constant CH4
 kH_STP_mol.L.atm = .0014182
@@ -408,8 +406,7 @@ median(test2$K600,na.rm=TRUE)
 mean(test2$K600,na.rm=TRUE)
 
  
-df_summary_full_2 <- df_summary_full%>%
-  select(New.Name,Date,Watertemp_c,AirPress_kpa,air_pressure_atm,
+df_summary_full_2 <- df_summary_full%>%dplyr::select(New.Name,Date,Watertemp_c,AirPress_kpa,
          pCO2_w_uatm,pCO2_w_uatm_sd,pCO2_ppm,CO2_umol.L,
          pCH4_w_uatm,pCH4_w_uatm_sd,pCH4_ppm,CH4_umol.L,
          pCO2_air_uatm,CO2_sat_precent,KH_CO2_mol.L.atm,
