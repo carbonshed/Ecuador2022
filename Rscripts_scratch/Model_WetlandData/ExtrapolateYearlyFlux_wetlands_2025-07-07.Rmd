@@ -1,0 +1,260 @@
+---
+title: "Model yearly flux"
+author: "Kriddie"
+date: "2024-05-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(dplyr)
+library(here)
+library(lme4)
+library(lmerTest)
+library(jtools)
+library(reshape2)
+library(ggplot2)
+library(tidyr)
+library(stringr)
+```
+
+## modeling CO2 and CH4 flux
+
+In this markdown I am calculating  CO2 flux and CH4 flux from ponds for the month of July 
+
+1. average wet season concentrations
+2. average k600
+3. real time water temp
+4. real time surface area
+#Air pressure is a problem
+##we are using field data to correct atmospheric measurments
+
+#for future reference, here is an equation that we could use
+here is an equation that I think we can use to correct our barometric readings
+The *barometric formula* is a formula used to model how the air pressure (or air density) changes with altitude.
+
+P_h = P_b * (T_M/(T_M + L_M * (H-H_b))) ^ (g_0 * M_0/(R * L_M))
+
+P_h = pressure are height
+P_b = reference pressure
+T_M = reference temperature (K)
+L_M = temperature gradient (K/m), e.g. -6.5 K/km at sea level. This is the lapse rate with the opposite sign convention.
+H = geopotential height at which pressure is calculated (m)
+H_b = geopotential height of reference level b (meters; e.g., Hb = 11,000 m)
+R = universal gas constant: 8.31432 N·m/(kmol·K)
+g_0 = The gravitational acceleration in units of geopotential height, 9.80665 m/s^2
+M_0 = mean molecular weight of air at sea level: 28.9644 kg/kmol. *divide by 1000 to convert to mol*
+
+
+#Buid time series data frame
+
+```{r build dataframe}
+
+WL_df <- read.csv(here::here("Wetlands/WaterLevel_FINAL/WL_Wetland_all_FINAL.csv"))%>%dplyr::select(DateTime,Station,Baro_kpa,BaroTemp_c,WLTemp_c,depth_ave_m,WaterLevel_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio)
+WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
+WL_df$Site <- str_sub(WL_df$Station,4)
+
+WL_df <- WL_df%>%mutate(New.Name = case_match(Site, 'Wetland01' ~ 'S1', 'Wetland02' ~ 'S2','Wetland03' ~ 'S3','Wetland04' ~ 'S4','Wetland05' ~ 'S8','Wetland06' ~ 'S5','Wetland07' ~ 'S7','Wetland08' ~ 'S12','Wetland09' ~ 'S10','Wetland10' ~ 'S11','Wetland11' ~ 'S6','Wetland12' ~ 'Wetland'))
+
+#read in elevation data to merge with WL
+predictor_variables <- read.csv(here::here("ProcessedData/predictor_variables_July2.csv"))%>%dplyr::select(New.Name,Elevation_m)
+predictor_variables <- unique(predictor_variables)
+
+WL_df <- full_join(WL_df,predictor_variables,by=c("New.Name"))
+
+
+gas_df <- read.csv(here::here("ProcessedData/df_summary_June24.csv"))
+gas_df$Date <- as.Date(gas_df$Date,format="%Y-%m-%d")
+gas_df <- gas_df %>%filter(Date<"2022-09-20")
+
+gas_df_ave <- gas_df%>%group_by(New.Name)%>%summarise(
+  pCO2_w_uatm_mean = mean(pCO2_w_uatm,na.rm=TRUE),
+  pCH4_w_uatm_mean = mean(pCH4_w_uatm,na.rm=TRUE)
+)
+
+gas_df_k600 <- gas_df%>%filter(K600_m_d>0)
+  
+K600_m.day.median = median(gas_df_k600$K600_m_d,na.rm=TRUE)
+K600_m.day.mean = mean(gas_df_k600$K600_m_d,na.rm=TRUE)
+K600_m.day.ave_mean = (K600_m.day.median+K600_m.day.mean)/2
+
+#bind data 
+df_full <- full_join(WL_df,gas_df_ave,by="New.Name")
+##add gas transfer velocity
+df_full$K600_m.day <- K600_m.day.ave_mean
+df_full$K600_m.sec <- df_full$K600_m.day / (60*60*24)
+
+#calculate schmidts number based on temperature Wanninkhof 2014
+df_full$Sc_ch4 <- 1909.4 + -120.78*df_full$WLTemp_c - .0805681*(df_full$WLTemp_c)^2 + .00065777*(df_full$WLTemp_c)^3
+
+df_full$Sc_co2 <- 1923.6 - 125.06*df_full$WLTemp_c + 4.3773*(df_full$WLTemp_c)^2 - 0.085681*(df_full$WLTemp_c)^3 + 0.00070284 * (df_full$WLTemp_c)^4
+
+
+
+## convert to k for co2 and k for ch4
+df_full$k_co2_m.day <-  df_full$K600_m.day / ((600/df_full$Sc_co2)^(-.57))
+df_full$k_ch4_m.day <-  df_full$K600_m.day / ((600/df_full$Sc_ch4)^(-.57))
+
+```
+
+#air pressure correction
+```{r air pressure}
+WL_df <- WL_df %>% 
+  mutate(
+    date = as.Date(DateTime),
+    hour = hour(DateTime),
+    minute = minute(DateTime),
+    second = second(DateTime)
+  ) %>% 
+  mutate(
+    format_date = format(date, "%m/%d/%Y"),
+    format_hour = paste(hour, minute, second, sep = ":")
+  )
+
+WL_df_midday <- WL_df%>%filter(format_hour=="12:0:0"|format_hour=="11:0:0"|format_hour=="13:0:0")%>%rename(Date=date)
+WL_df_midday <- WL_df_midday%>%group_by(New.Name,Date,Elevation_m)%>%summarise(
+  Baro_kpa = mean(Baro_kpa,na.rm=TRUE )
+)
+
+CO2_summary <- read.csv(here::here("ProcessedData/CO2_summary_June24.csv"))%>%dplyr::select(New.Name,Date,AirPress_kpa)
+CO2_summary$Date <- as.Date(CO2_summary$Date,format="%Y-%m-%d")
+
+predictor_variables <- read.csv(here::here("ProcessedData/predictor_variables_July2.csv"))%>%dplyr::select(New.Name,Date,Elevation_m)
+predictor_variables$Date <- as.Date(predictor_variables$Date,format="%Y-%m-%d")
+
+df <- full_join(CO2_summary,predictor_variables,by=c("New.Name","Date"))
+
+df <- left_join(CO2_summary,WL_df_midday,by=c("New.Name","Date"))
+
+df_1 <- df%>%filter(New.Name=="S12"|New.Name=="S11"|New.Name=="S10")
+df_1 <- df_1%>%filter(Date<"2022-10-01")
+df_2 <- df%>%filter(New.Name!="S12")%>%
+  filter(New.Name!="S11")%>%filter(New.Name!="S10")
+df <- rbind(df_1,df_2)
+  
+
+df <- df%>%group_by(New.Name)%>%mutate(
+  diff_ave = mean(Baro_kpa-AirPress_kpa,na.rm=TRUE)
+)
+
+
+
+ggplot(df) +
+       geom_point(aes(x=Baro_kpa-AirPress_kpa,y=Elevation_m)) +
+   geom_smooth(aes(x=diff_ave,y=Elevation_m),method = lm, se = FALSE) +
+  geom_point(aes(x=diff_ave,y=Elevation_m,color=New.Name),shape=3, size=3)
+
+
+BaroStation <- 4158.6912
+slope_temp <- -6.5/1000
+
+```
+
+#henry's constant and correct air pressure
+
+
+```{r henry's constant}
+
+M1 <- lm(diff_ave ~ Elevation_m , data = df )
+M1_results <- summary(M1)
+coef_df <- as.data.frame(M1_results$coefficients)
+coef_df$Estimate[1]
+
+df_full$diff_ave <- coef_df$Estimate[1] + coef_df$Estimate[2]*df_full$Elevation_m
+
+df_full$Baro_CorrectforElevation_kpa <- df_full$Baro_kpa-df_full$diff_ave
+
+df_full$air_pressure_atm <- df_full$Baro_CorrectforElevation_kpa / 101.3 #convert kpa to atm
+df_full$water_pressure_atm <- df_full$Baro_CorrectforElevation_kpa / 101.3# + 0.000967841
+
+#######
+##CO2##
+#######
+
+df_full$pCO2_air_ppm <- 418.53 # 2022 average manoa
+#adjust henry to temp: KH = KH(STP) x exp(D(1/T-1/T(STP)))
+#use constants in  	Burkholder et al. (2019) and convert to desired units
+#  k°H (mol/(kg*bar) = mol/l/atm
+#d(ln(kH))/d(1/T) (K)
+kH_STP_mol.l.atm = .035*1/0.986923
+D_K = 2400 
+T_STP_K = 298.15
+
+df_full$KH_mol.l.atm_CO2 <- kH_STP_mol.l.atm * exp(D_K*(1/(df_full$WLTemp_c+273.15) - 1/T_STP_K))
+
+df_full$KH_mol.m3.atm_CO2 <- df_full$KH_mol.l.atm_CO2 * 1000
+
+df_full$pCO2_air_atm <-  df_full$pCO2_air_ppm / 10^6  * df_full$air_pressure_atm
+df_full$pCO2_w_atm <-  df_full$pCO2_w_uatm_mean / 10^6  
+
+#k600: m/s
+#pCO2 : uatm
+#kh: mol/m3/uatm
+
+#F: mol/m2/s
+df_full$F_CO2_mol_m2_d <- (df_full$k_co2_m.day * (df_full$pCO2_w_atm - df_full$pCO2_air_atm) * df_full$KH_mol.m3.atm_CO2)
+#######
+##CH4##
+######
+
+df_full$CH4_air_ppb <- 1910.97 #Ambient CH4 concentration ppb	1910.97 from Manoa
+
+#add henry's constant CH4
+kH_STP_mol.L.atm = .0014182
+dlnHcppersperK = 1600
+df_full$KH_mol.L.atm_CH4 <- kH_STP_mol.L.atm*exp(dlnHcppersperK*(1/(df_full$WLTemp_c+273.15)-1/T_STP_K))
+
+df_full$KH_mol.m3.atm_CH4 <- df_full$KH_mol.L.atm_CH4 * 1000
+
+df_full$pCH4_air_atm <- df_full$air_pressure_atm * df_full$CH4_air_ppb * 10^-9
+
+df_full$pCH4_w_atm <-  df_full$pCH4_w_uatm_mean / 10^6  
+
+#F: mol/m2/s
+df_full$F_CH4_mol_m2_d <- (df_full$k_ch4_m.day * (df_full$pCH4_w_atm - df_full$pCH4_air_atm) * df_full$KH_mol.m3.atm_CH4)
+
+```
+
+
+#calc flux (umole/sec)
+```{r flux (umol/(sec)), echo=FALSE}
+df_full$F_mol.d_CO2 <-  df_full$F_CO2_mol_m2_d * df_full$surface_area_m2
+df_full$F_mol.d_CH4 <-  df_full$F_CH4_mol_m2_d * df_full$surface_area_m2
+
+
+```
+
+#filter for July and aug 2022
+```{r filter and clean), echo=FALSE}
+
+df_full_filter <- df_full%>%filter(#DateTime > as.POSIXct("2022-06-30 00:00:00")&
+  DateTime < as.POSIXct("2022-09-01 00:00:00"))
+
+#clean S11
+df_full_filter_1 <- df_full_filter%>%
+  filter(New.Name=="S11"&DateTime > as.POSIXct("2022-07-05 15:00:00"))%>%
+  filter(DateTime <= as.POSIXct("2022-07-08 12:15:00",tz='UTC')|DateTime >= as.POSIXct("2022-07-08 13:45:00",tz='UTC'))%>%
+  filter(DateTime <= as.POSIXct("2022-07-12 09:30:00",tz='UTC')|DateTime >= as.POSIXct("2022-07-12 13:15:00",tz='UTC'))
+df_full_filter_2 <- df_full_filter%>%filter(New.Name!="S11")
+
+df_full_filter <- rbind(df_full_filter_1,df_full_filter_2)
+rm(df_full_filter_1,df_full_filter_2)
+
+
+library(plotly)
+fig <- plot_ly(data = df_full_filter%>%filter(New.Name=="S12"), x = ~DateTime, y = ~F_CO2_umol_m2_s)
+
+```
+
+#write out dataframe (this is going to be really big)
+```{r write out, echo=FALSE}
+
+
+#write.csv(df_full,here::here("ProcessedData/modeled_GHG_df_revisionJuly07.csv"))
+
+```
+
+
+
+

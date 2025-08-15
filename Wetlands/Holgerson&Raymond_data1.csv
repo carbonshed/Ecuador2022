@@ -1,247 +1,246 @@
-Reference,Site Name,Location,latitude,longitude,Study Years,area (ha),ch4 (umol/L),co2 (umol/L),temp (C) ,temp (estimate),atm. co2,atm. ch4
-Barber et al. (1988),Mrazek Pond,Florida,27.7731,-82.64,1984-1985,0.5,2.21,na,25,,345.302,1652.373
-Barber et al. (1988),Arrow Lake,Florida,27.7731,-82.64,1984-1985,4.4,1.34,na,27,,345.302,1652.373
-Barber et al. (1988),Crescent Lake,Florida,27.7731,-82.64,1984-1985,8,3.11,na,28,,345.302,1652.373
-Barber et al. (1988),Lake Maggiore,Florida,27.7731,-82.64,1984-1985,154,2.35,na,28,,345.302,1652.373
-Barber et al. (1988),Mirror Lake,Florida,27.7731,-82.64,1984-1985,4.4,1.29,na,26,,345.302,1652.373
-Bartlett et al. (1992),Nunavakpak,Alaska,60.800159,-162.627975,1988,13726.9,0.21,na,12.5,,351.886,1697.160
-Bartlett et al. (1992),Kayigyalik,Alaska,61.037789,-162.53862,1988,13985.9,0.05,na,12.5,,351.886,1697.160
-Bartlett et al. (1992),Nunavakanukasklak Lake,Alaska,60.943962,-162.352844,1988,7510.97,0.09,na,12.5,,351.886,1697.160
-Bastviken et al (2002),Illersjön,Sweden,58.575735,14.991624,1999-2000,3.9,0.55,na,na,12.63,369.086,1772.059
-Bastviken et al (2002),Ma_rn,Sweden,58.58247,15.861912,1999-2000,4.5,0.10,na,na,12.63,369.086,1772.059
-Bastviken et al (2002),Lillsjön,Sweden,58.659082,16.143506,1999-2000,2,0.10,na,na,12.63,369.086,1772.059
-Bastviken et al. (2004),Brown,WI + MN,46.21769,-89.475043,2001,32.9,0.82,na,na,20,371.298,1774.578
-Bastviken et al. (2004),Crampton,WI + MN,46.209652,-89.473671,2001,25.8,0.41,na,na,20,371.298,1774.578
-Bastviken et al. (2004),East Long,WI + MN,46.2166,-89.533,2001,2.3,0.66,na,na,20,371.298,1774.578
-Bastviken et al. (2004),Hummingbird,WI + MN,46.2166,-89.533,2001,0.8,0.68,na,na,20,371.298,1774.578
-Bastviken et al. (2004),Morris,WI + MN,46.2166,-89.533,2001,5.9,1.22,na,na,20,371.298,1774.578
-Bastviken et al. (2004),North Gate,WI + MN,46.2166,-89.533,2001,0.3,0.34,na,na,20,371.298,1774.578
-Bastviken et al. (2004),Paul,WI + MN,46.251541,-89.503676,2001,1.7,2.15,na,na,20,371.298,1774.578
-Bastviken et al. (2004),Peter,WI + MN,46.253025,-89.503859,2001,2.7,1.31,na,na,20,371.298,1774.578
-Bastviken et al. (2004),Roach,WI + MN,46.227719,-89.549608,2001,45,0.27,na,na,20,371.298,1774.578
-Bastviken et al. (2004),Tuesday,WI + MN,46.251296,-89.497679,2001,0.9,2.32,na,na,20,371.298,1774.578
-Bastviken et al. (2004),Ward,WI + MN,46.25493,-89.517476,2001,2.7,1.22,na,na,20,371.298,1774.578
-Bastviken et al. (2004),Bisen,Sweden,59.959037,15.504268,2000,43.3,0.11,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),L Sa_ngaren,Sweden,59.899823,15.392516,2000,24,0.18,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Ljustjärn,Sweden,59.923674,15.452679,2000,13,0.47,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Lövtjärn,Sweden,59.912857,15.406412,2000,8.5,0.61,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Ra_gåstjärnt,Sweden,59.914353,15.464101,2000,4,1.10,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Skottjärn,Sweden,59.941796,15.397125,2000,2.8,1.84,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Svarttjärn,Sweden,59.890571,15.257622,2000,0.7,1.89,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Fiolen,Sweden,57.082212,14.532362,2000,150,0.08,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Gransjön,Sweden,57.139606,14.712336,2000,4.5,0.48,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Grunnen,Sweden,57.155237,14.413261,2000,48,0.46,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Gyslättasjön,Sweden,57.110059,14.479155,2000,26.3,0.38,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Klintsjön,Sweden,57.127291,14.700238,2000,10,0.31,na,na,12.63,369.668,1770.684
-Bastviken et al. (2004),Skärshultssjön,Sweden,57.16335,14.509792,2000,29.2,0.17,na,na,12.63,369.668,1770.684
-Casper et al. (2000),Priest Pot (hypereutrophic),United Kingdom,54.372256,-2.990409,1997,1,1.30,132.00,16.9,,363.780,1764.474
-Fallon et al. (1980),Lake Mendota,Wisconsin,43.114611,-89.417807,1977,3937,0.50,na,na,18.00,334.014,1458.100
-Hamilton et al. (1994),Kinosheo Bog Pond 1,Canada,51.55,-81.81666,1990,2.139,0.46,33.21,15.99,,354.334,1724.242
-Hamilton et al. (1994),Kinosheo Bog Pond 2,Canada,51.55,-81.81666,1990,0.0032,7.00,97.83,13.03,,354.334,1724.242
-Hamilton et al. (1994),Kinosheo Bog Pond 3,Canada,51.55,-81.81666,1990,0.0032,1.86,48.88,9.75,,354.334,1724.242
-Hamilton et al. (1994),Kinosheo Bog Pond 4,Canada,51.55,-81.81666,1990,0.025,1.57,100.05,12.79,,354.334,1724.242
-Hamilton et al. (1994),Kinosheo Bog Pond 5,Canada,51.55,-81.81666,1990,0.025,2.54,112.98,9.58,,354.334,1724.242
-Hamilton et al. (1994),Kinosheo Bog Pond 6,Canada,51.55,-81.81666,1990,0.056,7.31,55.92,18.04,,354.334,1724.242
-Hamilton et al. (1994),Kinosheo Bog Pond 7,Canada,51.55,-81.81666,1990,0.147,2.42,44.32,16.78,,354.334,1724.242
-Hamilton et al. (1994),Kinosheo Bog Pond 8,Canada,51.55,-81.81666,1990,0.01,10.12,133.45,16.32,,354.334,1724.242
-Hamilton et al. (1994),Kinosheo Bog Pond 9,Canada,51.55,-81.81666,1990,0.01,2.58,64.11,11.64,,354.334,1724.242
-Hamilton et al. (1994),Kinosheo Bog Pond 10,Canada,51.55,-81.81666,1990,4.162,4.60,81.08,17.51,,354.334,1724.242
-Hamilton et al. (1994),Coastal Fen Pond 11,Canada,51.4672,-80.6167,1990,0.046,6.80,114.35,16.70,,354.334,1724.242
-Hamilton et al. (1994),Coastal Fen Pond 12,Canada,51.4672,-80.6167,1990,0.0295,2.95,85.11,15.79,,354.334,1724.242
-Hamilton et al. (1994),Coastal Fen Pond 13,Canada,51.4672,-80.6167,1990,0.032,15.25,263.23,15.71,,354.334,1724.242
-Hamilton et al. (1994),Coastal Fen Pond 14,Canada,51.4672,-80.6167,1990,0.053,17.93,309.25,16.01,,354.334,1724.242
-Hamilton et al. (1994),Coastal Fen Pond 15,Canada,51.4672,-80.6167,1990,0.045,2.08,137.39,15.95,,354.334,1724.242
-Hamilton et al. (1994),Coastal Fen Pond 16,Canada,51.4672,-80.6167,1990,0.045,4.03,103.32,15.86,,354.334,1724.242
-Hamilton et al. (1994),Coastal Fen Pond 17,Canada,51.4672,-80.6167,1990,0.06,6.98,189.10,17.46,,354.334,1724.242
-Hamilton et al. (1994),Coastal Fen Pond 18,Canada,51.4672,-80.6167,1990,0.07,3.53,155.20,14.58,,354.334,1724.242
-Hamilton et al. (1994),Interior Fen Pond 19,Canada,51.5019,-80.8689,1990,0.01,4.55,64.91,15.64,,354.334,1724.242
-Hamilton et al. (1994),Interior Fen Pond 20,Canada,51.5019,-80.8689,1990,0.04,4.48,165.55,15.28,,354.334,1724.242
-Hamilton et al. (1994),Interior Fen Pond 21,Canada,51.5019,-80.8689,1990,0.05,11.56,363.08,15.78,,354.334,1724.242
-Hamilton et al. (1994),Interior Fen Pond 22,Canada,51.5019,-80.8689,1990,0.05,7.06,81.96,16.28,,354.334,1724.242
-Hamilton et al. (1994),Interior Fen Pond 23,Canada,51.5019,-80.8689,1990,0.03,9.19,151.78,15.55,,354.334,1724.242
-Hamilton et al. (1994),Interior Fen Pond 24,Canada,51.5019,-80.8689,1990,0.03,5.25,166.77,15.38,,354.334,1724.242
-Holgerson (2015),Atwood,Connecticut,41.96526,-72.15229,2013-2014,0.0459,26.99,350.65,14.60,,397.959,1826.143
-Holgerson (2015),Blacksmith,Connecticut,41.954997,-72.1236,2013-2014,0.0604,42.39,553.37,16.56,,397.959,1826.143
-Holgerson (2015),E8,Connecticut,41.9633,-72.14995,2013-2014,0.0604,31.48,345.21,14.27,,397.959,1826.143
-Holgerson (2015),Long,Connecticut,41.96688,-72.15088,2013-2014,0.0847,25.37,273.33,16.79,,397.959,1826.143
-Holgerson (2015),Quarry,Connecticut,41.943498,-72.12869,2013-2014,0.0298,21.02,317.22,15.66,,397.959,1826.143
-Holgerson (2015),Woodpile,Connecticut,41.94238,-72.12899,2013-2014,0.0716,58.94,273.74,15.73,,397.959,1826.143
-Jonsson et al. (2003),Lake 1,Sweden,67.657009,21.511019,2000,11,na,39.00,18.90,,369.668,1770.684
-Jonsson et al. (2003),Lake 2,Sweden,67.599080,20.898152,2000,2.5,na,40.00,13.80,,369.668,1770.684
-Jonsson et al. (2003),Lake 3,Sweden,67.571194,21.147969,2000,10,na,27.00,14.10,,369.668,1770.684
-Jonsson et al. (2003),Lake 4,Sweden,68.445049,18.605404,2000,11,na,27.00,16.70,,369.668,1770.684
-Jonsson et al. (2003),Lake 5,Sweden,67.964950,20.460618,2000,13,na,20.00,16.50,,369.668,1770.684
-Jonsson et al. (2003),Lake 6,Sweden,68.169956,19.821416,2000,5.2,na,18.00,17.20,,369.668,1770.684
-Jonsson et al. (2003),Lake 7,Sweden,68.163219,19.896639,2000,3.3,na,28.00,13.10,,369.668,1770.684
-Jonsson et al. (2003),Lake 8,Sweden,68.204363,19.566402,2000,3.5,na,21.00,10.20,,369.668,1770.684
-Jonsson et al. (2003),Lake 9,Sweden,68.192177,19.606953,2000,4.3,na,24.00,10.30,,369.668,1770.684
-Jonsson et al. (2003),Lake 10,Sweden,68.214747,19.653924,2000,1.4,na,23.00,10.20,,369.668,1770.684
-Jonsson et al. (2003),Lake 11,Sweden,68.297881,19.121413,2000,1.9,na,22.00,8.50,,369.668,1770.684
-Jonsson et al. (2003),Lake 12,Sweden,68.293689,19.111492,2000,11,na,23.00,8.20,,369.668,1770.684
-Jonsson et al. (2003),Lake 13,Sweden,68.277991,19.096497,2000,17,na,19.00,7.70,,369.668,1770.684
-Jonsson et al. (2003),Lake 14,Sweden,68.273235,18.692876,2000,17,na,25.00,6.40,,369.668,1770.684
-Jonsson et al. (2003),Lake 15,Sweden,68.206199,18.743664,2000,3.8,na,17.00,5.30,,369.668,1770.684
-Jonsson et al. (2003),Lake 16,Sweden,68.237357,18.825511,2000,27,na,20.00,5.90,,369.668,1770.684
-Jonsson et al. (2003),Lake 17,Sweden,68.173481,19.829008,2000,1.5,na,36.28,15.60,,369.668,1770.684
-Jonsson et al. (2003),Lake 18,Sweden,68.168320,19.820333,2000,0.7,na,19.59,17.00,,369.668,1770.684
-Jonsson et al. (2003),Lake 19,Sweden,68.331182,19.151570,2000,5,na,20.25,14.80,,369.668,1770.684
-Jonsson et al. (2003),Lake 20,Sweden,68.333353,19.161897,2000,1.9,na,25.61,16.20,,369.668,1770.684
-Jonsson et al. (2003),Lake 21,Sweden,68.338550,19.147649,2000,11.5,na,17.85,15.00,,369.668,1770.684
-Jonsson et al. (2003),Lake 22,Sweden,68.333855,19.148077,2000,0.7,na,45.09,17.00,,369.668,1770.684
-Jonsson et al. (2003),Lake 23,Sweden,68.332988,19.146104,2000,1,na,35.47,14.10,,369.668,1770.684
-Jonsson et al. (2003),Lake 24,Sweden,68.350642,18.968044,2000,4.5,na,29.54,11.80,,369.668,1770.684
-Jonsson et al. (2003),Lake 25,Sweden,68.350976,18.983549,2000,0.8,na,43.85,17.00,,369.668,1770.684
-Jonsson et al. (2003),Lake 26,Sweden,68.438605,18.643810,2000,1.1,na,33.72,13.50,,369.668,1770.684
-Jonsson et al. (2003),Lake 27,Sweden,68.441727,18.644933,2000,0.9,na,34.20,12.50,,369.668,1770.684
-Jonsson et al. (2003),Lake 28,Sweden,68.442265,18.639633,2000,0.9,na,34.23,11.50,,369.668,1770.684
-Jonsson et al. (2003),Lake 29,Sweden,68.445174,18.633164,2000,2,na,31.26,11.70,,369.668,1770.684
-Jonsson et al. (2003),Lake 30,Sweden,68.444385,18.628893,2000,6,na,30.91,11.40,,369.668,1770.684
-Jonsson et al. (2003),Lake 31,Sweden,68.450973,18.617047,2000,2.5,na,30.00,12.80,,369.668,1770.684
-Jonsson et al. (2003),Lake 32,Sweden,68.449465,18.611734,2000,0.9,na,27.22,10.50,,369.668,1770.684
-Jonsson et al. (2003),Lake 33,Sweden,68.449400,18.604893,2000,1,na,57.37,11.00,,369.668,1770.684
-Jonsson et al. (2003),Lake 34,Sweden,68.441961,18.489868,2000,1.1,na,32.91,12.00,,369.668,1770.684
-Jonsson et al. (2003),Lake 35,Sweden,68.444104,18.499442,2000,12,na,23.74,11.80,,369.668,1770.684
-Jonsson et al. (2003),Lake 36,Sweden,68.433118,18.418759,2000,1.2,na,25.98,12.30,,369.668,1770.684
-Jonsson et al. (2003),Lake 37,Sweden,68.109531,19.814261,2000,39,na,24.27,13.00,,369.668,1770.684
-Jonsson et al. (2003),Lake 38,Sweden,67.788753,21.257059,2000,9.7,na,16.79,16.20,,369.668,1770.684
-Jonsson et al. (2003),Lake 39,Sweden,67.843041,20.821395,2000,4.6,na,29.80,13.60,,369.668,1770.684
-Jonsson et al. (2003),Lake 40,Sweden,68.171720,19.865092,2000,6.9,na,22.04,14.80,,369.668,1770.684
-Jonsson et al. (2003),Lake 41,Sweden,67.582737,21.129283,2000,9,na,34.29,12.20,,369.668,1770.684
-Jonsson et al. (2003),Lake 42,Sweden,67.567463,21.992512,2000,3.9,na,25.44,14.10,,369.668,1770.684
-Jonsson et al. (2003),Lake 43,Sweden,67.534543,21.290044,2000,16,na,37.62,17.90,,369.668,1770.684
-Jonsson et al. (2003),Lake 44,Sweden,68.364564,18.696812,2000,1.1,na,19.45,10.60,,369.668,1770.684
-Jonsson et al. (2003),Lake 45,Sweden,67.557439,22.005505,2000,34,na,22.95,13.60,,369.668,1770.684
-Jonsson et al. (2003),Lake 46,Sweden,67.465533,21.997726,2000,16,na,40.80,14.50,,369.668,1770.684
-Jonsson et al. (2003),Lake 47,Sweden,67.510458,21.797717,2000,5.2,na,46.63,13.90,,369.668,1770.684
-Jonsson et al. (2003),Lake 48,Sweden,67.953251,20.033618,2000,4,na,24.73,15.40,,369.668,1770.684
-Jonsson et al. (2003),Lake 49,Sweden,67.805099,20.631463,2000,24,na,30.41,13.90,,369.668,1770.684
-Jonsson et al. (2003),Lake 50,Sweden,68.334214,18.336462,2000,6.4,na,30.38,3.00,,369.668,1770.684
-Jonsson et al. (2003),Lake 51,Sweden,68.334896,18.300168,2000,2.8,na,18.53,4.80,,369.668,1770.684
-Kankaala et al. (2013),Mekkojarvi,Finland,61.2167,25.1333,"2003, 2005",0.35,2.60,313.00,14.50,,378.209,1781.540
-Kankaala et al. (2013),Nimeton,Finland,61.2167,25.1667,2003,0.42,1.10,222.00,14.40,,376.228,1785.348
-Kankaala et al. (2013),Alinen Mustajarvi,Finland,61.2,25.1,2005,0.75,2.10,81.00,16.60,,380.190,1777.732
-Kankaala et al. (2013),Tavilampi,Finland,61.217,25.183,2003,0.82,0.70,98.00,16.10,,376.228,1785.348
-Kankaala et al. (2013),Horkkajarvi,Finland,61.217,25.15,2003,1.15,0.90,141.00,16.20,,376.228,1785.348
-Kankaala et al. (2013),Valkea-Kotinen,Finland,61.233,25.067,"2002, 2003",4.15,0.40,63.00,17.00,,374.699,1779.514
-Kankaala et al. (2013),Onkimajarvi,Finland,61.183,25.083,2003,6.36,0.40,72.00,17.60,,376.228,1785.348
-Kankaala et al. (2013),Alinen Rautjarvi,Finland,61.183,25.1,"1997, 1998, 2000",50,0.09,39.00,17.20,,366.881,1768.426
-Kankaala et al. (2013),Ekojarvi,Finland,61.2,24.967,"1997, 1998, 2000",74,0.12,32.00,16.90,,366.881,1768.426
-Kankaala et al. (2013),Ormajarvi,Finland,61.1,24.967,2004,653,0.06,30.00,16.50,,377.512,1778.556
-Kankaala et al. (2013),Paajarvi,Finland,61.067,25.133,2004,1340,0.03,44.00,15.00,,377.512,1778.556
-Kankaala et al. (2013),Kuohijarvi,Finland,61.233,24.867,"1997, 1998, 2000",3500,0.01,25.00,16.70,,366.881,1768.426
-Kling et al. (1991),Africa (Alaskan tundra),Alaska,70.333,-148.8,1988,91.2,na,47.67,11,,351.886,1697.160
-Kling et al. (1991),Anne (Alaskan tundra),Alaska,68.733,-148.933,1988,8.5,na,11.55,19.5,,351.886,1697.160
-Kling et al. (1991),Bern (Alaskan tundra),Alaska,70.283,-148.3,1988,90,na,25.06,9.5,,351.886,1697.160
-Kling et al. (1991),Camp (Alaskan tundra),Alaska,68.633,-149.6,1988,0.2,na,3.58,20.5,,351.886,1697.160
-Kling et al. (1991),Carolyn (Alaskan tundra),Alaska,70.35,-148.583,1988,66.2,na,69.15,11,,351.886,1697.160
-Kling et al. (1991),Charles (Alaskan tundra),Alaska,69.183,-148.85,1988,10.3,na,33.14,18.8,,351.886,1697.160
-Kling et al. (1991),Coleen (Alaskan tundra),Alaska,70.217,-148.467,1988,231,na,39.48,11,,351.886,1697.160
-Kling et al. (1991),Dam (Alaskan tundra),Alaska,68.633,-149.6,1985,0.1,na,82.53,11,,345.952,1660.644
-Kling et al. (1991),Galbraith (Alaskan tundra),Alaska,68.467,-149.5,1988,422,na,62.22,17.5,,351.886,1697.160
-Kling et al. (1991),George (Alaskan tundra),Alaska,68.733,-148.967,1988,7.3,na,14.46,19,,351.886,1697.160
-Kling et al. (1991),I8 (Alaskan tundra),Alaska,68.617,-149.583,1986,17.6,na,101.29,14,,347.076,1680.980
-Kling et al. (1991),Maxine (Alaskan tundra),Alaska,70.367,-148.5,1988,180,na,31.55,9.8,,351.886,1697.160
-Kling et al. (1991),NE12 (Alaskan tundra),Alaska,68.65,-149.617,1988,8.5,na,41.45,15.5,,351.886,1697.160
-Kling et al. (1991),NE2 (Alaskan tundra),Alaska,68.633,-149.617,1986,6.3,na,88.37,15.5,,347.076,1680.980
-Kling et al. (1991),S3 (Alaskan tundra),Alaska,68.633,-149.633,1986,4,na,51.08,17,,347.076,1680.980
-Kling et al. (1991),Silhouette (Alaskan tundra),Alaska,70.083,-148.533,1988,56.8,na,75.35,13,,351.886,1697.160
-Kling et al. (1991),William (Alaskan tundra),Alaska,69.583,-148.633,1988,35.5,na,21.56,17,,351.886,1697.160
-Kling et al. (1991),Windy (Alaskan tundra),Alaska,69.967,-148.733,1988,28.6,na,86.29,14,,351.886,1697.160
-Kortelainen et al (2006) CO2 or Juutinen et al. (2009) CH4,182 lakes,Finland,,,1998 or 1999,4-11975 ha,**Please contact authors for inquiries on data,,,,,
-Laurion et al. (2010),BYL22,Canada,73.15,-79.96667,2007,0.002101,0.83,17.30,11.3825,,383.940,1784.590
-Laurion et al. (2010),BYL33,Canada,73.15,-79.96667,2007,0.0025,3.25,25.11,12.655,,383.940,1784.590
-Laurion et al. (2010),BYL24,Canada,73.15,-79.96667,2007,0.0048,1.90,25.76,13.075,,383.940,1784.590
-Laurion et al. (2010),BYL27,Canada,73.15,-79.96667,2007,0.006,2.72,77.82,11.33444444,,383.940,1784.590
-Laurion et al. (2010),BYL38,Canada,73.15,-79.96667,2007,0.0069,3.89,116.61,10.64625,,383.940,1784.590
-Laurion et al. (2010),BYL50,Canada,73.15,-79.96667,2007,0.007441,0.08,24.28,13.34,,383.940,1784.590
-Laurion et al. (2010),BYL80,Canada,73.15,-79.96667,2007,0.02025,1.04,4.85,8.973333333,,383.940,1784.590
-Laurion et al. (2010),BYL44,Canada,73.15,-79.96667,2007,0.033481,1.18,7.00,13.008,,383.940,1784.590
-Laurion et al. (2010),BYL01,Canada,73.15,-79.96667,2007,0.034893,0.71,5.09,12.46714286,,383.940,1784.590
-Laurion et al. (2010),BYL36,Canada,73.15,-79.96667,2007,3.1471,0.36,17.53,11.5,,383.940,1784.590
-Laurion et al. (2010),BYL66,Canada,73.15,-79.96667,2007,11.6506,0.22,16.58,13.95,,383.940,1784.590
-Laurion et al. (2010),BYL37,Canada,73.15,-79.96667,2007,21.0496,0.06,23.88,8.8,,383.940,1784.590
-Lennon et al. (2006),Bellamy Reservoir,New Hampshire,43.19301,-70.95402,2002-2003,154.7,na,54.59,25.2,,374.699,1779.514
-Lennon et al. (2006),Black Pond,New Hampshire,43.24094,-72.10035,2002-2003,8.1,na,14.93,26.1,,374.699,1779.514
-Lennon et al. (2006),Black Pond,Vermont,43.70355,-73.22424,2002-2003,24.3,na,47.71,21.2,,374.699,1779.514
-Lennon et al. (2006),Burr Pond,Vermont,43.76522,-73.18395,2002-2003,34.4,na,18.52,26.2,,374.699,1779.514
-Lennon et al. (2006),Catamount Pond,New Hampshire,43.16684,-71.38832,2002-2003,7.3,na,76.39,18.61,,374.699,1779.514
-Lennon et al. (2006),Cheshire Pond,New Hampshire,42.8209,-72.00997,2002-2003,23.1,na,56.01,19.9,,374.699,1779.514
-Lennon et al. (2006),Childs Pond,Vermont,43.81885,-72.19091,2002-2003,4.0,na,64.46,27.6,,374.699,1779.514
-Lennon et al. (2006),Colcord Pond,New Hampshire,42.98571,-70.97057,2002-2003,3.5,na,190.17,20.6,,374.699,1779.514
-Lennon et al. (2006),County Line Flow,New York,43.9801,-74.2766,2002-2003,24.3,na,44.66,18.2,,374.699,1779.514
-Lennon et al. (2006),Cummins Pond,New Hampshire,43.78386,-72.01045,2002-2003,55.0,na,17.34,22.2,,374.699,1779.514
-Lennon et al. (2006),Damon Reservoir,New Hampshire,42.72762,-72.07768,2002-2003,9.9,na,42.82,21.5,,374.699,1779.514
-Lennon et al. (2006),E. Caroga Lake,New York,43.12651,-74.47942,2002-2003,80.1,na,34.60,21.4,,374.699,1779.514
-Lennon et al. (2006),Echo Pond,New York,44.30858,-74.35548,2002-2003,6.5,na,9.67,20.7,,374.699,1779.514
-Lennon et al. (2006),Goose Pond,New Hampshire,43.69943,-72.0925,2002-2003,24.2,na,15.70,26.4,,374.699,1779.514
-Lennon et al. (2006),Gustin Pond,New Hampshire,43.14648,-72.24393,2002-2003,4.5,na,48.93,21.8,,374.699,1779.514
-Lennon et al. (2006),Harveys Lake,Vermont,44.29344,-72.13854,2002-2003,142.0,na,24.22,20.5,,374.699,1779.514
-Lennon et al. (2006),Indian Pond,New Hampshire,42.857826,-72.525711,2002-2003,57.6,na,7.15,23.8,,374.699,1779.514
-Lennon et al. (2006),Lake Armington,New Hampshire,43.9564,-71.97062,2002-2003,57.6,na,15.18,23.2,,374.699,1779.514
-Lennon et al. (2006),Lake Morey ,Vermont,43.92117,-72.155,2002-2003,221.4,na,13.80,21.8,,374.699,1779.514
-Lennon et al. (2006),Little Hope Pond,New York,44.51709,-74.12591,2002-2003,2.8,na,31.73,19.3,,374.699,1779.514
-Lennon et al. (2006),Long Pond,New Hampshire,43.20232,-71.81429,2002-2003,36.5,na,38.23,21.2,,374.699,1779.514
-Lennon et al. (2006),Lower Baker Pond,New Hampshire,43.89496,-71.97572,2002-2003,38.3,na,17.08,22.5,,374.699,1779.514
-Lennon et al. (2006),Marshfield Pond,Vermont,44.32548,-72.32954,2002-2003,27.9,na,14.47,20.6,,374.699,1779.514
-Lennon et al. (2006),Mill Pond,New Hampshire,43.23385,-72.10115,2002-2003,7.6,na,108.63,21,,374.699,1779.514
-Lennon et al. (2006),Mirror Lake,New Hampshire,43.63972,-71.99738,2002-2003,9.0,na,86.00,20.6,,374.699,1779.514
-Lennon et al. (2006),N. of Hamilton Pond,Maine,44.47567,-69.83889,2002-2003,20.6,na,342.98,24,,374.699,1779.514
-Lennon et al. (2006),Peacham Pond,Vermont,44.32952,-72.25856,2002-2003,137.6,na,7.59,20,,374.699,1779.514
-Lennon et al. (2006),Phillips Pond,New Hampshire,42.91722,-71.18918,2002-2003,34.5,na,54.99,23.8,,374.699,1779.514
-Lennon et al. (2006),Piscassic Ice Pond,New Hampshire,43.0327,-70.96939,2002-2003,4.2,na,58.29,26.2,,374.699,1779.514
-Lennon et al. (2006),Powwow Pond,New Hampshire,42.91665,-71.03763,2002-2003,99.8,na,59.00,21.3,,374.699,1779.514
-Lennon et al. (2006),Purgatory Pond,New Hampshire,43.06801,-71.53478,2002-2003,7.5,na,106.60,22.9,,374.699,1779.514
-Lennon et al. (2006),Reservoir Pond,New Hampshire,43.7856,-72.0423,2002-2003,44.9,na,13.48,22.4,,374.699,1779.514
-Lennon et al. (2006),Sportsman Pond,New Hampshire,42.72792,-72.16826,2002-2003,55.6,na,66.30,21.4,,374.699,1779.514
-Lennon et al. (2006),Spruce Pond,New Hampshire,43.11221,-71.3331,2002-2003,9.4,na,66.42,21.1,,374.699,1779.514
-Lennon et al. (2006),Storrs Pond,New Hampshire,43.72686,-72.26321,2002-2003,6.5,na,30.02,24.1,,374.699,1779.514
-Lennon et al. (2006),Wadley's Pond,Maine,43.53474,-70.64081,2002-2003,82.2,na,48.74,20.3,,374.699,1779.514
-Lennon et al. (2006),White Pond,New Hampshire,43.12303,-72.03368,2002-2003,14.7,na,14.90,26.9,,374.699,1779.514
-Miyajima et al. (1997),Lake Biwa,Japan,35.32566,136.1421,1993,67400,0.07,na,23.50,,357.456,1740.674
-Natchimuthu et al. (2014),Linkoping University- small shallow pond,Sweden,58.3936,14.4789,2010,0.12,1.30,na,23.00,,390.052,1805.178
-Pelletier et al. (2014),Pool 1,Canada,49.133,-68.296,"2011, 2012",0.0499,1.66,45.80,17.00,,392.912,1810.764
-Pelletier et al. (2014),Pool 2,Canada,49.133,-68.296,"2011, 2012",0.0128,1.27,82.43,17.00,,392.912,1810.764
-Pelletier et al. (2014),Pool 3,Canada,49.133,-68.296,"2011, 2012",0.0766,6.74,55.79,17.00,,392.912,1810.764
-Pelletier et al. (2014),Pool 4,Canada,49.133,-68.296,"2011, 2012",0.2563,1.22,43.30,17.00,,392.912,1810.764
-Pelletier et al. (2014),Pool 5,Canada,49.133,-68.296,"2011, 2012",0.1866,0.52,41.63,17.00,,392.912,1810.764
-Repo et al. (2007),MTLake,Siberia,60.983,70.167,2005,23,0.28,51.00,18.80,,380.190,1777.732
-Repo et al. (2007),MTPond,Siberia,60.983,70.167,2005,0.5,2.60,92.00,18.80,,380.190,1777.732
-Repo et al. (2007),FTLake,Siberia,65.867,74.967,2005,7,0.29,60.00,18.80,,380.190,1777.732
-Riera et al. (1999),Crystal Bog,Wisconsin,46,-89.6167,1994,0.54,10.23,79.61,8.87,,358.752,1746.030
-Riera et al. (1999),Trout Bog,Wisconsin,46,-89.6167,1994,1.09,3.89,142.22,11.52,,358.752,1746.030
-Riera et al. (1999),Crystal Lake; clearwater lake,Wisconsin,46,-89.6167,1994,36.65,na,24.31,10.84,,358.752,1746.030
-Riera et al. (1999),Sparkling Lake; clearwater lake,Wisconsin,46,-89.6167,1994,63.87,na,31.43,10.41,,358.752,1746.030
-Schulz et al. (2001),Constance,Germany,47.623259,9.413447,"1994, 1995",54000,0.01,na,na,15,359.925,1751.254
-Smith and Lewis (1992),Dillon,Colorado,39.608108,-106.057387,1989-1990,1300,0.74,na,12.70,,353.818,1718.914
-Smith and Lewis (1992),Red Rock,Colorado,40.080605,-105.541786,1989-1990,2.1,1.60,na,9.90,,353.818,1718.914
-Smith and Lewis (1992),Rainbow,Colorado,40.029529,-105.583796,1989-1990,1,1.02,na,10.40,,353.818,1718.914
-Smith and Lewis (1992),Long,Colorado,40.072341,-105.592712,1989-1990,16,0.10,na,9.30,,353.818,1718.914
-Smith and Lewis (1992),Pass,Colorado,39.654736,-105.878807,1989-1990,1.6,0.65,na,6.60,,353.818,1718.914
-Striegl and Michmerhuizen (1998),Williams Lake,Minnesota,46.95,-94.5,1992-1993,37.09,2.93,50.27,12.00,,357.260,1738.289
-Striegl and Michmerhuizen (1998),Shingobee Lake,Minnesota,47,-94.6833,1992-1993,65.51,2.90,66.85,11.00,,357.260,1738.289
-Utsumi et al. (1998a),Lake Kasumigaura,Japan,36.0333,140.4,1991-1996,16800,0.30,na,na,16.5,358.867,1744.596
-Shirokova et al. 2013,N1,Siberia,63.224317,75.72735,2010,0.02,0.281,132.515,9.7,na,390.052,1.805178
-Shirokova et al. 2013,N2,Siberia,63.2227,75.736033,2010,0.0008,1.322,259.112,9.9,na,390.052,1.805178
-Shirokova et al. 2013,N3,Siberia,63.220933,75.74155,2010,0.03,2.94,57.122,9.8,na,390.052,1.805178
-Shirokova et al. 2013,N4,Siberia,63.221017,75.73195,2010,0.001,4.09,190.578,10.2,na,390.052,1.805178
-Shirokova et al. 2013,N5,Siberia,63.019117,75.217533,2010,0.07,0.102,41.296,12,na,390.052,1.805178
-Shirokova et al. 2013,N6,Siberia,63.019533,75.21605,2010,0.15,0.18,46.763,14.1,na,390.052,1.805178
-Shirokova et al. 2013,N7,Siberia,63.020067,75.214017,2010,1,0.239,40.219,13.2,na,390.052,1.805178
-Shirokova et al. 2013,N8,Siberia,63.022517,75.2071,2010,3,0.21,40.012,14.7,na,390.052,1.805178
-Shirokova et al. 2013,N13,Siberia,63.764767,77.4659,2010,0.015,0.476,36.693,17.2,na,390.052,1.805178
-Shirokova et al. 2013,N14,Siberia,63.7652,77.465967,2010,0.00025,1.678,234.665,16.1,na,390.052,1.805178
-Shirokova et al. 2013,N15,Siberia,63.7658,77.4664,2010,0.7,0.094,44.518,17.7,na,390.052,1.805178
-Shirokova et al. 2013,N16,Siberia,63.766733,77.467283,2010,1,0.18,41.446,17.7,na,390.052,1.805178
-Shirokova et al. 2013,N17,Siberia,63.767533,77.4754,2010,35,0.143,50.165,17.2,na,390.052,1.805178
-Shirokova et al. 2013,N18,Siberia,63.7661,77.471633,2010,0.03,0.857,43.85,15.8,na,390.052,1.805178
-Shirokova et al. 2013,N23,Siberia,63.2257,75.725683,2010,0.3,0.743,67.175,10.4,na,390.052,1.805178
-Shirokova et al. 2013,N24,Siberia,63.223767,75.721417,2010,3,0.145,47.029,12.3,na,390.052,1.805178
-Shirokova et al. 2013,N25,Siberia,63.220367,75.719233,2010,9,0.041,35.416,12.8,na,390.052,1.805178
-Shirokova et al. 2013,N26,Siberia,63.2185,75.722267,2010,0.05,0.647,35.647,13,na,390.052,1.805178
-Shirokova et al. 2013,N28,Siberia,63.78403,75.64882,2010,1,0.03,39.013,14,na,390.052,1.805178
-Shirokova et al. 2013,N29,Siberia,63.78275,75.65086,2010,0.75,0.059,36.954,14.7,na,390.052,1.805178
-Shirokova et al. 2013,N30,Siberia,63.78219,75.65301,2010,0.05,0.167,73.299,16,na,390.052,1.805178
-Shirokova et al. 2013,N31,Siberia,63.78305,75.6541,2010,0.01,0.0191,29.276,15.9,na,390.052,1.805178
-Shirokova et al. 2013,N32,Siberia,63.78337,75.65144,2010,0.1,0.605,45.931,17.4,na,390.052,1.805178
-Shirokova et al. 2013,N33,Siberia,63.7859,75.648317,2010,2,0.0199,37.415,16.3,na,390.052,1.805178
-Shirokova et al. 2013,N38,Siberia,63.328733,75.352117,2010,10,0.312,na,16.6,na,390.052,1.805178
+Reference,Site Name,Location,latitude,longitude,Study Years,area (ha),ch4 (umol/L),co2 (umol/L),temp (C) ,temp (estimate),atm. co2,atm. ch4,Ecosystem,notes,color_code
+Barber et al. (1988),Mrazek Pond,Florida,27.7731,-82.64,1984-1985,0.5,2.21,na,25,,345.302,1652.373,Not Peatland,,1
+Barber et al. (1988),Arrow Lake,Florida,27.7731,-82.64,1984-1985,4.4,1.34,na,27,,345.302,1652.373,Not Peatland,,1
+Barber et al. (1988),Crescent Lake,Florida,27.7731,-82.64,1984-1985,8,3.11,na,28,,345.302,1652.373,Not Peatland,,1
+Barber et al. (1988),Lake Maggiore,Florida,27.7731,-82.64,1984-1985,154,2.35,na,28,,345.302,1652.373,Not Peatland,,1
+Barber et al. (1988),Mirror Lake,Florida,27.7731,-82.64,1984-1985,4.4,1.29,na,26,,345.302,1652.373,Not Peatland,,1
+Bartlett et al. (1992),Nunavakpak,Alaska,60.800159,-162.627975,1988,13726.9,0.21,na,12.5,,351.886,1697.16,,no access,2
+Bartlett et al. (1992),Kayigyalik,Alaska,61.037789,-162.53862,1988,13985.9,0.05,na,12.5,,351.886,1697.16,,no access,2
+Bartlett et al. (1992),Nunavakanukasklak Lake,Alaska,60.943962,-162.352844,1988,7510.97,0.09,na,12.5,,351.886,1697.16,,no access,2
+Bastviken et al (2002),Illersjön,Sweden,58.575735,14.991624,1999-2000,3.9,0.55,na,na,12.63,369.086,1772.059,Not mentioned,,3
+Bastviken et al (2002),Ma_rn,Sweden,58.58247,15.861912,1999-2000,4.5,0.1,na,na,12.63,369.086,1772.059,Not mentioned,,3
+Bastviken et al (2002),Lillsjön,Sweden,58.659082,16.143506,1999-2000,2,0.1,na,na,12.63,369.086,1772.059,Not mentioned,,3
+Bastviken et al. (2004),Brown,WI + MN,46.21769,-89.475043,2001,32.9,0.82,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),Crampton,WI + MN,46.209652,-89.473671,2001,25.8,0.41,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),East Long,WI + MN,46.2166,-89.533,2001,2.3,0.66,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),Hummingbird,WI + MN,46.2166,-89.533,2001,0.8,0.68,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),Morris,WI + MN,46.2166,-89.533,2001,5.9,1.22,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),North Gate,WI + MN,46.2166,-89.533,2001,0.3,0.34,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),Paul,WI + MN,46.251541,-89.503676,2001,1.7,2.15,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),Peter,WI + MN,46.253025,-89.503859,2001,2.7,1.31,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),Roach,WI + MN,46.227719,-89.549608,2001,45,0.27,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),Tuesday,WI + MN,46.251296,-89.497679,2001,0.9,2.32,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),Ward,WI + MN,46.25493,-89.517476,2001,2.7,1.22,na,na,20,371.298,1774.578,,extensive bogs and low-lying forests,4
+Bastviken et al. (2004),Bisen,Sweden,59.959037,15.504268,2000,43.3,0.11,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),L Sa_ngaren,Sweden,59.899823,15.392516,2000,24,0.18,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Ljustjärn,Sweden,59.923674,15.452679,2000,13,0.47,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Lövtjärn,Sweden,59.912857,15.406412,2000,8.5,0.61,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Ra_gåstjärnt,Sweden,59.914353,15.464101,2000,4,1.1,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Skottjärn,Sweden,59.941796,15.397125,2000,2.8,1.84,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Svarttjärn,Sweden,59.890571,15.257622,2000,0.7,1.89,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Fiolen,Sweden,57.082212,14.532362,2000,150,0.08,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Gransjön,Sweden,57.139606,14.712336,2000,4.5,0.48,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Grunnen,Sweden,57.155237,14.413261,2000,48,0.46,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Gyslättasjön,Sweden,57.110059,14.479155,2000,26.3,0.38,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Klintsjön,Sweden,57.127291,14.700238,2000,10,0.31,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Bastviken et al. (2004),Skärshultssjön,Sweden,57.16335,14.509792,2000,29.2,0.17,na,na,12.63,369.668,1770.684,,boreal oligotrophic lake type,4
+Casper et al. (2000),Priest Pot (hypereutrophic),United Kingdom,54.372256,-2.990409,1997,1,1.3,132,16.9,,363.78,1764.474,Not Peatland,,5
+Fallon et al. (1980),Lake Mendota,Wisconsin,43.114611,-89.417807,1977,3937,0.5,na,na,18,334.014,1458.1,,Not mentioned,6
+Hamilton et al. (1994),Kinosheo Bog Pond 1,Canada,51.55,-81.81666,1990,2.139,0.46,33.21,15.99,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Kinosheo Bog Pond 2,Canada,51.55,-81.81666,1990,0.0032,7,97.83,13.03,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Kinosheo Bog Pond 3,Canada,51.55,-81.81666,1990,0.0032,1.86,48.88,9.75,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Kinosheo Bog Pond 4,Canada,51.55,-81.81666,1990,0.025,1.57,100.05,12.79,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Kinosheo Bog Pond 5,Canada,51.55,-81.81666,1990,0.025,2.54,112.98,9.58,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Kinosheo Bog Pond 6,Canada,51.55,-81.81666,1990,0.056,7.31,55.92,18.04,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Kinosheo Bog Pond 7,Canada,51.55,-81.81666,1990,0.147,2.42,44.32,16.78,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Kinosheo Bog Pond 8,Canada,51.55,-81.81666,1990,0.01,10.12,133.45,16.32,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Kinosheo Bog Pond 9,Canada,51.55,-81.81666,1990,0.01,2.58,64.11,11.64,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Kinosheo Bog Pond 10,Canada,51.55,-81.81666,1990,4.162,4.6,81.08,17.51,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Coastal Fen Pond 11,Canada,51.4672,-80.6167,1990,0.046,6.8,114.35,16.7,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Coastal Fen Pond 12,Canada,51.4672,-80.6167,1990,0.0295,2.95,85.11,15.79,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Coastal Fen Pond 13,Canada,51.4672,-80.6167,1990,0.032,15.25,263.23,15.71,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Coastal Fen Pond 14,Canada,51.4672,-80.6167,1990,0.053,17.93,309.25,16.01,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Coastal Fen Pond 15,Canada,51.4672,-80.6167,1990,0.045,2.08,137.39,15.95,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Coastal Fen Pond 16,Canada,51.4672,-80.6167,1990,0.045,4.03,103.32,15.86,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Coastal Fen Pond 17,Canada,51.4672,-80.6167,1990,0.06,6.98,189.1,17.46,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Coastal Fen Pond 18,Canada,51.4672,-80.6167,1990,0.07,3.53,155.2,14.58,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Interior Fen Pond 19,Canada,51.5019,-80.8689,1990,0.01,4.55,64.91,15.64,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Interior Fen Pond 20,Canada,51.5019,-80.8689,1990,0.04,4.48,165.55,15.28,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Interior Fen Pond 21,Canada,51.5019,-80.8689,1990,0.05,11.56,363.08,15.78,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Interior Fen Pond 22,Canada,51.5019,-80.8689,1990,0.05,7.06,81.96,16.28,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Interior Fen Pond 23,Canada,51.5019,-80.8689,1990,0.03,9.19,151.78,15.55,,354.334,1724.242,Peatland,,7
+Hamilton et al. (1994),Interior Fen Pond 24,Canada,51.5019,-80.8689,1990,0.03,5.25,166.77,15.38,,354.334,1724.242,Peatland,,7
+Holgerson (2015),Atwood,Connecticut,41.96526,-72.15229,2013-2014,0.0459,26.99,350.65,14.6,,397.959,1826.143,Not Peatland,,8
+Holgerson (2015),Blacksmith,Connecticut,41.954997,-72.1236,2013-2014,0.0604,42.39,553.37,16.56,,397.959,1826.143,Not Peatland,,8
+Holgerson (2015),E8,Connecticut,41.9633,-72.14995,2013-2014,0.0604,31.48,345.21,14.27,,397.959,1826.143,Not Peatland,,8
+Holgerson (2015),Long,Connecticut,41.96688,-72.15088,2013-2014,0.0847,25.37,273.33,16.79,,397.959,1826.143,Not Peatland,,8
+Holgerson (2015),Quarry,Connecticut,41.943498,-72.12869,2013-2014,0.0298,21.02,317.22,15.66,,397.959,1826.143,Not Peatland,,8
+Holgerson (2015),Woodpile,Connecticut,41.94238,-72.12899,2013-2014,0.0716,58.94,273.74,15.73,,397.959,1826.143,Not Peatland,,8
+Jonsson et al. (2003),Lake 1,Sweden,67.657009,21.511019,2000,11,na,39,18.9,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 2,Sweden,67.59908,20.898152,2000,2.5,na,40,13.8,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 3,Sweden,67.571194,21.147969,2000,10,na,27,14.1,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 4,Sweden,68.445049,18.605404,2000,11,na,27,16.7,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 5,Sweden,67.96495,20.460618,2000,13,na,20,16.5,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 6,Sweden,68.169956,19.821416,2000,5.2,na,18,17.2,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 7,Sweden,68.163219,19.896639,2000,3.3,na,28,13.1,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 8,Sweden,68.204363,19.566402,2000,3.5,na,21,10.2,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 9,Sweden,68.192177,19.606953,2000,4.3,na,24,10.3,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 10,Sweden,68.214747,19.653924,2000,1.4,na,23,10.2,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 11,Sweden,68.297881,19.121413,2000,1.9,na,22,8.5,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 12,Sweden,68.293689,19.111492,2000,11,na,23,8.2,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 13,Sweden,68.277991,19.096497,2000,17,na,19,7.7,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 14,Sweden,68.273235,18.692876,2000,17,na,25,6.4,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 15,Sweden,68.206199,18.743664,2000,3.8,na,17,5.3,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 16,Sweden,68.237357,18.825511,2000,27,na,20,5.9,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 17,Sweden,68.173481,19.829008,2000,1.5,na,36.28,15.6,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 18,Sweden,68.16832,19.820333,2000,0.7,na,19.59,17,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 19,Sweden,68.331182,19.15157,2000,5,na,20.25,14.8,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 20,Sweden,68.333353,19.161897,2000,1.9,na,25.61,16.2,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 21,Sweden,68.33855,19.147649,2000,11.5,na,17.85,15,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 22,Sweden,68.333855,19.148077,2000,0.7,na,45.09,17,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 23,Sweden,68.332988,19.146104,2000,1,na,35.47,14.1,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 24,Sweden,68.350642,18.968044,2000,4.5,na,29.54,11.8,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 25,Sweden,68.350976,18.983549,2000,0.8,na,43.85,17,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 26,Sweden,68.438605,18.64381,2000,1.1,na,33.72,13.5,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 27,Sweden,68.441727,18.644933,2000,0.9,na,34.2,12.5,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 28,Sweden,68.442265,18.639633,2000,0.9,na,34.23,11.5,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 29,Sweden,68.445174,18.633164,2000,2,na,31.26,11.7,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 30,Sweden,68.444385,18.628893,2000,6,na,30.91,11.4,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 31,Sweden,68.450973,18.617047,2000,2.5,na,30,12.8,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 32,Sweden,68.449465,18.611734,2000,0.9,na,27.22,10.5,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 33,Sweden,68.4494,18.604893,2000,1,na,57.37,11,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 34,Sweden,68.441961,18.489868,2000,1.1,na,32.91,12,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 35,Sweden,68.444104,18.499442,2000,12,na,23.74,11.8,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 36,Sweden,68.433118,18.418759,2000,1.2,na,25.98,12.3,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 37,Sweden,68.109531,19.814261,2000,39,na,24.27,13,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 38,Sweden,67.788753,21.257059,2000,9.7,na,16.79,16.2,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 39,Sweden,67.843041,20.821395,2000,4.6,na,29.8,13.6,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 40,Sweden,68.17172,19.865092,2000,6.9,na,22.04,14.8,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 41,Sweden,67.582737,21.129283,2000,9,na,34.29,12.2,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 42,Sweden,67.567463,21.992512,2000,3.9,na,25.44,14.1,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 43,Sweden,67.534543,21.290044,2000,16,na,37.62,17.9,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 44,Sweden,68.364564,18.696812,2000,1.1,na,19.45,10.6,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 45,Sweden,67.557439,22.005505,2000,34,na,22.95,13.6,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 46,Sweden,67.465533,21.997726,2000,16,na,40.8,14.5,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 47,Sweden,67.510458,21.797717,2000,5.2,na,46.63,13.9,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 48,Sweden,67.953251,20.033618,2000,4,na,24.73,15.4,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 49,Sweden,67.805099,20.631463,2000,24,na,30.41,13.9,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 50,Sweden,68.334214,18.336462,2000,6.4,na,30.38,3,,369.668,1770.684,,Not mentioned,9
+Jonsson et al. (2003),Lake 51,Sweden,68.334896,18.300168,2000,2.8,na,18.53,4.8,,369.668,1770.684,,Not mentioned,9
+Kankaala et al. (2013),Mekkojarvi,Finland,61.2167,25.1333,"2003, 2005",0.35,2.6,313,14.5,,378.209,1781.54,Peatland,,10
+Kankaala et al. (2013),Nimeton,Finland,61.2167,25.1667,2003,0.42,1.1,222,14.4,,376.228,1785.348,Peatland,,10
+Kankaala et al. (2013),Alinen Mustajarvi,Finland,61.2,25.1,2005,0.75,2.1,81,16.6,,380.19,1777.732,Peatland,,10
+Kankaala et al. (2013),Tavilampi,Finland,61.217,25.183,2003,0.82,0.7,98,16.1,,376.228,1785.348,Peatland,,10
+Kankaala et al. (2013),Horkkajarvi,Finland,61.217,25.15,2003,1.15,0.9,141,16.2,,376.228,1785.348,Peatland,,10
+Kankaala et al. (2013),Valkea-Kotinen,Finland,61.233,25.067,"2002, 2003",4.15,0.4,63,17,,374.699,1779.514,Peatland,,10
+Kankaala et al. (2013),Onkimajarvi,Finland,61.183,25.083,2003,6.36,0.4,72,17.6,,376.228,1785.348,Peatland,,10
+Kankaala et al. (2013),Alinen Rautjarvi,Finland,61.183,25.1,"1997, 1998, 2000",50,0.09,39,17.2,,366.881,1768.426,Peatland,,10
+Kankaala et al. (2013),Ekojarvi,Finland,61.2,24.967,"1997, 1998, 2000",74,0.12,32,16.9,,366.881,1768.426,Peatland,,10
+Kankaala et al. (2013),Ormajarvi,Finland,61.1,24.967,2004,653,0.06,30,16.5,,377.512,1778.556,Peatland,,10
+Kankaala et al. (2013),Paajarvi,Finland,61.067,25.133,2004,1340,0.03,44,15,,377.512,1778.556,Peatland,,10
+Kankaala et al. (2013),Kuohijarvi,Finland,61.233,24.867,"1997, 1998, 2000",3500,0.01,25,16.7,,366.881,1768.426,Peatland,,10
+Kling et al. (1991),Africa (Alaskan tundra),Alaska,70.333,-148.8,1988,91.2,na,47.67,11,,351.886,1697.16,,,11
+Kling et al. (1991),Anne (Alaskan tundra),Alaska,68.733,-148.933,1988,8.5,na,11.55,19.5,,351.886,1697.16,,,11
+Kling et al. (1991),Bern (Alaskan tundra),Alaska,70.283,-148.3,1988,90,na,25.06,9.5,,351.886,1697.16,,,11
+Kling et al. (1991),Camp (Alaskan tundra),Alaska,68.633,-149.6,1988,0.2,na,3.58,20.5,,351.886,1697.16,,,11
+Kling et al. (1991),Carolyn (Alaskan tundra),Alaska,70.35,-148.583,1988,66.2,na,69.15,11,,351.886,1697.16,,,11
+Kling et al. (1991),Charles (Alaskan tundra),Alaska,69.183,-148.85,1988,10.3,na,33.14,18.8,,351.886,1697.16,,,11
+Kling et al. (1991),Coleen (Alaskan tundra),Alaska,70.217,-148.467,1988,231,na,39.48,11,,351.886,1697.16,,,11
+Kling et al. (1991),Dam (Alaskan tundra),Alaska,68.633,-149.6,1985,0.1,na,82.53,11,,345.952,1660.644,,,11
+Kling et al. (1991),Galbraith (Alaskan tundra),Alaska,68.467,-149.5,1988,422,na,62.22,17.5,,351.886,1697.16,,,11
+Kling et al. (1991),George (Alaskan tundra),Alaska,68.733,-148.967,1988,7.3,na,14.46,19,,351.886,1697.16,,,11
+Kling et al. (1991),I8 (Alaskan tundra),Alaska,68.617,-149.583,1986,17.6,na,101.29,14,,347.076,1680.98,,,11
+Kling et al. (1991),Maxine (Alaskan tundra),Alaska,70.367,-148.5,1988,180,na,31.55,9.8,,351.886,1697.16,,,11
+Kling et al. (1991),NE12 (Alaskan tundra),Alaska,68.65,-149.617,1988,8.5,na,41.45,15.5,,351.886,1697.16,,,11
+Kling et al. (1991),NE2 (Alaskan tundra),Alaska,68.633,-149.617,1986,6.3,na,88.37,15.5,,347.076,1680.98,,,11
+Kling et al. (1991),S3 (Alaskan tundra),Alaska,68.633,-149.633,1986,4,na,51.08,17,,347.076,1680.98,,,11
+Kling et al. (1991),Silhouette (Alaskan tundra),Alaska,70.083,-148.533,1988,56.8,na,75.35,13,,351.886,1697.16,,,11
+Kling et al. (1991),William (Alaskan tundra),Alaska,69.583,-148.633,1988,35.5,na,21.56,17,,351.886,1697.16,,,11
+Kling et al. (1991),Windy (Alaskan tundra),Alaska,69.967,-148.733,1988,28.6,na,86.29,14,,351.886,1697.16,,,11
+Laurion et al. (2010),BYL22,Canada,73.15,-79.96667,2007,0.002101,0.83,17.3,11.3825,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL33,Canada,73.15,-79.96667,2007,0.0025,3.25,25.11,12.655,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL24,Canada,73.15,-79.96667,2007,0.0048,1.9,25.76,13.075,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL27,Canada,73.15,-79.96667,2007,0.006,2.72,77.82,11.33444444,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL38,Canada,73.15,-79.96667,2007,0.0069,3.89,116.61,10.64625,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL50,Canada,73.15,-79.96667,2007,0.007441,0.08,24.28,13.34,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL80,Canada,73.15,-79.96667,2007,0.02025,1.04,4.85,8.973333333,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL44,Canada,73.15,-79.96667,2007,0.033481,1.18,7,13.008,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL01,Canada,73.15,-79.96667,2007,0.034893,0.71,5.09,12.46714286,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL36,Canada,73.15,-79.96667,2007,3.1471,0.36,17.53,11.5,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL66,Canada,73.15,-79.96667,2007,11.6506,0.22,16.58,13.95,,383.94,1784.59,,,13
+Laurion et al. (2010),BYL37,Canada,73.15,-79.96667,2007,21.0496,0.06,23.88,8.8,,383.94,1784.59,,,13
+Lennon et al. (2006),Bellamy Reservoir,New Hampshire,43.19301,-70.95402,2002-2003,154.7,na,54.59,25.2,,374.699,1779.514,,,14
+Lennon et al. (2006),Black Pond,New Hampshire,43.24094,-72.10035,2002-2003,8.1,na,14.93,26.1,,374.699,1779.514,,,14
+Lennon et al. (2006),Black Pond,Vermont,43.70355,-73.22424,2002-2003,24.3,na,47.71,21.2,,374.699,1779.514,,,14
+Lennon et al. (2006),Burr Pond,Vermont,43.76522,-73.18395,2002-2003,34.4,na,18.52,26.2,,374.699,1779.514,,,14
+Lennon et al. (2006),Catamount Pond,New Hampshire,43.16684,-71.38832,2002-2003,7.3,na,76.39,18.61,,374.699,1779.514,,,14
+Lennon et al. (2006),Cheshire Pond,New Hampshire,42.8209,-72.00997,2002-2003,23.1,na,56.01,19.9,,374.699,1779.514,,,14
+Lennon et al. (2006),Childs Pond,Vermont,43.81885,-72.19091,2002-2003,4,na,64.46,27.6,,374.699,1779.514,,,14
+Lennon et al. (2006),Colcord Pond,New Hampshire,42.98571,-70.97057,2002-2003,3.5,na,190.17,20.6,,374.699,1779.514,,,14
+Lennon et al. (2006),County Line Flow,New York,43.9801,-74.2766,2002-2003,24.3,na,44.66,18.2,,374.699,1779.514,,,14
+Lennon et al. (2006),Cummins Pond,New Hampshire,43.78386,-72.01045,2002-2003,55,na,17.34,22.2,,374.699,1779.514,,,14
+Lennon et al. (2006),Damon Reservoir,New Hampshire,42.72762,-72.07768,2002-2003,9.9,na,42.82,21.5,,374.699,1779.514,,,14
+Lennon et al. (2006),E. Caroga Lake,New York,43.12651,-74.47942,2002-2003,80.1,na,34.6,21.4,,374.699,1779.514,,,14
+Lennon et al. (2006),Echo Pond,New York,44.30858,-74.35548,2002-2003,6.5,na,9.67,20.7,,374.699,1779.514,,,14
+Lennon et al. (2006),Goose Pond,New Hampshire,43.69943,-72.0925,2002-2003,24.2,na,15.7,26.4,,374.699,1779.514,,,14
+Lennon et al. (2006),Gustin Pond,New Hampshire,43.14648,-72.24393,2002-2003,4.5,na,48.93,21.8,,374.699,1779.514,,,14
+Lennon et al. (2006),Harveys Lake,Vermont,44.29344,-72.13854,2002-2003,142,na,24.22,20.5,,374.699,1779.514,,,14
+Lennon et al. (2006),Indian Pond,New Hampshire,42.857826,-72.525711,2002-2003,57.6,na,7.15,23.8,,374.699,1779.514,,,14
+Lennon et al. (2006),Lake Armington,New Hampshire,43.9564,-71.97062,2002-2003,57.6,na,15.18,23.2,,374.699,1779.514,,,14
+Lennon et al. (2006),Lake Morey ,Vermont,43.92117,-72.155,2002-2003,221.4,na,13.8,21.8,,374.699,1779.514,,,14
+Lennon et al. (2006),Little Hope Pond,New York,44.51709,-74.12591,2002-2003,2.8,na,31.73,19.3,,374.699,1779.514,,,14
+Lennon et al. (2006),Long Pond,New Hampshire,43.20232,-71.81429,2002-2003,36.5,na,38.23,21.2,,374.699,1779.514,,,14
+Lennon et al. (2006),Lower Baker Pond,New Hampshire,43.89496,-71.97572,2002-2003,38.3,na,17.08,22.5,,374.699,1779.514,,,14
+Lennon et al. (2006),Marshfield Pond,Vermont,44.32548,-72.32954,2002-2003,27.9,na,14.47,20.6,,374.699,1779.514,,,14
+Lennon et al. (2006),Mill Pond,New Hampshire,43.23385,-72.10115,2002-2003,7.6,na,108.63,21,,374.699,1779.514,,,14
+Lennon et al. (2006),Mirror Lake,New Hampshire,43.63972,-71.99738,2002-2003,9,na,86,20.6,,374.699,1779.514,,,14
+Lennon et al. (2006),N. of Hamilton Pond,Maine,44.47567,-69.83889,2002-2003,20.6,na,342.98,24,,374.699,1779.514,,,14
+Lennon et al. (2006),Peacham Pond,Vermont,44.32952,-72.25856,2002-2003,137.6,na,7.59,20,,374.699,1779.514,,,14
+Lennon et al. (2006),Phillips Pond,New Hampshire,42.91722,-71.18918,2002-2003,34.5,na,54.99,23.8,,374.699,1779.514,,,14
+Lennon et al. (2006),Piscassic Ice Pond,New Hampshire,43.0327,-70.96939,2002-2003,4.2,na,58.29,26.2,,374.699,1779.514,,,14
+Lennon et al. (2006),Powwow Pond,New Hampshire,42.91665,-71.03763,2002-2003,99.8,na,59,21.3,,374.699,1779.514,,,14
+Lennon et al. (2006),Purgatory Pond,New Hampshire,43.06801,-71.53478,2002-2003,7.5,na,106.6,22.9,,374.699,1779.514,,,14
+Lennon et al. (2006),Reservoir Pond,New Hampshire,43.7856,-72.0423,2002-2003,44.9,na,13.48,22.4,,374.699,1779.514,,,14
+Lennon et al. (2006),Sportsman Pond,New Hampshire,42.72792,-72.16826,2002-2003,55.6,na,66.3,21.4,,374.699,1779.514,,,14
+Lennon et al. (2006),Spruce Pond,New Hampshire,43.11221,-71.3331,2002-2003,9.4,na,66.42,21.1,,374.699,1779.514,,,14
+Lennon et al. (2006),Storrs Pond,New Hampshire,43.72686,-72.26321,2002-2003,6.5,na,30.02,24.1,,374.699,1779.514,,,14
+Lennon et al. (2006),Wadley's Pond,Maine,43.53474,-70.64081,2002-2003,82.2,na,48.74,20.3,,374.699,1779.514,,,14
+Lennon et al. (2006),White Pond,New Hampshire,43.12303,-72.03368,2002-2003,14.7,na,14.9,26.9,,374.699,1779.514,,,14
+Miyajima et al. (1997),Lake Biwa,Japan,35.32566,136.1421,1993,67400,0.07,na,23.5,,357.456,1740.674,,,15
+Natchimuthu et al. (2014),Linkoping University- small shallow pond,Sweden,58.3936,14.4789,2010,0.12,1.3,na,23,,390.052,1805.178,,,16
+Pelletier et al. (2014),Pool 1,Canada,49.133,-68.296,"2011, 2012",0.0499,1.66,45.8,17,,392.912,1810.764,Peatland,,17
+Pelletier et al. (2014),Pool 2,Canada,49.133,-68.296,"2011, 2012",0.0128,1.27,82.43,17,,392.912,1810.764,Peatland,,17
+Pelletier et al. (2014),Pool 3,Canada,49.133,-68.296,"2011, 2012",0.0766,6.74,55.79,17,,392.912,1810.764,Peatland,,17
+Pelletier et al. (2014),Pool 4,Canada,49.133,-68.296,"2011, 2012",0.2563,1.22,43.3,17,,392.912,1810.764,Peatland,,17
+Pelletier et al. (2014),Pool 5,Canada,49.133,-68.296,"2011, 2012",0.1866,0.52,41.63,17,,392.912,1810.764,Peatland,,17
+Repo et al. (2007),MTLake,Siberia,60.983,70.167,2005,23,0.28,51,18.8,,380.19,1777.732,Peatland,,18
+Repo et al. (2007),MTPond,Siberia,60.983,70.167,2005,0.5,2.6,92,18.8,,380.19,1777.732,Peatland,,18
+Repo et al. (2007),FTLake,Siberia,65.867,74.967,2005,7,0.29,60,18.8,,380.19,1777.732,Peatland,,18
+Riera et al. (1999),Crystal Bog,Wisconsin,46,-89.6167,1994,0.54,10.23,79.61,8.87,,358.752,1746.03,Peatland,,18
+Riera et al. (1999),Trout Bog,Wisconsin,46,-89.6167,1994,1.09,3.89,142.22,11.52,,358.752,1746.03,Peatland,,18
+Riera et al. (1999),Crystal Lake; clearwater lake,Wisconsin,46,-89.6167,1994,36.65,na,24.31,10.84,,358.752,1746.03,Not Peatland,,18
+Riera et al. (1999),Sparkling Lake; clearwater lake,Wisconsin,46,-89.6167,1994,63.87,na,31.43,10.41,,358.752,1746.03,Not Peatland,,18
+Schulz et al. (2001),Constance,Germany,47.623259,9.413447,"1994, 1995",54000,0.01,na,na,15,359.925,1751.254,,,19
+Smith and Lewis (1992),Dillon,Colorado,39.608108,-106.057387,1989-1990,1300,0.74,na,12.7,,353.818,1718.914,,,19
+Smith and Lewis (1992),Red Rock,Colorado,40.080605,-105.541786,1989-1990,2.1,1.6,na,9.9,,353.818,1718.914,,,19
+Smith and Lewis (1992),Rainbow,Colorado,40.029529,-105.583796,1989-1990,1,1.02,na,10.4,,353.818,1718.914,,,19
+Smith and Lewis (1992),Long,Colorado,40.072341,-105.592712,1989-1990,16,0.1,na,9.3,,353.818,1718.914,,,19
+Smith and Lewis (1992),Pass,Colorado,39.654736,-105.878807,1989-1990,1.6,0.65,na,6.6,,353.818,1718.914,,,19
+Striegl and Michmerhuizen (1998),Williams Lake,Minnesota,46.95,-94.5,1992-1993,37.09,2.93,50.27,12,,357.26,1738.289,,,20
+Striegl and Michmerhuizen (1998),Shingobee Lake,Minnesota,47,-94.6833,1992-1993,65.51,2.9,66.85,11,,357.26,1738.289,,,20
+Utsumi et al. (1998a),Lake Kasumigaura,Japan,36.0333,140.4,1991-1996,16800,0.3,na,na,16.5,358.867,1744.596,,,21
+Shirokova et al. (2013),N1,Siberia,63.224317,75.72735,2010,0.02,0.281,132.515,9.7,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N2,Siberia,63.2227,75.736033,2010,0.0008,1.322,259.112,9.9,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N3,Siberia,63.220933,75.74155,2010,0.03,2.94,57.122,9.8,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N4,Siberia,63.221017,75.73195,2010,0.001,4.09,190.578,10.2,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N5,Siberia,63.019117,75.217533,2010,0.07,0.102,41.296,12,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N6,Siberia,63.019533,75.21605,2010,0.15,0.18,46.763,14.1,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N7,Siberia,63.020067,75.214017,2010,1,0.239,40.219,13.2,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N8,Siberia,63.022517,75.2071,2010,3,0.21,40.012,14.7,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N13,Siberia,63.764767,77.4659,2010,0.015,0.476,36.693,17.2,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N14,Siberia,63.7652,77.465967,2010,0.00025,1.678,234.665,16.1,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N15,Siberia,63.7658,77.4664,2010,0.7,0.094,44.518,17.7,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N16,Siberia,63.766733,77.467283,2010,1,0.18,41.446,17.7,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N17,Siberia,63.767533,77.4754,2010,35,0.143,50.165,17.2,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N18,Siberia,63.7661,77.471633,2010,0.03,0.857,43.85,15.8,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N23,Siberia,63.2257,75.725683,2010,0.3,0.743,67.175,10.4,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N24,Siberia,63.223767,75.721417,2010,3,0.145,47.029,12.3,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N25,Siberia,63.220367,75.719233,2010,9,0.041,35.416,12.8,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N26,Siberia,63.2185,75.722267,2010,0.05,0.647,35.647,13,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N28,Siberia,63.78403,75.64882,2010,1,0.03,39.013,14,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N29,Siberia,63.78275,75.65086,2010,0.75,0.059,36.954,14.7,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N30,Siberia,63.78219,75.65301,2010,0.05,0.167,73.299,16,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N31,Siberia,63.78305,75.6541,2010,0.01,0.0191,29.276,15.9,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N32,Siberia,63.78337,75.65144,2010,0.1,0.605,45.931,17.4,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N33,Siberia,63.7859,75.648317,2010,2,0.0199,37.415,16.3,na,390.052,1.805178,Peatland,,22
+Shirokova et al. (2013),N38,Siberia,63.328733,75.352117,2010,10,0.312,na,16.6,na,390.052,1.805178,Peatland,,22

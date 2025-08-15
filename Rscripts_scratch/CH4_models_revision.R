@@ -86,3 +86,5 @@ ch4_res <- lmer(res ~
                   (1 |New.Name), data =gmc_ch4#%>%filter(New.Name!="Wetland")
 )
 summary(ch4_res)
+
+
