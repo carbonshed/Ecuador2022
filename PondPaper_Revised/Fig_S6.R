@@ -5,7 +5,7 @@ library(dplyr)
 library(ggplot2)
 
 #read in data
-WL_df <- read.csv(here::here("PondPaper_Revised/Pond_continuous_data.csv"))
+WL_df <- read.csv(here::here("data/Pond_continuous_data.csv"))
 WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 
 WL_df <- WL_df %>% 
@@ -25,10 +25,10 @@ WL_df_midday <- WL_df_midday%>%group_by(Site,Date)%>%summarise(
   Baro_kpa = mean(Baro_kpa,na.rm=TRUE )
 )
 
-CO2_summary <- read.csv(here::here("PondPaper_Revised/Pond_pCO2_data_summary.csv"))
+CO2_summary <- read.csv(here::here("data/Pond_pCO2_data_summary.csv"))
 CO2_summary$Date <- as.Date(CO2_summary$Date,format="%Y-%m-%d")
 
-predictor_variables <- read.csv(here::here("PondPaper_Revised/predictor_variables_df.csv"))%>%dplyr::select(Site,Date,Elevation_m)
+predictor_variables <- read.csv(here::here("data/predictor_variables_df.csv"))%>%dplyr::select(Site,Date,Elevation_m)
 predictor_variables$Date <- as.Date(predictor_variables$Date,format="%Y-%m-%d")
 
 df <- full_join(CO2_summary,predictor_variables,by=c("Site","Date"))

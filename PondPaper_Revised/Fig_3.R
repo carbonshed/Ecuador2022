@@ -6,10 +6,10 @@ library(ggplot2)
 library(ggpubr)
 library(cowplot)
 
-CH4_summary <- read.csv(here::here("PondPaper_Revised/Pond_pCH4_data_summary.csv"))
+CH4_summary <- read.csv(here::here("data/Pond_pCH4_data_summary.csv"))
 CH4_summary$Date <- as.Date(CH4_summary$Date,format="%Y-%m-%d")
 
-predictor_variables <- read.csv(here::here("PondPaper_Revised/predictor_variables_df.csv"))
+predictor_variables <- read.csv(here::here("data/predictor_variables_df.csv"))%>%dplyr::select(!Watertemp_c)
 predictor_variables$Date <- as.Date(predictor_variables$Date,format="%Y-%m-%d")
 
 df <- left_join(CH4_summary%>%filter(pCH4_w_uatm>3),predictor_variables,by=c("Site","Date"))

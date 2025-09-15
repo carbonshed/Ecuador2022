@@ -4,16 +4,16 @@ library(lubridate)
 library(dplyr)
 library(ggplot2)
 
-
 #read in CH4 data
-CH4_summary <- read.csv(here::here("PondPaper_Revised/Pond_pCH4_data_summary.csv"))
+CH4_summary <- read.csv(here::here("data/Pond_pCH4_data_summary.csv"))
 CH4_summary$Date <- as.Date(CH4_summary$Date,format="%Y-%m-%d")
 
 #read in CO2 data
-CO2_summary <- read.csv(here::here("PondPaper_Revised/Pond_pCO2_data_summary.csv"))%>%dplyr::select(!Watertemp_c)
+CO2_summary <- read.csv(here::here("data/Pond_pCO2_data_summary.csv"))%>%dplyr::select(!Watertemp_c)
 CO2_summary$Date <- as.Date(CO2_summary$Date,format="%Y-%m-%d")
 
-predictor_variables <- read.csv(here::here("PondPaper_Revised/predictor_variables_df.csv"))
+predictor_variables <- read.csv(here::here("data/predictor_variables_df.csv"))%>%
+  dplyr::select(Site,Date,surface_area_m2)
 predictor_variables$Date <- as.Date(predictor_variables$Date,format="%Y-%m-%d")
 
 df_merge <- full_join(CO2_summary,CH4_summary,by=c("Site","Date"))
@@ -29,7 +29,7 @@ df_merge$Study.Years <- 2022
 df_merge <- df_merge%>%dplyr::select(Reference,Site,Location,latitude,longitude,Study.Years,CH4_umol.L,CO2_umol.L,Area_ha,Watertemp_c)%>%rename(Site_Name=Site)
 
 #read in Holgerston & Raymond data set
-df_Holg <- read.csv(here::here("PondPaper_Revised/Holgerson_and_Raymond2016_df.csv"))%>%dplyr::select(!X)
+df_Holg <- read.csv(here::here("data/Holgerson_and_Raymond2016_df.csv"))%>%dplyr::select(!X)
 
 df_Holg <- rbind(df_Holg,df_merge)
 df_Holg$CH4_umol.L <- as.numeric(df_Holg$CH4_umol.L)

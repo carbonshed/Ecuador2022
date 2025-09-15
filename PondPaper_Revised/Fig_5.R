@@ -4,8 +4,9 @@ library(dplyr)
 library(ggplot2)
 library(ggpubr)
 library(ggbreak)
+library(cowplot)
 
-modeled_GHG_df <- read.csv(here::here("PondPaper_Revised/Modeled_flux_df.csv"))
+modeled_GHG_df <- read.csv(here::here("data/Modeled_flux_df.csv"))
 modeled_GHG_df$DateTime <- as.POSIXct(modeled_GHG_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 
 modeled_GHG_sum_df <- modeled_GHG_df %>%

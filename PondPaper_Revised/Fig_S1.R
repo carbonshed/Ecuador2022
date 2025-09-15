@@ -6,13 +6,13 @@ library(dplyr)
 library(ggplot2)
 
 #read in data
-WL_df <- read.csv(here::here("PondPaper_Revised/Pond_continuous_data.csv"))
+WL_df <- read.csv(here::here("data/Pond_continuous_data.csv"))
 #we don't have depth for Site but we can use water level to plot
 WL_df[WL_df$Site=="Wetland",]$depth_ave_m <- WL_df[WL_df$Site=="Wetland",]$WaterLevel_m
 WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 
 #read in elevation data to merge with WL
-df <- read.csv(here::here("PondPaper_Revised/predictor_variables_df.csv"))%>%dplyr::select(Site,Date, Elevation_m)
+df <- read.csv(here::here("data/predictor_variables_df.csv"))%>%dplyr::select(Site,Date, Elevation_m)
 df <- unique(df)
 
 #summarize data

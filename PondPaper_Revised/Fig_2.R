@@ -6,11 +6,11 @@ library(ggplot2)
 library(ggpubr)
 
 #read in CH4 data
-CH4_summary <- read.csv(here::here("PondPaper_Revised/Pond_pCH4_data_summary.csv"))
+CH4_summary <- read.csv(here::here("data/Pond_pCH4_data_summary.csv"))
 CH4_summary$Date <- as.Date(CH4_summary$Date,format="%Y-%m-%d")
 
 #read in CO2 data
-CO2_summary <- read.csv(here::here("PondPaper_Revised/Pond_pCO2_data_summary.csv"))
+CO2_summary <- read.csv(here::here("data/Pond_pCO2_data_summary.csv"))
 CO2_summary$Date <- as.Date(CO2_summary$Date,format="%Y-%m-%d")
 CO2_summary <- CO2_summary %>% mutate(pCO2_w_uatm_sd = ifelse(is.na(pCO2_w_uatm_sd), 0, pCO2_w_uatm_sd))
 

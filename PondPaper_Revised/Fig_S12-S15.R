@@ -4,7 +4,7 @@ library(dplyr)
 library(ggplot2)
 library(ggpubr)
 
-modeled_GHG_df <- read.csv(here::here("PondPaper_Revised/Modeled_flux_df.csv"))
+modeled_GHG_df <- read.csv(here::here("data/Modeled_flux_df.csv"))
 modeled_GHG_df$DateTime <- as.POSIXct(modeled_GHG_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 
 ####

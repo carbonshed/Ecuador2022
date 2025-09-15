@@ -5,13 +5,13 @@ library(dplyr)
 library(ggplot2)
 library(cowplot)
 
-precip_summary <- read.csv(here::here("PondPaper_Revised/PrecipitationData.csv"))
+precip_summary <- read.csv(here::here("data/PrecipitationData.csv"))
 precip_summary$Date <- as.Date(precip_summary$Date,format="%Y-%m-%d")
 
-WL_df <- read.csv(here::here("PondPaper_Revised/Pond_continuous_data.csv"))%>%dplyr::select("DateTime","Site","WaterTemp_c","AirTemp_c")#%>%rename(Site=Station,AirTemp=BaroTemp_c)
+WL_df <- read.csv(here::here("data/Pond_continuous_data.csv"))%>%dplyr::select("DateTime","Site","WaterTemp_c","AirTemp_c")#%>%rename(Site=Station,AirTemp=BaroTemp_c)
 WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 
-df1 <- read.csv(here::here("PondPaper_Revised/Pond_discrete_data.csv"))
+df1 <- read.csv(here::here("data/predictor_variables_df.csv"))
 
 gmc <- df1 %>%
   group_by(Site,Elevation_m) %>%

@@ -3,7 +3,7 @@ library(here)
 library(dplyr)
 library(ggplot2)
 
-k_df <- read.csv(here::here("PondPaper_Revised/Pond_discrete_data.csv"))
+k_df <- read.csv(here::here("data/Pond_discrete_data.csv"))
 k_df$Date <- as.Date(k_df$Date,format="%Y-%m-%d")
 
 k_df_summer <- k_df%>%filter(Date<"2022-10-01")
@@ -13,6 +13,7 @@ CO2_air_max <- max(k_df_summer$pCO2_air_uatm,na.rm = TRUE)
 CO2_air_min <- min(k_df_summer$pCO2_air_uatm,na.rm = TRUE)
 CO2_air_ave <- mean(k_df_summer$pCO2_air_uatm,na.rm = TRUE)
 
+#plot
 p1 <- ggplot(k_df_summer%>%filter(K600_m_d>0) 
              %>%drop_na(Flux_CO2_mol_m2_d),aes(x=pCO2_w_uatm,y=Flux_CO2_mol_m2_d)) + geom_point(aes(fill=Site),shape=21,size=3) +  
   geom_smooth(method='lm', color='black') + #guides(fill=guide_legend(title=expression(paste(italic('k')[600]," (m ", d^-1,")"))))+

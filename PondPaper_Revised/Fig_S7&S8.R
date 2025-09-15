@@ -1,17 +1,17 @@
 #Supplimentary Figure 7 and 8
 
 #ch4 
-df_CH4_full <- read.csv(here::here("PondPaper_Revised/Pond_pCH4_data.csv"))
+df_CH4_full <- read.csv(here::here("data/Pond_pCH4_data.csv"))
 df_CH4_full$Date <- as.Date(df_CH4_full$Date,format="%Y-%m-%d")
 df_CH4_full$Date_2 <-format(df_CH4_full$Date, "%m-%d")
 
 #co2
-df_CO2_full <- read.csv(here::here("PondPaper_Revised/Pond_pCO2_data.csv"))%>%drop_na(Date)%>%drop_na(pCO2_w_uatm)
+df_CO2_full <- read.csv(here::here("data/Pond_pCO2_data.csv"))%>%drop_na(Date)%>%drop_na(pCO2_w_uatm)
 df_CO2_full$Date <- as.Date(df_CO2_full$Date,format="%Y-%m-%d")
 df_CO2_full$Date_2 <-format(df_CO2_full$Date, "%m-%d")
 
 #add letters of significance
-sig_letters <- read.csv(here::here("PondPaper_Revised/signifacantLetters_df.csv"))
+sig_letters <- read.csv(here::here("data/signifacantLetters_df.csv"))
 sig_letters$Date <- as.Date(sig_letters$Date,format="%m/%d/%y")
 
 sig_letters_ch4 <- full_join(df_CH4_full%>%dplyr::select(Site,Date,Date_2,pCH4_w_uatm),sig_letters,by=c("Site","Date"))

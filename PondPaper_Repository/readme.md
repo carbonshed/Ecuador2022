@@ -1,14 +1,14 @@
-# Water Temperature and Catchment Characteristics Drive Variance in Greenhouse Gas Emissions from Small Ponds in a Peatland-Rich, High-Altitude Tropical Ecosystem
+# Water Temperature and Catchment Characteristics Drive Variation in Carbon Dioxide and Methane Emissions from Small Ponds in a Peatland-Rich, High-Altitude Tropical Ecosystem
 
 ### Keridwen M. Whitmore, Amanda Gay Delvecchia, Dani Zarate, Martina Bautista, Kayla Emerson, Amy Madrigal,  Esteban Suárez, and Diego A. Riveros-Iregui
 
 
-This repository serves to host data and analyses used in the research supporting the work in *Water Temperature and Catchment Characteristics Drive Variance in Greenhouse Gas Emissions from Small Ponds in a Peatland-Rich, High-Altitude Tropical Ecosystem*
+This repository serves to host data and analyses used in the research supporting the work in *Water Temperature and Catchment Characteristics Drive Variation in Carbon Dioxide and Methane Emissions from Small Ponds in a Peatland-Rich, High-Altitude Tropical Ecosystem*
 
 ## Purpose
 To provide access to the data and make analyses reproducible for others. All scripts and data files for creating our figures using R statistical software are provided within this repository.
 
-## Guide to File Names 
+## Guide to File contents 
 
 ### Rmarkdown
 

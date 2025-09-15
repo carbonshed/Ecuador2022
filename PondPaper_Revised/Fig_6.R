@@ -5,7 +5,7 @@ library(dplyr)
 library(ggplot2)
 
 #read in data
-WL_df <- read.csv(here::here("PondPaper_Revised/Pond_continuous_data.csv"))
+WL_df <- read.csv(here::here("data/Pond_continuous_data.csv"))
 WL_df$DateTime <- as.POSIXct(WL_df$DateTime,format="%Y-%m-%d %H:%M:%S",tz="UTC")
 WL_df$Date <- as.Date(WL_df$DateTime,format="%Y-%m-%d")
 

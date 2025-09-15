@@ -4,19 +4,19 @@ library(dplyr)
 library(ggplot2)
 library(ggpubr)
 
-k_df <- read.csv(here::here("PondPaper_Revised/Pond_discrete_data.csv"))
+k_df <- read.csv(here::here("data/Pond_discrete_data.csv"))
 k_df$Date <- as.Date(k_df$Date,format="%Y-%m-%d")
 k_df_summer <- k_df%>%filter(Date<"2022-10-01")
 k_df_summer_positvevalues <- k_df%>%filter(Date<"2022-10-01")%>%filter(k_CO2_m_d>0)
 
-predictor_variables <- read.csv(here::here("PondPaper_Revised/predictor_variables_df.csv"))
+predictor_variables <- read.csv(here::here("data/predictor_variables_df.csv"))
 predictor_variables$Date <- as.Date(predictor_variables$Date,format="%Y-%m-%d")
 predictor_variables <- unique(predictor_variables)
 
 k_df_summer_positvevalues <- left_join(k_df_summer_positvevalues,predictor_variables,by=c("Site","Date"))
 
 
-#plot failed predictors of k
+#plot 
 
 p2.1 <- ggplot(k_df_summer_positvevalues%>%drop_na(K600_m_d)) + geom_point(
   aes(x=surface_area_m2,y=K600_m_d),fill="#31a354",
