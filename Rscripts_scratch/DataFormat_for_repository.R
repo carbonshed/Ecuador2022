@@ -51,8 +51,13 @@ df$X <- NULL
 #write.csv(df,here::here("PondPaper_Revised/Pond_discrete_data.csv"))
 
 #preditor variables
+df_merge <- df%>%dplyr::select(Site,Date,Watertemp_c)
 predictor_variables <- read.csv(here::here("ProcessedData/predictor_variables_July2.csv"))%>%rename(Site=New.Name,WaterTemp_c_yearly=waterTemp_c_yearly)
 predictor_variables$X <- NULL
+predictor_variables <- left_join(predictor_variables,df_merge,by=c("Date","Site"))
+predictor_variables <- predictor_variables%>%dplyr::select(
+  Site,Date,DOC_mg.L,TDN_mg.L,Elevation_m,AirTemp_c,Watertemp_c,WaterTemp_c_ave3,WaterTemp_c_yearly,depth_ave_m,WaterLevel_m,surface_area_m2,Volumn_m3,SA_to_Vol_ratio,WS_area_minus_pond,percentpond,percent_DTW,PrecipAccuDay_mm,PrecipAccu_mm_PreviousDay,precip_mm_ave2,Precip_mm_ave7,solarrad_W_m2,solarrad_Wm2_daymean,windspeed_m_s,winddirecion
+)
 #write.csv(predictor_variables,here::here("PondPaper_Revised/predictor_variables_df.csv"))
 
 

@@ -1490,6 +1490,7 @@ scale_y_continuous(breaks = breaks_pretty())+
   theme_bw(base_size = 14) +
  theme(axis.text.x=element_blank(),
    axis.ticks.x=element_blank()) 
+
 ```
 
 #supp fig: saturation relationship between pressure and gas saturation
