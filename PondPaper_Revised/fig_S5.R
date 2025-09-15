@@ -3,7 +3,7 @@ library(here)
 library(dplyr)
 library(ggplot2)
 
-df <- read.csv(here::here("PondPaper_Revised/predictor_variables_df.csv"))%>%dplyr::select(Site,Elevation_m,percent_DTW,DOC_mg.L,TDN_mg.L)
+df <- read.csv(here::here("data/predictor_variables_df.csv"))%>%dplyr::select(Site,Elevation_m,percent_DTW,DOC_mg.L,TDN_mg.L)
 df <- unique(df)
 
 p3 <- ggplot(data=df) +
